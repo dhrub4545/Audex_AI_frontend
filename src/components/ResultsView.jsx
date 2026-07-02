@@ -1135,7 +1135,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     {/* Left: Current Model / Subscription */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: '200px' }}>
                       {(() => {
-                        const logoSource = choice === 'subscription'
+                        const logoSource = alloc?.type === 'subscription'
                           ? (alloc?.toolName || '')
                           : (baseline.creator || baseline.name || alloc?.toolName || '');
                         const logo = getProviderLogo(logoSource);
@@ -1145,23 +1145,23 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           </div>
                         ) : (
                           <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E293B', borderRadius: '8px', fontSize: '16px', flexShrink: 0 }}>
-                            {choice === 'subscription' ? '💳' : '🤖'}
+                            {alloc?.type === 'subscription' ? '💳' : '🤖'}
                           </div>
                         );
                       })()}
                       <div>
                         <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                          {choice === 'subscription' ? 'Current Subscription' : 'Current Model'}
+                          {alloc?.type === 'subscription' ? 'Current Subscription' : 'Current Model'}
                         </div>
                         <div style={{ fontSize: '16px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>
-                          {choice === 'subscription'
+                          {alloc?.type === 'subscription'
                             ? `${alloc?.toolName || ''} ${alloc?.plan || 'Free'}`
                             : baseline.name}
                         </div>
                         <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
-                          Provider: {choice === 'subscription' ? (alloc?.toolName || 'Unknown') : (baseline.creator || 'Unknown')}
+                          Provider: {alloc?.type === 'subscription' ? (alloc?.toolName || 'Unknown') : (baseline.creator || 'Unknown')}
                         </div>
-                        {choice === 'subscription' && alloc?.baselineModels && alloc.baselineModels.length > 0 && (
+                        {alloc?.type === 'subscription' && alloc?.baselineModels && alloc.baselineModels.length > 0 && (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
                             {alloc.baselineModels.slice(0, 3).map((m, idx) => (
                               <span key={idx} style={{ fontSize: '9.5px', fontWeight: '750', color: '#94A3B8', backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>
