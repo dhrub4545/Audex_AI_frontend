@@ -203,13 +203,15 @@ export default function WizardFlow({
             <span className="wizard-step-dot">2</span>
             <span className="wizard-step-line"></span>
             <span className="wizard-step-dot">3</span>
+            <span className="wizard-step-line"></span>
+            <span className="wizard-step-dot">4</span>
           </div>
           <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close">✕</a>
         </div>
       </header>
-
+      
       <main className="main-content wizard-body">
-        <div className="wizard-progress-meta">✦ Step 1 of 3 - 33% Complete</div>
+        <div className="wizard-progress-meta">✦ Step 1 of 4 - 25% Complete</div>
         <h2 className="wizard-title">Which AI tools does your team use?</h2>
         <p className="wizard-desc">Select active subscriptions and direct API access nodes currently in use.</p>
 
@@ -362,13 +364,15 @@ export default function WizardFlow({
             <span className="wizard-step-dot active">2</span>
             <span className="wizard-step-line"></span>
             <span className="wizard-step-dot">3</span>
+            <span className="wizard-step-line"></span>
+            <span className="wizard-step-dot">4</span>
           </div>
           <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close">✕</a>
         </div>
       </header>
 
       <main className="main-content wizard-body">
-        <div className="wizard-progress-meta">✦ Step 2 of 3 - 67% Complete</div>
+        <div className="wizard-progress-meta">✦ Step 2 of 4 - 50% Complete</div>
         <h2 className="wizard-title">Configure your allocations</h2>
         <p className="wizard-desc">Set plans, workloads, and primary team roles for each active tool or API access.</p>
 
@@ -600,13 +604,15 @@ export default function WizardFlow({
               <span className="wizard-step-dot completed">✓</span>
               <span className="wizard-step-line completed"></span>
               <span className="wizard-step-dot active">3</span>
+              <span className="wizard-step-line"></span>
+              <span className="wizard-step-dot">4</span>
             </div>
             <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close">✕</a>
           </div>
         </header>
 
         <main className="main-content wizard-body">
-          <div className="wizard-progress-meta">✦ Step 3 of 3 - 100% Complete</div>
+          <div className="wizard-progress-meta">✦ Step 3 of 4 - 75% Complete</div>
           <h2 className="wizard-title">Select Optimization Target</h2>
           <p className="wizard-desc">Configure your cost-saving thresholds and quality limits for the spend engine audit.</p>
 

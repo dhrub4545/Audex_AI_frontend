@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingView from './components/LandingView';
@@ -10,11 +10,11 @@ import { LoadingIndicator, PurchaseSuccessModal } from './components/CommonCompo
 import ModelAuditorView from './components/ModelAuditorView';
 import MarketIntelView from './components/MarketIntelView';
 import ComparisonView from './components/ComparisonView';
+import ActionPlanView from './components/ActionPlanView';
 
 const INITIAL_TOOLS = [
-  { id: 'Cursor', name: 'Cursor', desc: 'AI code editor', icon: '💻', type: 'subscription', plans: ['Free', 'Pro', 'Pro+', 'Ultra'], defaultPlan: 'Pro', defaultSeats: 5 },
   { id: 'GitHub Copilot', name: 'GitHub Copilot', desc: 'GitHub AI assistant', icon: '🤖', type: 'subscription', plans: ['Copilot Free', 'Copilot Pro', 'Copilot Pro+'], defaultPlan: 'Copilot Pro', defaultSeats: 5 },
-  { id: 'Claude', name: 'Claude', desc: 'Anthropic assistant', icon: '🟧', type: 'subscription', plans: ['Free', 'Claude Pro', 'Claude Max 5x', 'Claude Max 20x', 'Team'], defaultPlan: 'Claude Pro', defaultSeats: 4 },
+  { id: 'Claude', name: 'Claude', desc: 'Anthropic assistant', icon: '🟧', type: 'subscription', plans: ['Free', 'Claude Pro', 'Claude Max 5x', 'Claude Max 20x', 'Team Standard', 'Team Premium', 'Enterprise'], defaultPlan: 'Claude Pro', defaultSeats: 4 },
   { id: 'ChatGPT', name: 'ChatGPT', desc: 'OpenAI ChatGPT', icon: '🟢', type: 'subscription', plans: ['Free', 'ChatGPT Go', 'ChatGPT Plus', 'ChatGPT Pro', 'Business'], defaultPlan: 'ChatGPT Plus', defaultSeats: 1 },
   { id: 'Gemini', name: 'Gemini', desc: 'Google\'s AI model', icon: '🔷', type: 'subscription', plans: ['Free', 'AI Plus', 'AI Pro', 'AI Ultra'], defaultPlan: 'Free', defaultSeats: 1 },
   { id: 'Windsurf', name: 'Windsurf', desc: 'AI-powered IDE', icon: '⛵', type: 'subscription', plans: ['Free', 'Pro'], defaultPlan: 'Pro', defaultSeats: 1 },
@@ -37,14 +37,46 @@ const BACKEND_URL = 'http://localhost:5000/api';
 export default function App() {
   // Navigation: 'landing', 'step1', 'step2', 'step3', 'loading', 'results', 'history', 'signin', 'signup'
   const [currentView, setCurrentView] = useState('landing');
+
+  useEffect(() => {
+    const fetchSubscriptionTiers = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/audits/subscription-tiers/list`);
+        if (response.ok) {
+          const dynamicTools = await response.json();
+          if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
+            setTools(dynamicTools);
+            
+            // Default select the first 3 tools
+            const initialSelected = dynamicTools.slice(0, 3).map(t => t.id);
+            setSelectedToolIds(initialSelected);
+            
+            // Set initial config for the loaded tools
+            const initialConfigs = {};
+            dynamicTools.forEach(t => {
+              initialConfigs[t.id] = [{
+                id: (Date.now() + Math.random()).toString(),
+                plan: t.defaultPlan || 'Free',
+                seats: t.defaultSeats || 1,
+                purpose: (t.id === 'GitHub Copilot' || t.id === 'Cursor' || t.id === 'Windsurf') ? 'Coding' : 'Mixed'
+              }];
+            });
+            setToolConfigs(initialConfigs);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch dynamic subscription tiers from backend:', err);
+      }
+    };
+    fetchSubscriptionTiers();
+  }, []);
   
   // State for search and custom tools
   const [tools, setTools] = useState(INITIAL_TOOLS);
   
   // Wizard choices
-  const [selectedToolIds, setSelectedToolIds] = useState(['Cursor', 'GitHub Copilot', 'Claude', 'Gemini']);
+  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude', 'Gemini']);
   const [toolConfigs, setToolConfigs] = useState({
-    'Cursor': [{ id: 'c1', plan: 'Pro', seats: 5, purpose: 'Coding' }],
     'GitHub Copilot': [{ id: 'g1', plan: 'Copilot Pro', seats: 5, purpose: 'Coding' }],
     'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }],
     'Gemini': [{ id: 'gem1', plan: 'Free', seats: 1, purpose: 'Research' }]
@@ -53,6 +85,7 @@ export default function App() {
   const [useCase, setUseCase] = useState('Coding');
   const [optimizationGoal, setOptimizationGoal] = useState('performance');
   const [costCutPercentage, setCostCutPercentage] = useState(50);
+  const [selectedOptions, setSelectedOptions] = useState({});
 
   // Credit / Pricing State
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
@@ -278,9 +311,18 @@ export default function App() {
         localStorage.setItem('audex_user', JSON.stringify(updatedUser));
       }
 
+      // Pre-select options for Step 4
+      const initialChoices = {};
+      (data.savings?.recommendations || []).forEach((rec, idx) => {
+        const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
+        const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
+        initialChoices[idx] = apiSav >= subSav ? 'api' : 'subscription';
+      });
+      setSelectedOptions(initialChoices);
+
       // Scanner animation delay
       setTimeout(() => {
-        setCurrentView('results');
+        setCurrentView('step4');
       }, 1200);
     } catch (err) {
       console.error(err);
@@ -469,9 +511,20 @@ export default function App() {
         return (
           <ResultsView 
             auditResult={auditResult}
+            selectedOptions={selectedOptions}
             onNavigateToView={(view) => setCurrentView(view)}
             user={user}
             renderCoinDropdown={renderCoinDropdown}
+          />
+        );
+
+      case 'step4':
+        return (
+          <ActionPlanView 
+            auditResult={auditResult}
+            selectedOptions={selectedOptions}
+            setSelectedOptions={setSelectedOptions}
+            onNavigateToView={(view) => setCurrentView(view)}
           />
         );
 
