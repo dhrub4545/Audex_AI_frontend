@@ -627,6 +627,7 @@ export default function ActionPlanView({
                           {/* Transition Visual Block */}
                           {(() => {
                             const sugApiModel = rec.apiOption.recommendedModel || rec.apiOption.name || '';
+                            const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
                             const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                             const cleanSugModelName = sugApiModel.toLowerCase().replace(/[^a-z0-9]/g, '');
                             const isSameApi = details.type === 'api' && 
@@ -752,7 +753,6 @@ export default function ActionPlanView({
                                 {/* Right Side: Suggested */}
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
                                   {(() => {
-                                    const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
                                     const logo = getProviderLogo(sugProvider || sugApiModel);
                                     return logo ? (
                                       <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
