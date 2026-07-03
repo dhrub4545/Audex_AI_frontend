@@ -365,7 +365,7 @@ export default function App() {
     }
   };
 
-  const loadPastAuditDetail = async (id) => {
+  const loadPastAuditDetail = async (id, targetView = 'results') => {
     setCurrentView('loading');
     try {
       const response = await fetch(`${BACKEND_URL}/audits/${id}`, {
@@ -378,7 +378,19 @@ export default function App() {
       }
       const data = await response.json();
       setAuditResult(data);
-      setCurrentView('results');
+      
+      if (data.selectedOptions && Object.keys(data.selectedOptions).length > 0) {
+        setSelectedOptions(data.selectedOptions);
+      } else {
+        const initialChoices = {};
+        const recs = data.savings?.recommendations || [];
+        recs.forEach((rec, idx) => {
+          initialChoices[idx] = 'api';
+        });
+        setSelectedOptions(initialChoices);
+      }
+      
+      setCurrentView(targetView);
     } catch (err) {
       console.error(err);
       setApiError(err.message);
@@ -524,7 +536,56 @@ export default function App() {
             auditResult={auditResult}
             selectedOptions={selectedOptions}
             setSelectedOptions={setSelectedOptions}
-            onNavigateToView={(view) => setCurrentView(view)}
+            onNavigateToView={(view) => {
+              if (view === 'results' && auditResult?._id && token) {
+                // Persist choices to MongoDB
+                fetch(`${BACKEND_URL}/audits/${auditResult._id}/options`, {
+                  method: 'PUT',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                  },
+                  body: JSON.stringify({ selectedOptions })
+                }).catch(err => console.error('Failed to save selected options:', err));
+              }
+              setCurrentView(view);
+            }}
+          />
+        );
+
+      case 'saved_plan':
+        return (
+          <ResultsView 
+            auditResult={auditResult}
+            selectedOptions={selectedOptions}
+            onNavigateToView={(view) => {
+              if (view === 'history') {
+                fetchPastAudits();
+              }
+              setCurrentView(view);
+            }}
+            user={user}
+            renderCoinDropdown={renderCoinDropdown}
+            initialView="plan"
+            fromHistory={true}
+          />
+        );
+
+      case 'saved_report':
+        return (
+          <ResultsView 
+            auditResult={auditResult}
+            selectedOptions={selectedOptions}
+            onNavigateToView={(view) => {
+              if (view === 'history') {
+                fetchPastAudits();
+              }
+              setCurrentView(view);
+            }}
+            user={user}
+            renderCoinDropdown={renderCoinDropdown}
+            initialView="detailed"
+            fromHistory={true}
           />
         );
 

@@ -59,10 +59,10 @@ export default function HistoryView({
           ) : (
             <div className="history-grid">
               {pastAudits.map((audit) => (
-                <div key={audit._id} className="history-card" onClick={() => onLoadPastAuditDetail(audit._id)}>
+                <div key={audit._id} className="history-card" style={{ cursor: 'default' }}>
                   <div className="history-card-header">
                     <div>
-                      <span className="history-card-date">
+                      <span className="history-card-date" style={{ fontWeight: '600' }}>
                         {new Date(audit.createdAt).toLocaleDateString(undefined, {
                           year: 'numeric',
                           month: 'long',
@@ -72,17 +72,77 @@ export default function HistoryView({
                         })}
                       </span>
                     </div>
-                    <span className="history-card-savings">
-                      -${audit.savings.totalMonthly.toLocaleString()}/mo
+                    <span className="history-card-savings" style={{ color: '#10B981', fontSize: '18px' }}>
+                      +${(audit.savings?.totalMonthly || 0).toLocaleString()}/mo
                     </span>
                   </div>
-                  <div className="history-card-meta">
-                    <div>👥 Team: <strong>{audit.teamSize}</strong></div>
-                    <div>💼 Case: <strong>{audit.useCase}</strong></div>
-                    <div>🛠 Tools: <strong>{audit.selectedTools.length}</strong></div>
+                  <div className="history-card-meta" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>👥 Team Size:</span>
+                      <strong>{audit.teamSize} seats</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>💼 Use Case:</span>
+                      <strong>{audit.useCase}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span>🛠 Active Tools:</span>
+                      <strong>{audit.allocations?.length || 0} tools</strong>
+                    </div>
                   </div>
-                  <div style={{ marginTop: '16px', fontSize: '11px', color: 'var(--color-text-muted)', textAlign: 'right' }}>
-                    Click to view details →
+                  
+                  <div style={{ 
+                    borderTop: '1px dashed var(--color-border)', 
+                    paddingTop: '14px', 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: '8px' 
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '2px' }}>
+                      🔍 View Saved Report:
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                      <button 
+                        onClick={() => onLoadPastAuditDetail(audit._id, 'saved_plan')}
+                        className="btn btn-outline"
+                        style={{ 
+                          fontSize: '11px', 
+                          padding: '8px 10px', 
+                          height: 'auto', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          gap: '6px',
+                          borderColor: '#3B82F6',
+                          color: '#2563EB',
+                          backgroundColor: '#F0F9FF',
+                          fontWeight: '800',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📋 Final Plan
+                      </button>
+                      <button 
+                        onClick={() => onLoadPastAuditDetail(audit._id, 'saved_report')}
+                        className="btn btn-outline"
+                        style={{ 
+                          fontSize: '11px', 
+                          padding: '8px 10px', 
+                          height: 'auto', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          gap: '6px',
+                          borderColor: '#10B981',
+                          color: '#059669',
+                          backgroundColor: '#F0FDF4',
+                          fontWeight: '800',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        📊 Detailed Report
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

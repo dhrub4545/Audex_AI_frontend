@@ -23,6 +23,180 @@ const getProviderLogo = (name) => {
   return null;
 };
 
+const parseRecDetails = (rec) => {
+  if (rec.originalAlloc) {
+    return {
+      seats: rec.originalAlloc.seats || 1,
+      purpose: rec.originalAlloc.purpose || 'Mixed',
+      toolName: rec.originalAlloc.toolName,
+      plan: rec.originalAlloc.plan,
+      type: rec.originalAlloc.type || 'subscription',
+      currentCost: rec.originalAlloc.currentCost || 0,
+      provider: rec.originalAlloc.provider || 'OpenAI',
+      modelName: rec.originalAlloc.modelName || 'GPT-4o'
+    };
+  }
+
+  // Fallback parsing from tool and issue strings
+  let type = 'subscription';
+  if (rec.tool && rec.tool.toLowerCase().includes('api')) {
+    type = 'api';
+  }
+
+  // Parse seats
+  let seats = 1;
+  const seatMatch = rec.tool ? rec.tool.match(/(\d+)\s*seats?/i) : null;
+  if (seatMatch) {
+    seats = parseInt(seatMatch[1], 10);
+  } else {
+    const userMatch = rec.issue ? rec.issue.match(/(\d+)\s*active/i) : null;
+    if (userMatch) {
+      seats = parseInt(userMatch[1], 10);
+    }
+  }
+
+  // Parse purpose
+  let purpose = 'Mixed';
+  if (rec.issue) {
+    if (rec.issue.toLowerCase().includes('coding')) purpose = 'Coding';
+    else if (rec.issue.toLowerCase().includes('writing')) purpose = 'Writing';
+    else if (rec.issue.toLowerCase().includes('research')) purpose = 'Research';
+    else if (rec.issue.toLowerCase().includes('math')) purpose = 'Math';
+  }
+
+  // Parse current cost
+  let currentCost = 0;
+  if (rec.issue) {
+    const costMatch = rec.issue.match(/Paying\s*\$([\d,.]+)/i);
+    if (costMatch) {
+      currentCost = parseFloat(costMatch[1].replace(/,/g, ''));
+    }
+  }
+
+  // Parse provider and tool name
+  let toolName = 'ChatGPT';
+  let provider = 'OpenAI';
+  if (rec.tool) {
+    const cleanTool = rec.tool.split('(')[0].trim();
+    toolName = cleanTool;
+    if (cleanTool.toLowerCase().includes('chatgpt') || cleanTool.toLowerCase().includes('openai')) {
+      provider = 'OpenAI';
+    } else if (cleanTool.toLowerCase().includes('claude') || cleanTool.toLowerCase().includes('anthropic')) {
+      provider = 'Anthropic';
+    } else if (cleanTool.toLowerCase().includes('gemini') || cleanTool.toLowerCase().includes('google')) {
+      provider = 'Google';
+    } else if (cleanTool.toLowerCase().includes('github') || cleanTool.toLowerCase().includes('copilot')) {
+      provider = 'GitHub';
+    } else if (cleanTool.toLowerCase().includes('cursor')) {
+      provider = 'Cursor';
+    } else if (cleanTool.toLowerCase().includes('windsurf')) {
+      provider = 'Windsurf';
+    }
+  }
+
+  // Parse current model name or plan
+  let modelName = type === 'subscription' ? 'ChatGPT Plus' : 'GPT-4o';
+  if (rec.tool) {
+    const planMatch = rec.tool.match(/\(([^)]+)\)/);
+    if (planMatch) {
+      modelName = planMatch[1].split('Subscription')[0].trim();
+    }
+  }
+
+  return {
+    seats,
+    purpose,
+    toolName,
+    type,
+    currentCost,
+    provider,
+    modelName
+  };
+};
+
+const getFullSubscriptionOrModelName = (details) => {
+  if (details.type === 'subscription') {
+    const tool = details.toolName || '';
+    const plan = details.plan || '';
+    if (!plan || plan.toLowerCase() === 'subscription' || plan.toLowerCase() === 'free') {
+      return tool;
+    }
+    if (plan.toLowerCase().includes(tool.toLowerCase())) {
+      return plan;
+    }
+    if (tool.toLowerCase().includes(plan.toLowerCase())) {
+      return tool;
+    }
+    return `${tool} ${plan}`.trim();
+  } else {
+    const tool = details.toolName || '';
+    const model = details.modelName || '';
+    if (model.toLowerCase().includes(tool.toLowerCase())) {
+      return model;
+    }
+    return `${tool} ${model}`.trim();
+  }
+};
+
+const normalizeUiChoiceLabel = (value) => String(value || '')
+  .toLowerCase()
+  .replace(/\([^)]*\)/g, ' ')
+  .replace(/[^a-z0-9]+/g, ' ')
+  .trim();
+
+const compactUiChoiceLabel = (value) => normalizeUiChoiceLabel(value).replace(/[^a-z0-9]/g, '');
+
+const stripLeadingUiContext = (value, contextNames = []) => {
+  let label = normalizeUiChoiceLabel(value);
+  const prefixes = contextNames
+    .map(normalizeUiChoiceLabel)
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length);
+
+  for (const prefix of prefixes) {
+    if (label === prefix) return '';
+    if (label.startsWith(`${prefix} `)) {
+      return label.slice(prefix.length).trim();
+    }
+  }
+
+  return label;
+};
+
+const hasSharedUiContext = (currentContext = [], suggestedContext = []) => (
+  currentContext.some((currentItem) => {
+    const currentLabel = compactUiChoiceLabel(currentItem);
+    if (currentLabel.length < 3) return false;
+
+    return suggestedContext.some((suggestedItem) => {
+      const suggestedLabel = compactUiChoiceLabel(suggestedItem);
+      if (suggestedLabel.length < 3) return false;
+      return currentLabel === suggestedLabel ||
+        currentLabel.includes(suggestedLabel) ||
+        suggestedLabel.includes(currentLabel);
+    });
+  })
+);
+
+const uiChoiceLabelsMatch = (currentValue, suggestedValue, currentContext = [], suggestedContext = []) => {
+  const currentRaw = compactUiChoiceLabel(currentValue);
+  const suggestedRaw = compactUiChoiceLabel(suggestedValue);
+
+  if (!currentRaw || !suggestedRaw) return false;
+  if (currentRaw === suggestedRaw) return true;
+
+  const currentStripped = compactUiChoiceLabel(stripLeadingUiContext(currentValue, currentContext));
+  const suggestedStripped = compactUiChoiceLabel(stripLeadingUiContext(suggestedValue, suggestedContext));
+
+  if (currentStripped && currentStripped === suggestedRaw) return true;
+  if (suggestedStripped && currentRaw === suggestedStripped) return true;
+
+  return Boolean(hasSharedUiContext(currentContext, suggestedContext) &&
+    currentStripped &&
+    currentStripped === suggestedStripped);
+};
+
+
 const CATEGORIES = [
   { name: 'Coding', sub: 'SWE-Bench', icon: '💻', color: '#10B981', bg: '#D1FAE5', key: 'coding' },
   { name: 'Reasoning', sub: 'GPQA Diamond', icon: '🧠', color: '#EC4899', bg: '#FCE7F3', key: 'reasoning' },
@@ -237,18 +411,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
   if (!llms || llms.length === 0) return { baseline: null, recommended: null };
 
   const alloc = auditResult.allocations?.[idx];
-  let baselineId = '';
-  if (alloc) {
-    if (alloc.baselineModelId) {
-      baselineId = alloc.baselineModelId;
-    } else if (alloc.type === 'api') {
-      baselineId = alloc.modelId;
-    } else {
-      baselineId = getSubscriptionBaselineModelId(alloc.toolName, alloc.plan);
-    }
-  } else {
-    baselineId = 'openai/gpt-4o';
-  }
+  const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
 
   const mapModelIdToEloSlug = (idOrName) => {
     if (!idOrName) return '';
@@ -263,6 +426,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
          .replace(/[\s._]+/g, '-'); // replace spaces, dots, underscores with hyphens
     
     // Check key prefixes to align with market intelligence data ELO slugs
+    if (s.includes('claude-3-5-sonnet') || s.includes('claude-3.5-sonnet') || s.includes('claude-35-sonnet')) return 'claude-35-sonnet';
     if (s.includes('gpt-4o-mini')) return 'gpt-4o-mini';
     if (s.includes('gpt-4o')) return 'gpt-4o';
     if (s.includes('gpt-5-5')) return 'gpt-5-5';
@@ -282,85 +446,52 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
     return s;
   };
 
-  const findTopModelInList = (modelList) => {
-    if (!modelList || !Array.isArray(modelList) || modelList.length === 0) return null;
-    
-    let bestModelObj = null;
-    let highestIntelligenceIndex = -Infinity;
-
-    for (const modelNameOrId of modelList) {
-      const slug = mapModelIdToEloSlug(modelNameOrId);
-      // Find model in llms
-      let found = llms.find(m => m.slug === slug || m.slug === modelNameOrId || (m.slug && m.slug === slug.split('/')[1]));
-      if (!found) {
-        found = llms.find(m => m.slug && m.slug.includes(slug));
-      }
-      
-      if (found) {
-        const intelIndex = found.intelligence_index !== null ? found.intelligence_index : 0;
-        if (intelIndex > highestIntelligenceIndex) {
-          highestIntelligenceIndex = intelIndex;
-          bestModelObj = found;
-        }
-      }
+  // 1. Determine baseline model name string
+  let baselineNameStr = '';
+  if (alloc) {
+    if (alloc.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0) {
+      baselineNameStr = alloc.baselineModels[0];
+    } else {
+      baselineNameStr = alloc.baselineModelName || alloc.modelId || alloc.plan || '';
     }
+  }
+
+  // 2. Determine recommended model name string
+  let recommendedNameStr = '';
+  if (opt) {
+    if (choice === 'subscription' && opt.includedModels && opt.includedModels.length > 0) {
+      recommendedNameStr = opt.includedModels[0];
+    } else {
+      recommendedNameStr = opt.name || opt.planName || '';
+    }
+  }
+
+  // Helper to find a model object in llms matching a name string
+  const findModelByName = (nameStr) => {
+    if (!nameStr) return null;
+    const slug = mapModelIdToEloSlug(nameStr);
     
-    return bestModelObj;
+    // Exact or slug match
+    let found = llms.find(m => m.slug === slug || m.slug === nameStr || (m.slug && m.slug === slug.split('/')[1]));
+    if (!found) {
+      found = llms.find(m => m.slug && m.slug.includes(slug));
+    }
+    if (!found) {
+      // Try direct substring match on name
+      found = llms.find(m => m.name && m.name.toLowerCase().includes(nameStr.toLowerCase()));
+    }
+    return found;
   };
 
-  // Resolve Baseline Model
-  let baselineModel = null;
-  if (alloc && alloc.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0) {
-    baselineModel = findTopModelInList(alloc.baselineModels);
-  }
-
-  if (!baselineModel) {
-    const baseEloSlug = mapModelIdToEloSlug(baselineId);
-    baselineModel = llms.find(m => m.slug === baseEloSlug || m.slug === baselineId || (m.slug && m.slug === baseEloSlug.split('/')[1]));
-    if (!baselineModel) {
-      baselineModel = llms.find(m => m.slug && m.slug.includes(baseEloSlug));
-    }
-  }
-
-  // Resolve Recommended Model
-  let recommendedModel = null;
-  if (choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0) {
-    recommendedModel = findTopModelInList(rec.subscriptionOption.includedModels);
-  }
-
-  if (!recommendedModel) {
-    let recName = '';
-    const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
-    if (opt && opt.modelId) {
-      recName = opt.modelId;
-    } else if (choice === 'api' && rec.apiOption?.modelId) {
-      recName = rec.apiOption.modelId;
-    } else if (rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0) {
-      recName = rec.subscriptionOption.includedModels[0];
-    } else if (rec.subscriptionOption?.planName) {
-      recName = rec.subscriptionOption.planName;
-    }
-
-    const recEloSlug = mapModelIdToEloSlug(recName);
-    recommendedModel = llms.find(m => m.slug === recEloSlug || m.slug === recName || (m.slug && m.slug === recEloSlug.split('/')[1]));
-    if (!recommendedModel) {
-      recommendedModel = llms.find(m => m.slug && m.slug.includes(recEloSlug));
-    }
-  }
-
-  if (!baselineModel) {
-    baselineModel = llms.find(m => m.slug && m.slug.includes('gpt-4o')) || llms[0];
-  }
-  if (!recommendedModel) {
-    recommendedModel = llms.find(m => m.slug && m.slug.includes('gemini-2-5-flash')) || llms[1];
-  }
+  let baselineModel = findModelByName(baselineNameStr);
+  let recommendedModel = findModelByName(recommendedNameStr);
 
   return { baseline: baselineModel, recommended: recommendedModel };
 };
 
-export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown }) {
+export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory }) {
   const [intelData, setIntelData] = useState(null);
-  const [showDetailedReport, setShowDetailedReport] = useState(false);
+  const [showDetailedReport, setShowDetailedReport] = useState(initialView === 'detailed');
 
   useEffect(() => {
     fetch('http://localhost:5000/api/audits/analysis/raw-data')
@@ -497,7 +628,8 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
               </div>
 
-              {/* Detailed Analysis Report Button */}
+              {/* Detailed Analysis Report Button — hidden when viewing from history */}
+              {!fromHistory && (
               <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
                 <button
                   onClick={() => {
@@ -531,6 +663,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   <span>📊</span> View Detailed Analysis Report
                 </button>
               </div>
+              )}
 
               {/* Recommendation list (showing only the chosen options) */}
               <div className="results-recommendations-list">
@@ -541,6 +674,57 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                   const match = rec.issue ? rec.issue.match(/Paying \$([\d,.]+)/) : null;
                   const itemCurrentCost = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
+
+                  const details = parseRecDetails(rec);
+                  const currentDisplayName = details.type === 'subscription' 
+                    ? (() => {
+                        const plan = details.plan || '';
+                        const provider = details.provider || '';
+                        const tool = details.toolName || '';
+                        
+                        if (!plan || plan.toLowerCase() === 'subscription' || plan.toLowerCase() === 'free') {
+                          return tool || provider;
+                        }
+                        
+                        let cleanPlan = plan;
+                        const cleanProviderLower = provider.toLowerCase();
+                        if (cleanPlan.toLowerCase().startsWith(cleanProviderLower)) {
+                          cleanPlan = cleanPlan.substring(provider.length).trim();
+                        }
+                        
+                        const cleanToolLower = tool.toLowerCase();
+                        if (cleanPlan.toLowerCase().startsWith(cleanToolLower)) {
+                          cleanPlan = cleanPlan.substring(tool.length).trim();
+                        }
+                        
+                        return cleanPlan || plan;
+                      })()
+                    : details.modelName;
+
+                  // Suggested model/plan name
+                  const sugModel = choice === 'api' 
+                    ? (opt.recommendedModel || opt.name || 'GPT-5.5 (xhigh)')
+                    : (opt.recommendedModel || opt.planName || 'ChatGPT Plus');
+
+                  // Suggested provider name
+                  const sugProvider = choice === 'api'
+                    ? (opt.recommendedProvider || 'OpenAI')
+                    : (opt.recommendedProvider || details.provider || 'OpenAI');
+
+                  const sugDisplayName = choice === 'subscription'
+                    ? (() => {
+                        const plan = sugModel;
+                        const provider = sugProvider;
+                        
+                        let cleanPlan = plan;
+                        const cleanProviderLower = provider.toLowerCase();
+                        if (cleanPlan.toLowerCase().startsWith(cleanProviderLower)) {
+                          cleanPlan = cleanPlan.substring(provider.length).trim();
+                        }
+                        return cleanPlan || plan;
+                      })()
+                    : sugModel;
+
 
                   return (
                     <div key={idx} className="rec-card" style={{
@@ -593,6 +777,163 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       <p style={{ fontSize: '13.5px', color: '#475569', margin: '0 0 16px 0', lineHeight: '1.6' }}>
                         {rec.issue}
                       </p>
+
+                      {/* Transition Visual Block */}
+                      {(() => {
+                        const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const cleanSugModelName = (choice === 'api' ? (sugModel || '') : '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const currentContext = [details.provider, details.toolName];
+                        const suggestedContext = [sugProvider, choice === 'subscription' ? null : rec.apiOption?.recommendedProvider];
+                        
+                        const isSameChoice = choice === 'api'
+                          ? (details.type === 'api' &&
+                            (
+                              uiChoiceLabelsMatch(currentDisplayName, sugDisplayName, currentContext, suggestedContext) ||
+                              (cleanBaseModelName && cleanSugModelName && (
+                                cleanBaseModelName === cleanSugModelName ||
+                                cleanSugModelName.includes(cleanBaseModelName) ||
+                                cleanBaseModelName.includes(cleanSugModelName)
+                              ))
+                            ))
+                          : (details.type === 'subscription' &&
+                            (
+                              uiChoiceLabelsMatch(currentDisplayName, sugDisplayName, currentContext, suggestedContext) ||
+                              uiChoiceLabelsMatch(
+                                `${details.toolName || ''} ${details.plan || ''}`,
+                                rec.subscriptionOption?.planName || sugModel,
+                                currentContext,
+                                suggestedContext
+                              )
+                            ));
+
+                        if (isSameChoice) {
+                          return (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              backgroundColor: '#0F172A',
+                              borderRadius: '10px',
+                              padding: '12px 14px',
+                              color: '#F8FAFC',
+                              fontSize: '12px',
+                              marginBottom: '16px',
+                              border: '1px solid #1E293B',
+                              boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)',
+                              gap: '12px'
+                            }}>
+                              {/* Left Side: Current */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                                {(() => {
+                                  const logo = getProviderLogo(details.provider);
+                                  return logo ? (
+                                    <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
+                                      <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                                    </div>
+                                  ) : (
+                                    <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
+                                      {details.provider?.charAt(0) || 'C'}
+                                    </div>
+                                  );
+                                })()}
+                                <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                  <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
+                                  <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
+                                    {currentDisplayName}
+                                  </span>
+                                  <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
+                                </div>
+                              </div>
+
+                              {/* Right Side: Message */}
+                              <div style={{
+                                flex: 1.2,
+                                backgroundColor: '#1E293B',
+                                borderRadius: '6px',
+                                padding: '8px 10px',
+                                border: '1px solid #334155',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                color: '#38BDF8',
+                                fontSize: '10.5px',
+                                fontWeight: '750',
+                                lineHeight: '1.3'
+                              }}>
+                                <span style={{ fontSize: '13px' }}>✨</span>
+                                <span>The current {choice === 'subscription' ? 'subscription' : 'API'} is the best and optimized.</span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: '#0F172A',
+                            borderRadius: '10px',
+                            padding: '12px 14px',
+                            color: '#F8FAFC',
+                            fontSize: '12px',
+                            marginBottom: '16px',
+                            border: '1px solid #1E293B',
+                            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)'
+                          }}>
+                            {/* Left Side: Current */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                              {(() => {
+                                const logo = getProviderLogo(details.provider);
+                                return logo ? (
+                                  <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
+                                    <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                                  </div>
+                                ) : (
+                                  <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
+                                    {details.provider?.charAt(0) || 'C'}
+                                  </div>
+                                );
+                              })()}
+                              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
+                                <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
+                                  {currentDisplayName}
+                                </span>
+                                <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
+                              </div>
+                            </div>
+
+                            {/* Arrow */}
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px', color: '#475569', fontSize: '14px', fontWeight: '800' }}>
+                              ➔
+                            </div>
+
+                            {/* Right Side: Suggested */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                              {(() => {
+                                const logo = getProviderLogo(sugProvider || sugModel);
+                                return logo ? (
+                                  <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
+                                    <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                                  </div>
+                                ) : (
+                                  <div style={{ width: '26px', height: '26px', backgroundColor: '#059669', color: '#A7F3D0', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
+                                    {sugProvider?.charAt(0) || 'S'}
+                                  </div>
+                                );
+                              })()}
+                              <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Suggested ({choice})</span>
+                                <span style={{ fontWeight: '750', color: '#10B981', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={sugDisplayName}>
+                                  {sugDisplayName}
+                                </span>
+                                <span style={{ fontSize: '9px', color: '#64748B' }}>{sugProvider}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       <div style={{
                         backgroundColor: choice === 'api' ? '#EFF6FF' : '#ECFDF5',
@@ -653,12 +994,21 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
               {/* Bottom Actions */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '40px' }}>
-                <button
-                  onClick={() => onNavigateToView('step4')}
-                  style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}
-                >
-                  ← Back to Action Plan Selection
-                </button>
+                {fromHistory ? (
+                  <button
+                    onClick={() => onNavigateToView('history')}
+                    style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    ← Back to Reports History
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => onNavigateToView('step4')}
+                    style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}
+                  >
+                    ← Back to Action Plan Selection
+                  </button>
+                )}
                 <button
                   onClick={() => onNavigateToView('step1')}
                   style={{ padding: '12px 28px', borderRadius: '10px', border: 'none', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}
@@ -699,8 +1049,12 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                 <button
                   onClick={() => {
-                    setShowDetailedReport(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (fromHistory) {
+                      onNavigateToView('history');
+                    } else {
+                      setShowDetailedReport(false);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
                   }}
                   style={{
                     backgroundColor: '#FFFFFF',
@@ -717,7 +1071,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     transition: 'all 0.2s'
                   }}
                 >
-                  ← Back to Summary
+                  ← {fromHistory ? 'Back to Reports History' : 'Back to Summary'}
                 </button>
                 <button
                   onClick={() => window.print()}
@@ -748,7 +1102,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 </button>
               </div>
             </div>
-
             {/* Prepare Cost Distribution Data */}
             {(() => {
               const distributionData = (auditResult.allocations || []).map((alloc, idx) => {
@@ -757,11 +1110,26 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
                 // Use opt.cost directly — this is the post-optimization cost from the recommendation
                 const optimizedCost = opt ? (opt.cost || 0) : 0;
+
+                // Resolve model names for accurate API/Subscription legend display
+                let baselineModelName = '';
+                let recommendedModelName = '';
+                if (intelData && intelData.llms) {
+                  const resolved = resolveModelObjects(rec || { apiOption: {}, subscriptionOption: {} }, idx, intelData.llms, auditResult, choice);
+                  if (resolved.baseline) baselineModelName = resolved.baseline.name || resolved.baseline.slug;
+                  if (resolved.recommended) recommendedModelName = resolved.recommended.name || resolved.recommended.slug;
+                }
+
                 return {
                   name: alloc.toolName,
                   plan: choice === 'api' ? 'API' : (opt?.planName || alloc.plan || 'Pro'),
                   optimizedCost,
-                  isOptimized: opt ? opt.savings > 0 : false
+                  isOptimized: opt ? opt.savings > 0 : false,
+                  alloc,
+                  choice,
+                  opt,
+                  baselineModelName,
+                  recommendedModelName
                 };
               });
               const totalOptimized = distributionData.reduce((acc, item) => acc + item.optimizedCost, 0);
@@ -889,7 +1257,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     </span>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', marginTop: '20px', alignItems: 'stretch' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.45fr', gap: '24px', marginTop: '20px', alignItems: 'stretch' }}>
                     {/* Cost Comparison Left Column */}
                     <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                       <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1004,7 +1372,48 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                   <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color, display: 'inline-block' }}></span>
                                   <span style={{ fontWeight: '700', color: '#334155' }}>
-                                    {item.name}{item.isOptimized ? ' (Optimized)' : ` (${item.plan})`}
+                                    {(() => {
+                                      const stripParentheses = (str) => {
+                                        if (!str) return '';
+                                        return str.replace(/\s*\(.*?\)/g, '').trim();
+                                      };
+
+                                      const getLabel = (toolName, planOrModel, type) => {
+                                        const cleanPlanOrModel = stripParentheses(planOrModel);
+                                        if (type === 'api') {
+                                          let displayModel = cleanPlanOrModel || 'API';
+                                          const lowerModel = displayModel.toLowerCase();
+                                          const commonPrefixes = ['gpt', 'claude', 'gemini', 'deepseek', 'grok', 'sonar', 'mimo'];
+                                          const startsWithCommon = commonPrefixes.some(pref => lowerModel.startsWith(pref));
+                                          
+                                          if (!startsWithCommon && !lowerModel.includes(toolName.toLowerCase())) {
+                                            displayModel = `${toolName} ${displayModel}`;
+                                          }
+                                          return `${displayModel}(API)`;
+                                        } else {
+                                          let displayPlan = cleanPlanOrModel || 'Subscription';
+                                          if (!displayPlan.toLowerCase().startsWith(toolName.toLowerCase())) {
+                                            displayPlan = `${toolName} ${displayPlan}`;
+                                          }
+                                          return `${displayPlan}(subscription)`;
+                                        }
+                                      };
+
+                                      const basePlanOrModel = item.alloc.type === 'api' 
+                                        ? item.baselineModelName 
+                                        : item.alloc.plan;
+                                      const baseLabel = getLabel(item.alloc.toolName, basePlanOrModel, item.alloc.type);
+
+                                      const optPlanOrModel = item.choice === 'api'
+                                        ? item.recommendedModelName
+                                        : (item.opt?.planName || item.alloc.plan);
+                                      const optLabel = getLabel(item.alloc.toolName, optPlanOrModel, item.choice);
+
+                                      if (baseLabel === optLabel) {
+                                        return baseLabel;
+                                      }
+                                      return `${baseLabel} \u2192 ${optLabel}`;
+                                    })()}
                                   </span>
                                 </div>
                                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
@@ -1107,9 +1516,46 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 { label: 'Uptime (30 Days)', cur: '99.52%', opt: '99.71%', type: 'uptime' }
               ];
 
+              const cleanBaseSubName = `${alloc?.toolName || ''} ${alloc?.plan || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
+              const cleanOptSubName = (rec.subscriptionOption?.planName || '').replace(/\s+/g, ' ').trim().toLowerCase();
+              const allocContext = rec.originalAlloc || alloc || {};
+
               const isAlreadyBest = choice === 'api'
-                ? (alloc?.type === 'api' && rec.apiOption?.savings === 0)
-                : (alloc?.type === 'subscription' && rec.subscriptionOption?.savings === 0);
+                ? (alloc?.type === 'api' && baseline && recommended && baseline.slug === recommended.slug)
+                : (alloc?.type === 'subscription' && (
+                    cleanBaseSubName === cleanOptSubName ||
+                    uiChoiceLabelsMatch(
+                      `${alloc?.toolName || ''} ${alloc?.plan || ''}`,
+                      rec.subscriptionOption?.planName || rec.subscriptionOption?.recommendedModel,
+                      [allocContext.provider, alloc?.toolName],
+                      [rec.subscriptionOption?.recommendedProvider]
+                    )
+                  ));
+
+              const isSameModel = baseline && recommended && baseline.slug === recommended.slug;
+              const isSameApi = alloc?.type === 'api' &&
+                                choice === 'api' &&
+                                (
+                                  isSameModel ||
+                                  uiChoiceLabelsMatch(
+                                    baseline.name || baseline.slug,
+                                    recommended.name || recommended.slug,
+                                    [baseline.creator, allocContext.provider, alloc?.toolName],
+                                    [recommended.creator, rec.apiOption?.recommendedProvider]
+                                  )
+                                );
+              const isSameSubscription = alloc?.type === 'subscription' && 
+                                          choice === 'subscription' && 
+                                          (
+                                            cleanBaseSubName === cleanOptSubName ||
+                                            uiChoiceLabelsMatch(
+                                              `${alloc?.toolName || ''} ${alloc?.plan || ''}`,
+                                              rec.subscriptionOption?.planName || rec.subscriptionOption?.recommendedModel,
+                                              [allocContext.provider, alloc?.toolName],
+                                              [rec.subscriptionOption?.recommendedProvider]
+                                            )
+                                          );
+              const isSameCurrentChoice = isSameApi || isSameSubscription;
 
               return (
                 <div key={rIdx} style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -1178,63 +1624,89 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       </div>
                     </div>
 
-                    {/* Middle: Right Arrow */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                        <polyline points="12 5 19 12 12 19"></polyline>
-                      </svg>
-                    </div>
+                    {!isSameCurrentChoice ? (
+                      <>
+                        {/* Middle: Right Arrow */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                            <polyline points="12 5 19 12 12 19"></polyline>
+                          </svg>
+                        </div>
 
-                    {/* Right: Suggested Model / Subscription */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: '200px' }}>
-                      {(() => {
-                        const logoSource = choice === 'subscription'
-                          ? (rec.subscriptionOption?.planName || '')
-                          : (recommended.creator || recommended.name || rec.tool || '');
-                        const logo = getProviderLogo(logoSource);
-                        return logo ? (
-                          <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E293B', borderRadius: '8px', flexShrink: 0, padding: '8px' }}>
-                            <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
-                          </div>
-                        ) : (
-                          <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E293B', borderRadius: '8px', fontSize: '16px', flexShrink: 0 }}>
-                            {choice === 'subscription' ? '⚡' : '🚀'}
-                          </div>
-                        );
-                      })()}
-                      <div>
-                        <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
-                          {choice === 'subscription' ? 'Suggested Subscription' : 'Suggested Model'}
-                        </div>
-                        <div style={{ fontSize: '16px', fontWeight: '800', fontFamily: 'var(--font-title)', color: '#38BDF8' }}>
-                          {choice === 'subscription'
-                            ? (rec.subscriptionOption?.planName || 'Optimized Sub')
-                            : recommended.name}
-                        </div>
-                        <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
-                          Provider: {choice === 'subscription' ? (rec.subscriptionOption?.planName?.split(' ')[0] || 'Unknown') : (recommended.creator || 'Unknown')}
-                        </div>
-                        {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                            {rec.subscriptionOption.includedModels.slice(0, 3).map((m, idx) => (
-                              <span key={idx} style={{ fontSize: '9.5px', fontWeight: '750', color: '#7DD3FC', backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>
-                                {m}
-                              </span>
-                            ))}
-                            {rec.subscriptionOption.includedModels.length > 3 && (
-                              <span style={{ fontSize: '9.5px', fontWeight: '750', color: '#38BDF8', alignSelf: 'center', marginLeft: '2px' }}>
-                                +{rec.subscriptionOption.includedModels.length - 3} more
-                              </span>
+                        {/* Right: Suggested Model / Subscription */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, minWidth: '200px' }}>
+                          {(() => {
+                            const logoSource = choice === 'subscription'
+                              ? (rec.subscriptionOption?.planName || '')
+                              : (recommended.creator || recommended.name || rec.tool || '');
+                            const logo = getProviderLogo(logoSource);
+                            return logo ? (
+                              <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E293B', borderRadius: '8px', flexShrink: 0, padding: '8px' }}>
+                                <img src={logo} alt="" style={{ width: '100%', height: '100%', objectFit: 'contain', filter: 'brightness(0) invert(1)' }} />
+                              </div>
+                            ) : (
+                              <div style={{ width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1E293B', borderRadius: '8px', fontSize: '16px', flexShrink: 0 }}>
+                                {choice === 'subscription' ? '⚡' : '🚀'}
+                              </div>
+                            );
+                          })()}
+                          <div>
+                            <div style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '2px' }}>
+                              {choice === 'subscription' ? 'Suggested Subscription' : 'Suggested Model'}
+                            </div>
+                            <div style={{ fontSize: '16px', fontWeight: '800', fontFamily: 'var(--font-title)', color: '#38BDF8' }}>
+                              {choice === 'subscription'
+                                ? (rec.subscriptionOption?.planName || 'Optimized Sub')
+                                : recommended.name}
+                            </div>
+                            <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '1px' }}>
+                              Provider: {choice === 'subscription' ? (rec.subscriptionOption?.planName?.split(' ')[0] || 'Unknown') : (recommended.creator || 'Unknown')}
+                            </div>
+                            {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                                {rec.subscriptionOption.includedModels.slice(0, 3).map((m, idx) => (
+                                  <span key={idx} style={{ fontSize: '9.5px', fontWeight: '750', color: '#7DD3FC', backgroundColor: '#1E293B', padding: '2px 6px', borderRadius: '4px' }}>
+                                    {m}
+                                  </span>
+                                ))}
+                                {rec.subscriptionOption.includedModels.length > 3 && (
+                                  <span style={{ fontSize: '9.5px', fontWeight: '750', color: '#38BDF8', alignSelf: 'center', marginLeft: '2px' }}>
+                                    +{rec.subscriptionOption.includedModels.length - 3} more
+                                  </span>
+                                )}
+                              </div>
                             )}
                           </div>
-                        )}
+                        </div>
+                      </>
+                    ) : (
+                      /* Right side message when it's already the best */
+                      <div style={{
+                        flex: 1.5,
+                        minWidth: '250px',
+                        backgroundColor: '#1E293B',
+                        borderRadius: '8px',
+                        padding: '16px 20px',
+                        border: '1px solid #334155',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        color: '#38BDF8',
+                        fontSize: '13.5px',
+                        fontWeight: '750',
+                        lineHeight: '1.4'
+                      }}>
+                        <span style={{ fontSize: '18px' }}>✨</span>
+                        <span>
+                          The current {isSameSubscription ? 'subscription' : 'API'} is the best and optimized. Keep using it.
+                        </span>
                       </div>
-                    </div>
+                    )}
                   </div>
 
-                  {/* If subscription, first show the detail that top model in that subscription includes... */}
-                  {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
+                  {/* Subscription Model Coverage & Benchmarking Select */}
+                  {((choice === 'subscription' && !isSameSubscription) || (alloc?.type === 'subscription' && choice === 'api')) && (
                     <div style={{
                       backgroundColor: '#EFF6FF',
                       border: '1px solid #BFDBFE',
@@ -1242,30 +1714,105 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       padding: '16px 20px',
                       fontSize: '13.5px',
                       color: '#1E40AF',
-                      lineHeight: '1.5'
+                      lineHeight: '1.5',
+                      marginBottom: '16px'
                     }}>
                       <div style={{ fontWeight: '800', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.05em', marginBottom: '6px', color: '#1D4ED8' }}>
                         Subscription Model Coverage &amp; Benchmarking Select
                       </div>
-                      <div>
-                        The recommended <strong>{rec.subscriptionOption.planName || 'Optimized Sub'}</strong> subscription includes access to:
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px', marginBottom: '8px' }}>
-                          {rec.subscriptionOption.includedModels.map((m, mi) => (
-                            <span key={mi} style={{
-                              fontSize: '11px',
-                              fontWeight: '700',
-                              color: '#1E40AF',
-                              backgroundColor: '#DBEAFE',
-                              border: '1px solid #BFDBFE',
-                              padding: '2px 8px',
-                              borderRadius: '6px'
-                            }}>
-                              {m}
-                            </span>
-                          ))}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {/* 1. If current is subscription, show its included models */}
+                        {alloc?.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0 && (
+                          <div>
+                            The current <strong>{alloc.toolName} {alloc.plan}</strong> subscription includes access to:
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                              {alloc.baselineModels.map((m, mi) => (
+                                <span key={mi} style={{
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  color: '#1E40AF',
+                                  backgroundColor: '#DBEAFE',
+                                  border: '1px solid #BFDBFE',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px'
+                                }}>
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 2. If recommended is subscription, show its included models */}
+                        {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
+                          <div>
+                            The recommended <strong>{rec.subscriptionOption.planName || 'Optimized Sub'}</strong> subscription includes access to:
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                              {rec.subscriptionOption.includedModels.map((m, mi) => (
+                                <span key={mi} style={{
+                                  fontSize: '11px',
+                                  fontWeight: '700',
+                                  color: '#1E40AF',
+                                  backgroundColor: '#DBEAFE',
+                                  border: '1px solid #BFDBFE',
+                                  padding: '2px 8px',
+                                  borderRadius: '6px'
+                                }}>
+                                  {m}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. The Comparison Notice Statement */}
+                        <div style={{ borderTop: '1px solid #BFDBFE', paddingTop: '10px', marginTop: '4px', fontSize: '12.5px', color: '#1E3A8A', fontWeight: '650' }}>
+                          {(() => {
+                            if (isSameModel) {
+                              return <span>The same model is present as the top model in the subscription so comparison cannot be done. Showing details for <strong style={{ color: '#2563EB' }}>{recommended.name || recommended.slug}</strong> only.</span>;
+                            }
+                            if (alloc?.type === 'subscription' && choice === 'subscription') {
+                              return (
+                                <span>
+                                  The comparison is done between top model of current <strong>{alloc?.toolName || ''} {alloc?.plan || ''}</strong> (<span style={{ color: '#2563EB', fontWeight: '700' }}>{baseline.name || baseline.slug}</span>) and top model of recommended subscription <strong>{rec.subscriptionOption?.planName || 'Optimized Sub'}</strong> (<span style={{ color: '#2563EB', fontWeight: '700' }}>{recommended.name || recommended.slug}</span>).
+                                </span>
+                              );
+                            } else if (alloc?.type === 'subscription' && choice === 'api') {
+                              return (
+                                <span>
+                                  The comparison is done between top model of current <strong>{alloc?.toolName || ''} {alloc?.plan || ''}</strong> (<span style={{ color: '#2563EB', fontWeight: '700' }}>{baseline.name || baseline.slug}</span>) and recommended API integration (<span style={{ color: '#2563EB', fontWeight: '700' }}>{recommended.name || recommended.slug}</span>).
+                                </span>
+                              );
+                            } else {
+                              return (
+                                <span>
+                                  The comparison is done between current API model <span style={{ color: '#2563EB', fontWeight: '700' }}>{baseline.name || baseline.slug}</span> and top model of recommended subscription <strong>{rec.subscriptionOption?.planName || 'Optimized Sub'}</strong> (<span style={{ color: '#2563EB', fontWeight: '700' }}>{recommended.name || recommended.slug}</span>).
+                                </span>
+                              );
+                            }
+                          })()}
                         </div>
-                        The performance benchmarks and metrics table below are measured using the top-tier model included in this plan: <strong style={{ color: '#1E3A8A' }}>{recommended.name || recommended.slug}</strong>.
                       </div>
+                    </div>
+                  )}
+
+                  {/* Info Banner when the models are identical (only if blue box is NOT shown) */}
+                  {isSameModel && !isSameSubscription && !((choice === 'subscription' && !isSameSubscription) || (alloc?.type === 'subscription' && choice === 'api')) && (
+                    <div style={{
+                      backgroundColor: '#EFF6FF',
+                      border: '1px solid #BFDBFE',
+                      borderRadius: '12px',
+                      padding: '16px 20px',
+                      fontSize: '13.5px',
+                      color: '#1E40AF',
+                      lineHeight: '1.5',
+                      marginBottom: '16px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px'
+                    }}>
+                      <span style={{ fontSize: '20px' }}>ℹ️</span>
+                      <span>The same model is present as the top model in the subscription so comparison cannot be done. Showing details for <strong style={{ color: '#2563EB' }}>{recommended.name || recommended.slug}</strong>.</span>
                     </div>
                   )}
 
@@ -1296,7 +1843,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         gap: '8px'
                       }}>
                         <span style={{ color: '#6366F1', fontSize: '16px' }}>📊</span>
-                        {isAlreadyBest ? 'Model Details & Specifications' : `Before vs After Comparison (${choice === 'api' ? 'API Integration' : 'Subscription Migration'})`}
+                        {isSameModel ? 'Model Details & Specifications' : `Before vs After Comparison (${choice === 'api' ? 'API Integration' : 'Subscription Migration'})`}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Confidence:</span>
@@ -1314,14 +1861,14 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         </span>
                       </div>
                     </div>
-
+ 
                     <div style={{ padding: '24px' }}>
                       <div style={{ overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', color: '#334155' }}>
                           <thead>
                             <tr style={{ borderBottom: '2px solid var(--color-border)' }}>
                               <th style={{ padding: '12px 16px', fontWeight: '750', textAlign: 'left', color: '#64748B', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Metric</th>
-                              {!isAlreadyBest ? (
+                              {!isSameModel ? (
                                 <>
                                   <th style={{ padding: '12px 16px', fontWeight: '750', textAlign: 'left', color: '#EF4444', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                                     <div>Current Model</div>
@@ -1353,7 +1900,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               return (
                                 <tr key={i} style={{ borderBottom: i < specs.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                   <td style={{ padding: '12px 16px', fontWeight: '600', color: '#0F172A' }}>{row.label}</td>
-                                  {!isAlreadyBest ? (
+                                  {!isSameModel ? (
                                     <>
                                       <td style={{ padding: '12px 16px', color: '#475569' }}>{row.cur}</td>
                                       <td style={{ padding: '12px 16px', color: '#0F172A', fontWeight: '700' }}>{row.opt}</td>
@@ -1393,7 +1940,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '32px', alignItems: 'center' }}>
                       {/* Legend */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                        {!isAlreadyBest ? (
+                        {!isSameModel ? (
                           <>
                             <div style={{ display: 'flex', gap: '12px', alignItems: 'center', padding: '12px', backgroundColor: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: '10px' }}>
                               <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#10B981', flexShrink: 0 }}></div>
@@ -1469,19 +2016,19 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           })}
 
                           {/* Line paths */}
-                          {!isAlreadyBest && (
+                          {!isSameModel && (
                             <path d={baselinePath} fill="none" stroke="#F97316" strokeWidth="3" opacity="0.8" />
                           )}
-                          <path d={recommendedPath} fill="none" stroke={isAlreadyBest ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" />
+                          <path d={recommendedPath} fill="none" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" />
 
                           {/* Points baseline */}
-                          {!isAlreadyBest && pointsBaseline.map((pt, idx) => (
+                          {!isSameModel && pointsBaseline.map((pt, idx) => (
                             <circle key={`cb-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke="#F97316" strokeWidth="2.5" />
                           ))}
 
                           {/* Points recommended */}
                           {pointsRecommended.map((pt, idx) => (
-                            <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isAlreadyBest ? '#6366F1' : '#10B981'} strokeWidth="2.5" />
+                            <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="2.5" />
                           ))}
                         </svg>
                       </div>
@@ -1510,20 +2057,20 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         </thead>
                         <tbody>
                           {/* Recommended/Active Row */}
-                          <tr style={{ borderBottom: isAlreadyBest ? 'none' : '1px solid var(--color-border)' }}>
+                          <tr style={{ borderBottom: isSameModel ? 'none' : '1px solid var(--color-border)' }}>
                             <td style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '700' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isAlreadyBest ? '#6366F1' : '#10B981' }}></span>
+                                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: isSameModel ? '#6366F1' : '#10B981' }}></span>
                                 <div>
                                   <div style={{ color: '#0F172A' }}>{recommended.name || recommended.slug}</div>
-                                  <div style={{ fontSize: '9px', color: isAlreadyBest ? '#4F46E5' : '#16A34A', fontWeight: '700' }}>{isAlreadyBest ? 'Active Best' : 'Recommended'}</div>
+                                  <div style={{ fontSize: '9px', color: isSameModel ? '#4F46E5' : '#16A34A', fontWeight: '700' }}>{isSameModel ? 'Active Best' : 'Recommended'}</div>
                                 </div>
                               </div>
                             </td>
                             {CATEGORIES.map((cat, idx) => {
                               const baseVal = baselineScores[cat.key];
                               const recVal = recommendedScores[cat.key];
-                              const isHigher = !isAlreadyBest && recVal !== null && (baseVal === null || recVal > baseVal);
+                              const isHigher = !isSameModel && recVal !== null && (baseVal === null || recVal > baseVal);
                               const isTps = cat.key === 'speedNorm';
                               const displayVal = recVal !== null ? (isTps ? `${recommendedScores.speedVal} t/s` : recVal) : 'N/A';
                               return (
@@ -1535,7 +2082,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           </tr>
 
                           {/* Baseline Row */}
-                          {!isAlreadyBest && (
+                          {!isSameModel && (
                             <tr>
                               <td style={{ padding: '12px 16px', textAlign: 'left', fontWeight: '700' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1570,18 +2117,31 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
             {/* Prepare Master Table Data */}
             {(() => {
+              const cleanName = (idOrPath) => {
+                if (!idOrPath) return '';
+                const parts = idOrPath.split('/');
+                return parts[parts.length - 1];
+              };
+
               const masterTableRows = (auditResult.allocations || []).map((alloc, idx) => {
                 const rec = recs[idx];
                 const choice = finalSelectedOptions[idx] || 'api';
                 const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
                 const { baseline, recommended } = resolveModelObjects(rec || { apiOption: {}, subscriptionOption: {} }, idx, intelData.llms, auditResult, choice);
                 
-                const currentCost = alloc.currentCost || 0;
+                let currentCost = alloc.currentCost || 0;
+                if (currentCost === 0 && rec && rec.issue) {
+                  const match = rec.issue.match(/Paying \$([\d,.]+)/);
+                  if (match) {
+                    currentCost = parseFloat(match[1].replace(/,/g, ''));
+                  }
+                }
+
                 const savings = opt ? opt.savings : 0;
                 const optimizedCost = Math.max(0, currentCost - savings);
                 
-                const baselineName = baseline ? baseline.name : 'Unknown Model';
-                const suggestedName = recommended ? recommended.name : (baseline ? baseline.name : 'Unknown Model');
+                const baselineName = baseline ? baseline.name : (cleanName(alloc.modelId) || alloc.plan || alloc.toolName || 'Unknown Model');
+                const suggestedName = recommended ? recommended.name : (opt?.recommendedModel || opt?.name || opt?.planName || baselineName);
                 
                 let recommendedPlan = 'Keep Current';
                 if (savings > 0 && opt) {
@@ -1594,8 +2154,13 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   recommendedPlan = alloc.plan ? `${alloc.plan} (${alloc.seats} Seat${alloc.seats > 1 ? 's' : ''})` : 'Keep Current';
                 }
                 
+                // Redundant tool prefix removal for nicer display in tables
+                if (recommendedPlan.toLowerCase().startsWith((alloc.toolName || '').toLowerCase() + ' ')) {
+                  recommendedPlan = recommendedPlan.substring((alloc.toolName || '').length + 1).trim();
+                }
+
                 const currentPlan = alloc.plan ? `${alloc.plan} (${alloc.seats} Seat${alloc.seats > 1 ? 's' : ''})` : 'Direct API';
-                const improvementPct = currentCost > 0 ? -((savings / currentCost) * 100) : 0;
+                const improvementPct = currentCost > 0 ? ((savings / currentCost) * 100) : 0;
                 
                 let confidence = 'High';
                 if (recommended && baseline) {
@@ -1613,7 +2178,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   recommendedPlan,
                   optimizedCost,
                   savings,
-                  improvement: savings > 0 ? `${improvementPct.toFixed(1)}%` : '0%',
+                  improvement: savings !== 0 ? `${Math.abs(improvementPct).toFixed(0)}%` : '0%',
                   confidence
                 };
               });
@@ -1633,42 +2198,42 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', color: '#334155' }}>
                         <thead>
                           <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid var(--color-border)' }}>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Service / Purpose</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Current Model</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Current Plan</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Current Cost (monthly)</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Suggested Model</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Recommended Plan</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Optimized Cost (monthly)</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Savings</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Improvement</th>
-                            <th style={{ padding: '12px 14px', fontWeight: '800', textAlign: 'center', color: '#475569' }}>Confidence</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Service / Purpose</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Current Setup</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Recommended Setup</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Monthly Savings</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Cost Reduction</th>
+                            <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'center', color: '#475569' }}>Confidence</th>
                           </tr>
                         </thead>
                         <tbody>
                           {masterTableRows.map((row, idx) => (
                             <tr key={idx} style={{ borderBottom: idx < masterTableRows.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                              <td style={{ padding: '12px 14px', fontWeight: '700', color: '#0F172A' }}>
+                              <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0F172A' }}>
                                 <div>{row.toolName}</div>
                                 <div style={{ fontSize: '9.5px', color: '#64748B', fontWeight: '500', marginTop: '2px' }}>({row.purpose})</div>
                               </td>
-                              <td style={{ padding: '12px 14px', fontWeight: '600' }}>{row.currentModel}</td>
-                              <td style={{ padding: '12px 14px', color: '#64748B' }}>{row.currentPlan}</td>
-                              <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '600' }}>
-                                ${row.currentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              <td style={{ padding: '14px 16px' }}>
+                                <div style={{ fontWeight: '600', color: '#334155' }}>{row.currentModel}</div>
+                                <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>{row.currentPlan}</div>
+                                <div style={{ fontSize: '11px', fontWeight: '700', color: '#0F172A', marginTop: '4px' }}>
+                                  ${row.currentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
+                                </div>
                               </td>
-                              <td style={{ padding: '12px 14px', fontWeight: '600' }}>{row.suggestedModel}</td>
-                              <td style={{ padding: '12px 14px', fontWeight: '700', color: row.savings > 0 ? '#10B981' : '#64748B' }}>{row.recommendedPlan}</td>
-                              <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '700' }}>
-                                ${row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              <td style={{ padding: '14px 16px' }}>
+                                <div style={{ fontWeight: '600', color: '#334155' }}>{row.suggestedModel}</div>
+                                <div style={{ fontSize: '10px', color: row.savings > 0 ? '#10B981' : '#64748B', fontWeight: row.savings > 0 ? '700' : 'normal', marginTop: '2px' }}>{row.recommendedPlan}</div>
+                                <div style={{ fontSize: '11px', fontWeight: '750', color: '#0F172A', marginTop: '4px' }}>
+                                  ${row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
+                                </div>
                               </td>
-                              <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
-                                ${row.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
+                                {row.savings > 0 ? `+$${row.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo` : `$${row.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo`}
                               </td>
-                              <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
-                                {row.improvement}
+                              <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
+                                {row.savings > 0 ? `${row.improvement} Cost Cut` : '0%'}
                               </td>
-                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                              <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                                 <span style={{
                                   backgroundColor: row.confidence === 'High' ? '#DCFCE7' : '#FEF3C7',
                                   color: row.confidence === 'High' ? '#15803D' : '#D97706',
@@ -1723,15 +2288,24 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
             {/* Navigation back actions */}
             <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '32px', marginBottom: '16px' }}>
-              <button
-                onClick={() => {
-                  setShowDetailedReport(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                ← Back to Summary
-              </button>
+              {fromHistory ? (
+                <button
+                  onClick={() => onNavigateToView('history')}
+                  style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  ← Back to Reports History
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setShowDetailedReport(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                >
+                  ← Back to Summary
+                </button>
+              )}
               <button
                 onClick={() => onNavigateToView('step1')}
                 style={{ padding: '10px 28px', borderRadius: '10px', border: 'none', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
