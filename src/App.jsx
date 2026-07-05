@@ -86,6 +86,9 @@ export default function App() {
   const [optimizationGoal, setOptimizationGoal] = useState('performance');
   const [costCutPercentage, setCostCutPercentage] = useState(50);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [tokenAdjustments, setTokenAdjustments] = useState({});
+
+
 
   // Credit / Pricing State
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
@@ -106,10 +109,26 @@ export default function App() {
   const [authMessage, setAuthMessage] = useState(null);
   const [authLoading, setAuthLoading] = useState(false);
 
-  // API Audit Results & past audits
   const [auditResult, setAuditResult] = useState(null);
   const [pastAudits, setPastAudits] = useState([]);
   const [apiError, setApiError] = useState(null);
+
+  useEffect(() => {
+    if (auditResult && auditResult.savings && auditResult.savings.recommendations) {
+      const initial = {};
+      auditResult.savings.recommendations.forEach((rec, idx) => {
+        const defaultInput = rec.apiOption?.defaultInputTokens || 5000000;
+        const defaultOutput = rec.apiOption?.defaultOutputTokens || 1250000;
+        initial[idx] = {
+          inputMillions: defaultInput / 1000000,
+          outputMillions: defaultOutput / 1000000
+        };
+      });
+      setTokenAdjustments(initial);
+    } else {
+      setTokenAdjustments({});
+    }
+  }, [auditResult]);
 
   // Spend comparison states
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
@@ -365,6 +384,41 @@ export default function App() {
     }
   };
 
+  // Delete an audit
+  const handleDeleteAudit = async (auditId) => {
+    const activeToken = token;
+    if (!activeToken) {
+      setAuthError(null);
+      setAuthMessage('Please sign in to delete reports.');
+      setCurrentView('signin');
+      return;
+    }
+    setApiError(null);
+    try {
+      const response = await fetch(`${BACKEND_URL}/audits/${auditId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${activeToken}`
+        }
+      });
+      if (response.status === 401) {
+        handleLogout();
+        setAuthError('Your session has expired. Please sign in again.');
+        setCurrentView('signin');
+        return;
+      }
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to delete saved report.');
+      }
+      // Refresh list
+      await fetchPastAudits();
+    } catch (err) {
+      console.error(err);
+      setApiError(err.message);
+    }
+  };
+
   const loadPastAuditDetail = async (id, targetView = 'results') => {
     setCurrentView('loading');
     try {
@@ -527,6 +581,8 @@ export default function App() {
             onNavigateToView={(view) => setCurrentView(view)}
             user={user}
             renderCoinDropdown={renderCoinDropdown}
+            tokenAdjustments={tokenAdjustments}
+            setTokenAdjustments={setTokenAdjustments}
           />
         );
 
@@ -536,6 +592,8 @@ export default function App() {
             auditResult={auditResult}
             selectedOptions={selectedOptions}
             setSelectedOptions={setSelectedOptions}
+            tokenAdjustments={tokenAdjustments}
+            setTokenAdjustments={setTokenAdjustments}
             onNavigateToView={(view) => {
               if (view === 'results' && auditResult?._id && token) {
                 // Persist choices to MongoDB
@@ -568,6 +626,8 @@ export default function App() {
             renderCoinDropdown={renderCoinDropdown}
             initialView="plan"
             fromHistory={true}
+            tokenAdjustments={tokenAdjustments}
+            setTokenAdjustments={setTokenAdjustments}
           />
         );
 
@@ -586,6 +646,8 @@ export default function App() {
             renderCoinDropdown={renderCoinDropdown}
             initialView="detailed"
             fromHistory={true}
+            tokenAdjustments={tokenAdjustments}
+            setTokenAdjustments={setTokenAdjustments}
           />
         );
 
@@ -599,6 +661,7 @@ export default function App() {
             onLoadPastAuditDetail={loadPastAuditDetail}
             onRefreshList={() => fetchPastAudits()}
             renderCoinDropdown={renderCoinDropdown}
+            onDeleteAudit={handleDeleteAudit}
           />
         );
 
@@ -613,6 +676,12 @@ export default function App() {
               setComparisonRecommended(rec);
               setCurrentView('comparison');
             }}
+            optimizationGoal={optimizationGoal}
+            setOptimizationGoal={setOptimizationGoal}
+            costCutPercentage={costCutPercentage}
+            setCostCutPercentage={setCostCutPercentage}
+            targetUseCase={useCase}
+            setTargetUseCase={setUseCase}
           />
         );
 
