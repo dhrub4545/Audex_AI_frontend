@@ -489,7 +489,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
   return { baseline: baselineModel, recommended: recommendedModel };
 };
 
-export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory }) {
+export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {} }) {
   const [intelData, setIntelData] = useState(null);
   const [showDetailedReport, setShowDetailedReport] = useState(initialView === 'detailed');
 
@@ -528,8 +528,35 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
   const bestMonthly = recs.reduce((acc, rec, idx) => {
     const choice = finalSelectedOptions[idx] || 'api';
-    const opt = choice === 'api' ? rec.apiOption : rec.subscriptionOption;
-    return acc + (opt ? opt.savings : 0);
+    if (choice === 'api') {
+      if (!rec.apiOption) return acc;
+      const limits = rec.apiOption.limits || '';
+      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+        ? rec.apiOption.inputCostPerM 
+        : (() => {
+            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+            return match ? parseFloat(match[1]) : 5.00;
+          })();
+      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+        ? rec.apiOption.outputCostPerM 
+        : (() => {
+            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+            return match ? parseFloat(match[1]) : 15.00;
+          })();
+
+      const adj = tokenAdjustments[idx] || { 
+        inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+        outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+      };
+      const inputCost = adj.inputMillions * inputCostPerM;
+      const outputCost = adj.outputMillions * outputCostPerM;
+      const dynamicApiCost = inputCost + outputCost;
+      const details = parseRecDetails(rec);
+      const itemCurrentCost = details.currentCost || 0;
+      return acc + (itemCurrentCost - dynamicApiCost);
+    } else {
+      return acc + (rec.subscriptionOption ? rec.subscriptionOption.savings : 0);
+    }
   }, 0);
   const bestAnnual      = bestMonthly * 12;
   const savingPct       = currentCostVal > 0 ? ((bestMonthly / currentCostVal) * 100).toFixed(1) : 0;
@@ -676,6 +703,33 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   const itemCurrentCost = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
 
                   const details = parseRecDetails(rec);
+                  const dynamicSavingsVal = (() => {
+                    if (choice === 'api' && rec.apiOption) {
+                      const limits = rec.apiOption.limits || '';
+                      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                        ? rec.apiOption.inputCostPerM 
+                        : (() => {
+                            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                            return match ? parseFloat(match[1]) : 5.00;
+                          })();
+                      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                        ? rec.apiOption.outputCostPerM 
+                        : (() => {
+                            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                            return match ? parseFloat(match[1]) : 15.00;
+                          })();
+
+                      const adj = tokenAdjustments[idx] || { 
+                        inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                        outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                      };
+                      const inputCost = adj.inputMillions * inputCostPerM;
+                      const outputCost = adj.outputMillions * outputCostPerM;
+                      const dynamicApiCost = inputCost + outputCost;
+                      return itemCurrentCost - dynamicApiCost;
+                    }
+                    return opt ? opt.savings : 0;
+                  })();
                   const currentDisplayName = details.type === 'subscription' 
                     ? (() => {
                         const plan = details.plan || '';
@@ -769,7 +823,30 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                             Current: ${itemCurrentCost.toLocaleString()}/mo
                           </span>
                           <span style={{ fontSize: '13px', fontWeight: '800', color: choice === 'api' ? '#3B82F6' : '#10B981' }}>
-                            Optimized: ${opt.cost.toLocaleString()}/mo
+                            Optimized: ${(() => {
+                              if (choice === 'api' && rec.apiOption) {
+                                const limits = rec.apiOption.limits || '';
+                                const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                                  ? rec.apiOption.inputCostPerM 
+                                  : (() => {
+                                      const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                                      return match ? parseFloat(match[1]) : 5.00;
+                                    })();
+                                const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                                  ? rec.apiOption.outputCostPerM 
+                                  : (() => {
+                                      const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                                      return match ? parseFloat(match[1]) : 15.00;
+                                    })();
+
+                                const adj = tokenAdjustments[idx] || { 
+                                  inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                                  outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                                };
+                                return (adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM).toFixed(2);
+                              }
+                              return (opt ? opt.cost : 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            })()}/mo
                           </span>
                         </div>
                       </div>
@@ -981,10 +1058,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #F1F5F9', paddingTop: '12px', marginTop: '16px' }}>
                         <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>
-                          {opt.savings >= 0 ? 'Est. Savings from this path:' : 'Est. Cost Increase from this path:'}
+                          {dynamicSavingsVal >= 0 ? 'Est. Savings from this path:' : 'Est. Cost Increase from this path:'}
                         </span>
-                        <strong style={{ fontSize: '15px', color: opt.savings >= 0 ? '#10B981' : '#EF4444' }}>
-                          {opt.savings >= 0 ? `+$${opt.savings.toLocaleString()}/mo` : `-$${Math.abs(opt.savings).toLocaleString()}/mo`}
+                        <strong style={{ fontSize: '15px', color: dynamicSavingsVal >= 0 ? '#10B981' : '#EF4444' }}>
+                          {dynamicSavingsVal >= 0 ? `+$${dynamicSavingsVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo` : `-$${Math.abs(dynamicSavingsVal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo`}
                         </strong>
                       </div>
                     </div>
@@ -1108,8 +1185,30 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const rec = recs[idx];
                 const choice = finalSelectedOptions[idx] || 'api';
                 const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
-                // Use opt.cost directly — this is the post-optimization cost from the recommendation
-                const optimizedCost = opt ? (opt.cost || 0) : 0;
+                const optimizedCost = (() => {
+                  if (choice === 'api' && rec?.apiOption) {
+                    const limits = rec.apiOption.limits || '';
+                    const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                      ? rec.apiOption.inputCostPerM 
+                      : (() => {
+                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                          return match ? parseFloat(match[1]) : 5.00;
+                        })();
+                    const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                      ? rec.apiOption.outputCostPerM 
+                      : (() => {
+                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                          return match ? parseFloat(match[1]) : 15.00;
+                        })();
+
+                    const adj = tokenAdjustments[idx] || { 
+                      inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                      outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                    };
+                    return adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
+                  }
+                  return opt ? (opt.cost || 0) : 0;
+                })();
 
                 // Resolve model names for accurate API/Subscription legend display
                 let baselineModelName = '';
@@ -1186,12 +1285,35 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     </div>
                   ),
                   label: 'Optimized Changes',
-                  value: `${recs.filter(r => {
-                    const idx = recs.indexOf(r);
-                    const choice = finalSelectedOptions[idx];
-                    const opt = choice === 'api' ? r.apiOption : r.subscriptionOption;
-                    return opt && opt.savings > 0;
-                  }).length} items`,
+                  value: `${recs.filter((r, idx) => {
+                     const choice = finalSelectedOptions[idx];
+                     if (choice === 'api' && r.apiOption) {
+                       const limits = r.apiOption.limits || '';
+                       const inputCostPerM = r.apiOption.inputCostPerM !== undefined 
+                         ? r.apiOption.inputCostPerM 
+                         : (() => {
+                             const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                             return match ? parseFloat(match[1]) : 5.00;
+                           })();
+                       const outputCostPerM = r.apiOption.outputCostPerM !== undefined 
+                         ? r.apiOption.outputCostPerM 
+                         : (() => {
+                             const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                             return match ? parseFloat(match[1]) : 15.00;
+                           })();
+
+                       const adj = tokenAdjustments[idx] || { 
+                         inputMillions: (r.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                         outputMillions: (r.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                       };
+                       const dynamicApiCost = adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
+                       const details = parseRecDetails(r);
+                       const itemCurrentCost = details.currentCost || 0;
+                       return itemCurrentCost - dynamicApiCost > 0;
+                     }
+                     const opt = choice === 'api' ? r.apiOption : r.subscriptionOption;
+                     return opt && opt.savings > 0;
+                   }).length} items`,
                   sub: 'Across selected path',
                   valColor: '#0F172A'
                 },
@@ -2137,8 +2259,31 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   }
                 }
 
-                const savings = opt ? opt.savings : 0;
-                const optimizedCost = Math.max(0, currentCost - savings);
+                const optimizedCost = (() => {
+                  if (choice === 'api' && rec?.apiOption) {
+                    const limits = rec.apiOption.limits || '';
+                    const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                      ? rec.apiOption.inputCostPerM 
+                      : (() => {
+                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                          return match ? parseFloat(match[1]) : 5.00;
+                        })();
+                    const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                      ? rec.apiOption.outputCostPerM 
+                      : (() => {
+                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                          return match ? parseFloat(match[1]) : 15.00;
+                        })();
+
+                    const adj = tokenAdjustments[idx] || { 
+                      inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                      outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                    };
+                    return adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
+                  }
+                  return Math.max(0, currentCost - (opt ? opt.savings : 0));
+                })();
+                const savings = Math.max(0, currentCost - optimizedCost);
                 
                 const baselineName = baseline ? baseline.name : (cleanName(alloc.modelId) || alloc.plan || alloc.toolName || 'Unknown Model');
                 const suggestedName = recommended ? recommended.name : (opt?.recommendedModel || opt?.name || opt?.planName || baselineName);

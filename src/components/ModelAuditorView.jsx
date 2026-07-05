@@ -171,6 +171,7 @@ function formatEvalValue(key, val) {
   return String(val);
 }
 
+
 function CustomSelect({ value, onChange, options, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -356,9 +357,25 @@ function CustomSelect({ value, onChange, options, placeholder }) {
   );
 }
 
-export default function ModelAuditorView({ onNavigateToView, renderCoinDropdown, onCompareModels }) {
+
+export default function ModelAuditorView({ 
+  onNavigateToView, 
+  user, 
+  renderCoinDropdown, 
+  onCompareModels,
+  optimizationGoal: propOptimizationGoal,
+  setOptimizationGoal: propSetOptimizationGoal,
+  costCutPercentage: propCostCutPercentage,
+  setCostCutPercentage: propSetCostCutPercentage,
+  targetUseCase: propTargetUseCase,
+  setTargetUseCase: propSetTargetUseCase
+}) {
+
   const [currentModelId, setCurrentModelId] = useState('anthropic/claude-fable-5');
-  const [targetUseCase, setTargetUseCase] = useState('Mixed');
+  const [localTargetUseCase, setLocalTargetUseCase] = useState('Mixed');
+  const targetUseCase = propTargetUseCase !== undefined ? propTargetUseCase : localTargetUseCase;
+  const setTargetUseCase = propSetTargetUseCase !== undefined ? propSetTargetUseCase : setLocalTargetUseCase;
+
   const [monthlyInputTokens, setMonthlyInputTokens] = useState(20000000); // 20M prompt tokens
   const [monthlyOutputTokens, setMonthlyOutputTokens] = useState(5000000); // 5M completion tokens
   const [loading, setLoading] = useState(false);
@@ -366,8 +383,14 @@ export default function ModelAuditorView({ onNavigateToView, renderCoinDropdown,
   const [results, setResults] = useState(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
   const [availableModels, setAvailableModels] = useState(POPULAR_MODELS);
-  const [optimizationGoal, setOptimizationGoal] = useState('performance');
-  const [costCutPercentage, setCostCutPercentage] = useState(50);
+  
+  const [localOptimizationGoal, setLocalOptimizationGoal] = useState('performance');
+  const [localCostCutPercentage, setLocalCostCutPercentage] = useState(50);
+
+  const optimizationGoal = propOptimizationGoal !== undefined ? propOptimizationGoal : localOptimizationGoal;
+  const setOptimizationGoal = propSetOptimizationGoal !== undefined ? propSetOptimizationGoal : setLocalOptimizationGoal;
+  const costCutPercentage = propCostCutPercentage !== undefined ? propCostCutPercentage : localCostCutPercentage;
+  const setCostCutPercentage = propSetCostCutPercentage !== undefined ? propSetCostCutPercentage : setLocalCostCutPercentage;
 
   const [intelData, setIntelData] = useState(null);
   const [hoveredModel, setHoveredModel] = useState(null);
@@ -1039,8 +1062,8 @@ export default function ModelAuditorView({ onNavigateToView, renderCoinDropdown,
               ) : results && results.recommendations && results.recommendations.length > 0 ? (
                 <div>
                   <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>Top Alternative Model Recommendations</h2>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
                     {results.recommendations.map((rec, idx) => {
                       const isSelected = selectedRecommendation?.modelId === rec.modelId;
                       const isMoreExpensive = rec.projected_monthly_savings < 0;

@@ -255,7 +255,9 @@ export default function ActionPlanView({
   auditResult,
   selectedOptions,
   setSelectedOptions,
-  onNavigateToView
+  onNavigateToView,
+  tokenAdjustments,
+  setTokenAdjustments
 }) {
   if (!auditResult || !auditResult.savings) return null;
   const recs = auditResult.savings.recommendations || [];
@@ -268,10 +270,32 @@ export default function ActionPlanView({
 
   const dynamicSavings = recs.reduce((sum, rec, idx) => {
     const choice = selectedOptions[idx] || 'api';
-    const savings = choice === 'api' 
-      ? (rec.apiOption ? rec.apiOption.savings : 0) 
-      : (rec.subscriptionOption ? rec.subscriptionOption.savings : 0);
-    return sum + savings;
+    if (choice === 'api') {
+      if (!rec.apiOption) return sum;
+      const limits = rec.apiOption.limits || '';
+      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+        ? rec.apiOption.inputCostPerM 
+        : (() => {
+            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+            return match ? parseFloat(match[1]) : 5.00;
+          })();
+      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+        ? rec.apiOption.outputCostPerM 
+        : (() => {
+            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+            return match ? parseFloat(match[1]) : 15.00;
+          })();
+
+      const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
+      const inputCost = adj.inputMillions * inputCostPerM;
+      const outputCost = adj.outputMillions * outputCostPerM;
+      const dynamicApiCost = inputCost + outputCost;
+      const details = parseRecDetails(rec);
+      const itemCurrentCost = details.currentCost || 0;
+      return sum + (itemCurrentCost - dynamicApiCost);
+    } else {
+      return sum + (rec.subscriptionOption ? rec.subscriptionOption.savings : 0);
+    }
   }, 0);
 
   const dynamicOptimizedCost = Math.max(0, totalCurrentCost - dynamicSavings);
@@ -797,12 +821,34 @@ export default function ActionPlanView({
                             <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#1D4ED8', letterSpacing: '0.05em' }}>
                               Option A: Direct API Integration
                             </span>
-                            {!rec.apiOption.statusText && (
-                              <span style={getSavingsPillStyle(rec.apiOption.savings)}>
-                                {rec.apiOption.savings >= 0 && <CircleCheckBig size={11} />}
-                                {rec.apiOption.savings < 0 ? `+$${Math.abs(rec.apiOption.savings).toLocaleString()}` : `-$${rec.apiOption.savings.toLocaleString()}`} save
-                              </span>
-                            )}
+                            {!rec.apiOption.statusText && (() => {
+                              const limits = rec.apiOption.limits || '';
+                              const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                                ? rec.apiOption.inputCostPerM 
+                                : (() => {
+                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                                    return match ? parseFloat(match[1]) : 5.00;
+                                  })();
+                              const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                                ? rec.apiOption.outputCostPerM 
+                                : (() => {
+                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                                    return match ? parseFloat(match[1]) : 15.00;
+                                  })();
+
+                              const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
+                              const inputCost = adj.inputMillions * inputCostPerM;
+                              const outputCost = adj.outputMillions * outputCostPerM;
+                              const dynamicApiCost = inputCost + outputCost;
+                              const dynamicSavingsVal = itemCurrentCost - dynamicApiCost;
+                              const isNegativeSavings = dynamicSavingsVal < 0;
+
+                              return (
+                                <span style={getSavingsPillStyle(dynamicSavingsVal)}>
+                                  {isNegativeSavings ? `+$${Math.abs(dynamicSavingsVal).toFixed(2)}` : `-$${dynamicSavingsVal.toFixed(2)}`} save
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           {/* Transition Visual Block */}
@@ -989,10 +1035,102 @@ export default function ActionPlanView({
                           )}
                         </div>
 
+                        {/* Token Sliders for API Simulation */}
+                        <div 
+                          onClick={(e) => e.stopPropagation()} // prevent triggering card selection when sliding
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                            backgroundColor: '#F8FAFC',
+                            padding: '12px 14px',
+                            borderRadius: '8px',
+                            border: '1px solid #E2E8F0',
+                            marginTop: '12px'
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
+                                Monthly Input Tokens:
+                              </span>
+                              <span style={{ fontSize: '11.5px', fontWeight: '850', color: '#1D4ED8' }}>
+                                {(tokenAdjustments[idx]?.inputMillions || 0).toFixed(1)}M
+                              </span>
+                            </div>
+                            <input 
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="0.5"
+                              value={tokenAdjustments[idx]?.inputMillions || 0}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                setTokenAdjustments(prev => ({
+                                  ...prev,
+                                  [idx]: {
+                                    ...prev[idx],
+                                    inputMillions: val
+                                  }
+                                }));
+                              }}
+                              style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6' }}
+                            />
+                          </div>
+
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                              <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
+                                Monthly Output Tokens:
+                              </span>
+                              <span style={{ fontSize: '11.5px', fontWeight: '850', color: '#1D4ED8' }}>
+                                {(tokenAdjustments[idx]?.outputMillions || 0).toFixed(1)}M
+                              </span>
+                            </div>
+                            <input 
+                              type="range"
+                              min="0"
+                              max="50"
+                              step="0.5"
+                              value={tokenAdjustments[idx]?.outputMillions || 0}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value);
+                                setTokenAdjustments(prev => ({
+                                  ...prev,
+                                  [idx]: {
+                                    ...prev[idx],
+                                    outputMillions: val
+                                  }
+                                }));
+                              }}
+                              style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6' }}
+                            />
+                          </div>
+                        </div>
+
                         <div style={{ borderTop: '1px dashed #CBD5E1', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '14px' }}>
                           <span style={{ fontSize: '12px', color: '#64748B' }}>Est. Monthly Cost:</span>
                           <strong style={{ fontSize: '16px', color: '#0F172A' }}>
-                            ${rec.apiOption.cost.toLocaleString()}/mo
+                            ${(() => {
+                              const limits = rec.apiOption.limits || '';
+                              const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                                ? rec.apiOption.inputCostPerM 
+                                : (() => {
+                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                                    return match ? parseFloat(match[1]) : 5.00;
+                                  })();
+                              const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                                ? rec.apiOption.outputCostPerM 
+                                : (() => {
+                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                                    return match ? parseFloat(match[1]) : 15.00;
+                                  })();
+
+                              const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
+                              const inputCost = adj.inputMillions * inputCostPerM;
+                              const outputCost = adj.outputMillions * outputCostPerM;
+                              return (inputCost + outputCost).toFixed(2);
+                            })()}/mo
                           </strong>
                         </div>
                       </div>
