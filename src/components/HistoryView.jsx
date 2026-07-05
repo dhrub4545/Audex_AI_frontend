@@ -1,5 +1,14 @@
 import React from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
+import {
+  Users,
+  Briefcase,
+  Bot,
+  Search,
+  ClipboardCheck,
+  BarChart3,
+  RefreshCw
+} from 'lucide-react';
 
 export default function HistoryView({
   pastAudits,
@@ -40,14 +49,14 @@ export default function HistoryView({
               <h2 style={{ fontSize: '32px' }}>Saved Audits History</h2>
               <p style={{ color: 'var(--color-text-secondary)' }}>Review past AI subscription audits saved to your database.</p>
             </div>
-            <button onClick={onRefreshList} className="btn btn-outline" style={{ fontSize: '13px' }}>
-              🔄 Refresh List
+            <button onClick={onRefreshList} className="btn btn-outline" style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <RefreshCw size={14} strokeWidth={2} /> Refresh List
             </button>
           </div>
 
           {pastAudits.length === 0 ? (
             <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '64px', textAlign: 'center' }}>
-              <span style={{ fontSize: '48px' }}>📋</span>
+              <ClipboardCheck size={48} style={{ color: 'var(--color-text-muted)', margin: '0 auto 16px auto', display: 'block' }} />
               <h3 style={{ marginTop: '16px' }}>No saved reports found</h3>
               <p style={{ color: 'var(--color-text-muted)', marginTop: '8px', fontSize: '14px' }}>
                 Complete an audit wizard flow and the report will be saved to MongoDB.
@@ -77,17 +86,23 @@ export default function HistoryView({
                     </span>
                   </div>
                   <div className="history-card-meta" style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>👥 Team Size:</span>
-                      <strong>{audit.teamSize} seats</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                        <Users size={15} strokeWidth={2} /> Team Size:
+                      </span>
+                      <strong style={{ fontSize: '13px' }}>{audit.teamSize} seats</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>💼 Use Case:</span>
-                      <strong>{audit.useCase}</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                        <Briefcase size={15} strokeWidth={2} /> Use Case:
+                      </span>
+                      <strong style={{ fontSize: '13px' }}>{audit.useCase}</strong>
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>🛠 Active Tools:</span>
-                      <strong>{audit.allocations?.length || 0} tools</strong>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
+                        <Bot size={15} strokeWidth={2} /> Active Tools:
+                      </span>
+                      <strong style={{ fontSize: '13px' }}>{audit.allocations?.length || 0} tools</strong>
                     </div>
                   </div>
                   
@@ -98,8 +113,8 @@ export default function HistoryView({
                     flexDirection: 'column', 
                     gap: '8px' 
                   }}>
-                    <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '2px' }}>
-                      🔍 View Saved Report:
+                    <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Search size={12} strokeWidth={2} /> View Saved Report
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                       <button 
@@ -120,7 +135,7 @@ export default function HistoryView({
                           cursor: 'pointer'
                         }}
                       >
-                        📋 Final Plan
+                        <ClipboardCheck size={14} strokeWidth={2} /> Final Plan
                       </button>
                       <button 
                         onClick={() => onLoadPastAuditDetail(audit._id, 'saved_report')}
@@ -140,7 +155,7 @@ export default function HistoryView({
                           cursor: 'pointer'
                         }}
                       >
-                        📊 Detailed Report
+                        <BarChart3 size={14} strokeWidth={2} /> Detailed Report
                       </button>
                     </div>
                   </div>

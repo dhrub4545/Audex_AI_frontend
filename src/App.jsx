@@ -461,6 +461,7 @@ export default function App() {
               onNavigateToLanding={() => setCurrentView('landing')} 
               onNavigateToStep1={() => setCurrentView('step1')} 
               onNavigateToSignIn={() => setCurrentView('signin')}
+              activeView={currentView}
             />
             <LandingView 
               onNavigateToStep1={() => setCurrentView('step1')} 
@@ -680,6 +681,7 @@ export default function App() {
               onNavigateToLanding={() => setCurrentView('landing')} 
               onNavigateToStep1={() => setCurrentView('step1')} 
               onNavigateToSignIn={() => setCurrentView('signin')}
+              activeView={currentView}
             />
             <LandingView 
               onNavigateToStep1={() => setCurrentView('step1')} 

@@ -1,5 +1,508 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
+import { ProviderLogo } from './MarketIntelView';
+import { 
+  Search,
+  Code2, 
+  PenTool, 
+  Calculator, 
+  Database, 
+  Briefcase, 
+  Landmark, 
+  HeartPulse, 
+  Scale, 
+  GraduationCap, 
+  Languages, 
+  Globe2, 
+  MessagesSquare, 
+  FileText, 
+  ClipboardCheck, 
+  ShieldCheck, 
+  TrendingDown,
+  Film, 
+  FlaskConical, 
+  Laptop, 
+  Sparkles,
+  ChevronDown,
+  BarChart3,
+  Gem
+} from 'lucide-react';
+
+const PURPOSE_GROUPS = [
+  {
+    id: 'development',
+    label: 'Development',
+    options: [
+      { value: 'Coding', label: 'Coding' },
+      { value: 'Research', label: 'Research' },
+      { value: 'Data', label: 'Data' },
+      { value: 'Software', label: 'Software & IT Services' }
+    ]
+  },
+  {
+    id: 'content',
+    label: 'Content & Language',
+    options: [
+      { value: 'Writing', label: 'Writing' },
+      { value: 'Longer-query', label: 'Longer Queries' },
+      { value: 'Literature', label: 'Literature & Language' },
+      { value: 'Chinese', label: 'Chinese' },
+      { value: 'English', label: 'English' },
+      { value: 'French', label: 'French' },
+      { value: 'German', label: 'German' },
+      { value: 'Japanese', label: 'Japanese' },
+      { value: 'Korean', label: 'Korean' },
+      { value: 'Polish', label: 'Polish' },
+      { value: 'Russian', label: 'Russian' },
+      { value: 'Spanish', label: 'Spanish' },
+      { value: 'Non-English', label: 'Non-English' }
+    ]
+  },
+  {
+    id: 'business',
+    label: 'Business & Legal',
+    options: [
+      { value: 'Business', label: 'Business & Finance' },
+      { value: 'Legal', label: 'Legal & Government' },
+      { value: 'Math-industry', label: 'Mathematical Industry' }
+    ]
+  },
+  {
+    id: 'science',
+    label: 'Science & Education',
+    options: [
+      { value: 'Healthcare', label: 'Medicine & Healthcare' },
+      { value: 'Science', label: 'Life & Social Science' },
+      { value: 'Expert', label: 'Expert Tasks' }
+    ]
+  },
+  {
+    id: 'core',
+    label: 'Core & Workloads',
+    options: [
+      { value: 'Math', label: 'Math' },
+      { value: 'Hard-prompts', label: 'Hard Prompts' },
+      { value: 'Hard-prompts-english', label: 'Hard Prompts (English)' },
+      { value: 'Instruction-following', label: 'Instruction Following' },
+      { value: 'Multi-turn', label: 'Multi-turn Chat' },
+      { value: 'Media', label: 'Entertainment & Media' },
+      { value: 'Mixed', label: 'Mixed Workloads' }
+    ]
+  }
+];
+
+const PURPOSE_OPTIONS = PURPOSE_GROUPS.flatMap(g => g.options);
+
+const getPurposeIcon = (value) => {
+  switch (value) {
+    case 'Coding': return Code2;
+    case 'Writing': return PenTool;
+    case 'Research': return Search;
+    case 'Math': return Calculator;
+    case 'Data': return Database;
+    case 'Chinese':
+    case 'English':
+    case 'French':
+    case 'German':
+    case 'Japanese':
+    case 'Korean':
+    case 'Polish':
+    case 'Russian':
+    case 'Spanish':
+    case 'Literature':
+      return Languages;
+    case 'Non-English':
+      return Globe2;
+    case 'Hard-prompts':
+    case 'Hard-prompts-english':
+      return ShieldCheck;
+    case 'Instruction-following':
+      return ClipboardCheck;
+    case 'Multi-turn':
+      return MessagesSquare;
+    case 'Longer-query':
+      return FileText;
+    case 'Expert':
+      return GraduationCap;
+    case 'Business':
+      return Briefcase;
+    case 'Media':
+      return Film;
+    case 'Legal':
+      return Scale;
+    case 'Science':
+      return FlaskConical;
+    case 'Math-industry':
+      return Calculator;
+    case 'Healthcare':
+      return HeartPulse;
+    case 'Software':
+      return Laptop;
+    case 'Mixed':
+      return Sparkles;
+    default:
+      return Sparkles;
+  }
+};
+
+const getPurposeIconColor = (value) => {
+  switch (value) {
+    case 'Coding': return '#3B82F6';
+    case 'Writing': return '#F59E0B';
+    case 'Research': return '#0D9488';
+    case 'Math': return '#8B5CF6';
+    case 'Data': return '#10B981';
+    case 'Chinese':
+    case 'English':
+    case 'French':
+    case 'German':
+    case 'Japanese':
+    case 'Korean':
+    case 'Polish':
+    case 'Russian':
+    case 'Spanish':
+    case 'Literature':
+      return '#06B6D4';
+    case 'Non-English':
+      return '#3B82F6';
+    case 'Hard-prompts':
+    case 'Hard-prompts-english':
+      return '#EF4444';
+    case 'Instruction-following':
+      return '#F59E0B';
+    case 'Multi-turn':
+      return '#8B5CF6';
+    case 'Longer-query':
+      return '#10B981';
+    case 'Expert':
+      return '#6366F1';
+    case 'Business':
+      return '#F97316';
+    case 'Media':
+      return '#EC4899';
+    case 'Legal':
+      return '#64748B';
+    case 'Science':
+      return '#0D9488';
+    case 'Math-industry':
+      return '#8B5CF6';
+    case 'Healthcare':
+      return '#EF4444';
+    case 'Software':
+      return '#0F172A';
+    case 'Mixed':
+      return '#10B981';
+    default:
+      return '#10B981';
+  }
+};
+
+function PurposeSelect({ value, onChange }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+  const triggerRef = React.useRef(null);
+  const [dropdownStyle, setDropdownStyle] = useState({});
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updatePosition = () => {
+      if (!triggerRef.current) return;
+      const rect = triggerRef.current.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+
+      const spaceBelow = viewportHeight - rect.bottom - 16;
+      const spaceAbove = rect.top - 16;
+      const popupHeight = 320;
+
+      let openDirection = 'down';
+      let maxHeight = 280;
+
+      if (spaceBelow >= popupHeight) {
+        openDirection = 'down';
+        maxHeight = Math.min(320, spaceBelow);
+      } else if (spaceAbove > spaceBelow) {
+        openDirection = 'up';
+        maxHeight = Math.min(320, spaceAbove);
+      } else {
+        openDirection = 'down';
+        maxHeight = Math.min(280, spaceBelow);
+      }
+
+
+
+      const newStyle = {
+        position: 'fixed',
+        left: `${rect.left}px`,
+        width: `${rect.width}px`,
+        maxHeight: `${maxHeight}px`,
+        boxSizing: 'border-box',
+        zIndex: 9999
+      };
+
+      if (openDirection === 'down') {
+        newStyle.top = `${rect.bottom + 8}px`;
+        newStyle.animation = 'fadeInSlideDown 180ms ease-out forwards';
+      } else {
+        newStyle.bottom = `${viewportHeight - rect.top + 8}px`;
+        newStyle.animation = 'fadeInSlideUp 180ms ease-out forwards';
+      }
+
+      setDropdownStyle(newStyle);
+    };
+
+    updatePosition();
+
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [isOpen]);
+
+  const selectedOption = PURPOSE_OPTIONS.find(opt => opt.value === value) || PURPOSE_OPTIONS[0];
+  const SelectedIcon = getPurposeIcon(selectedOption.value);
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+      {/* Trigger Button */}
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          height: '44px',
+          padding: '0 14px',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          borderRadius: '12px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          transition: 'all 150ms ease',
+          boxSizing: 'border-box',
+          outline: 'none'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = '#94A3B8';
+          e.currentTarget.style.backgroundColor = '#FAFAFA';
+        }}
+        onMouseLeave={(e) => {
+          if (!isOpen) {
+            e.currentTarget.style.borderColor = '#E2E8F0';
+            e.currentTarget.style.backgroundColor = '#FFFFFF';
+          }
+        }}
+        onFocus={(e) => {
+          e.currentTarget.style.borderColor = '#10B981';
+          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)';
+        }}
+        onBlur={(e) => {
+          e.currentTarget.style.borderColor = '#E2E8F0';
+          e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <SelectedIcon size={18} style={{ color: getPurposeIconColor(selectedOption.value), opacity: 0.9, strokeWidth: 2 }} />
+          <span style={{ fontSize: '13.5px', fontWeight: '500', color: '#1E293B' }}>{selectedOption.label}</span>
+        </div>
+        <ChevronDown size={16} style={{ color: '#64748B', transition: 'transform 150ms ease', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+      </button>
+
+      {/* Floating Dropdown List */}
+      {isOpen && (
+        <div
+          className="dropdown-scroll"
+          style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.94)',
+            backdropFilter: 'blur(18px)',
+            WebkitBackdropFilter: 'blur(18px)',
+            border: '1px solid rgba(148, 163, 184, 0.18)',
+            borderRadius: '16px',
+            boxShadow: '0 18px 60px rgba(15, 23, 42, 0.12)',
+            overflowY: 'auto',
+            padding: '6px',
+            boxSizing: 'border-box',
+            minWidth: '240px',
+            maxWidth: '350px',
+            ...dropdownStyle
+          }}
+        >
+          <style>{`
+            @keyframes fadeInSlideDown {
+              from {
+                opacity: 0;
+                transform: translateY(-6px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            @keyframes fadeInSlideUp {
+              from {
+                opacity: 0;
+                transform: translateY(6px);
+              }
+              to {
+                opacity: 1;
+                transform: translateY(0);
+              }
+            }
+            .dropdown-scroll::-webkit-scrollbar {
+              width: 4px;
+            }
+            .dropdown-scroll::-webkit-scrollbar-track {
+              background: transparent;
+            }
+            .dropdown-scroll::-webkit-scrollbar-thumb {
+              background: #CBD5E1;
+              border-radius: 99px;
+            }
+            .dropdown-scroll::-webkit-scrollbar-thumb:hover {
+              background: #10B981;
+            }
+            
+            .dropdown-item {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              width: 100%;
+              height: 40px;
+              padding: 0 14px;
+              border: none;
+              background: none;
+              border-radius: 10px;
+              cursor: pointer;
+              text-align: left;
+              transition: all 150ms ease;
+              box-sizing: border-box;
+              position: relative;
+            }
+            .dropdown-item:hover {
+              background-color: #F8FAFC;
+              transform: translateY(-1px);
+            }
+            .dropdown-item.selected {
+              background-color: rgba(59, 130, 246, 0.08);
+              border-left: 3px solid #3B82F6;
+              border-top-left-radius: 0;
+              border-bottom-left-radius: 0;
+            }
+            .dropdown-section-title {
+              font-size: 11px;
+              text-transform: uppercase;
+              font-weight: 700;
+              color: #94A3B8;
+              letter-spacing: 0.05em;
+              padding: 8px 14px 4px 14px;
+            }
+          `}</style>
+          
+          {PURPOSE_GROUPS.map((group) => (
+            <div key={group.id}>
+              <div className="dropdown-section-title">{group.label}</div>
+              {group.options.map((option) => {
+                const OptionIcon = getPurposeIcon(option.value);
+                const isSelected = option.value === value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`dropdown-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => {
+                      onChange(option.value);
+                      setIsOpen(false);
+                    }}
+                  >
+                    <OptionIcon 
+                      size={18} 
+                      style={{ 
+                        color: getPurposeIconColor(option.value), 
+                        opacity: isSelected ? 1 : 0.8,
+                        strokeWidth: isSelected ? 2.5 : 2
+                      }} 
+                    />
+                    <span 
+                      style={{ 
+                        fontSize: '13.5px', 
+                        fontWeight: isSelected ? '600' : '500', 
+                        color: isSelected ? '#1E293B' : '#475569' 
+                      }}
+                    >
+                      {option.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+const sortModelsForDisplay = (models) => {
+  const FEATURED_MODELS = [
+    "GPT-5.5",
+    "GPT-5.5 (high)",
+    "GPT-5.5 Pro",
+    "Claude Fable 5",
+    "Claude Opus 4.8",
+    "Claude Opus 4.7",
+    "Gemini 3.1 Pro Preview",
+    "Gemini 3.5 Flash",
+    "Grok 4",
+    "DeepSeek R1",
+    "Qwen 3",
+    "Llama 4"
+  ];
+
+  const cleanNameMap = new Map();
+  models.forEach(m => {
+    const clean = (m.name || m.id || '').replace(/^[^:]+:\s*/, '').toLowerCase().trim();
+    cleanNameMap.set(m.id, clean);
+  });
+
+  return [...models].sort((a, b) => {
+    const cleanA = cleanNameMap.get(a.id);
+    const cleanB = cleanNameMap.get(b.id);
+
+    const idxA = FEATURED_MODELS.findIndex(fm => cleanA.includes(fm.toLowerCase()) || fm.toLowerCase().includes(cleanA));
+    const idxB = FEATURED_MODELS.findIndex(fm => cleanB.includes(fm.toLowerCase()) || fm.toLowerCase().includes(cleanB));
+
+    const isFeaturedA = idxA !== -1;
+    const isFeaturedB = idxB !== -1;
+
+    if (isFeaturedA && isFeaturedB) {
+      return idxA - idxB;
+    }
+    if (isFeaturedA) return -1;
+    if (isFeaturedB) return 1;
+
+    const nameA = (a.name || a.id || '');
+    const nameB = (b.name || b.id || '');
+    return nameA.localeCompare(nameB);
+  });
+};
 
 export default function WizardFlow({
   currentView,
@@ -19,6 +522,9 @@ export default function WizardFlow({
   onTriggerAudit
 }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [subSearchQuery, setSubSearchQuery] = useState('');
+  const [apiSearchQuery, setApiSearchQuery] = useState('');
+  const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [dbModels, setDbModels] = useState([
     { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5' },
     { id: 'openai/gpt-5.5-pro', name: 'OpenAI: GPT-5.5 Pro' },
@@ -178,19 +684,215 @@ export default function WizardFlow({
     }
   };
 
-  // Filter tools based on query
-  const filteredTools = tools.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.desc.toLowerCase().includes(searchQuery.toLowerCase())
+  const getProviderName = (modelId) => {
+    const parts = modelId.split('/');
+    if (parts.length > 1) {
+      const raw = parts[0];
+      return raw.charAt(0).toUpperCase() + raw.slice(1);
+    }
+    return 'Other';
+  };
+
+  const getCleanModelName = (model) => {
+    if (!model.name) return model.id;
+    return model.name.replace(/^[^:]+:\s*/, '');
+  };
+
+  const toggleApiModelSelection = (modelId) => {
+    if (selectedToolIds.includes(modelId)) {
+      handleRemoveApiModel(modelId);
+    } else {
+      handleAddApiModel(modelId);
+    }
+  };
+
+  const subscriptionTools = tools.filter(t => 
+    t.type === 'subscription' && (
+      t.name.toLowerCase().includes(subSearchQuery.toLowerCase()) ||
+      t.desc.toLowerCase().includes(subSearchQuery.toLowerCase())
+    )
   );
 
-  const subscriptionTools = filteredTools.filter(t => t.type === 'subscription');
-  const apiTools = filteredTools.filter(t => t.type === 'api');
-  const selectedApiTools = tools.filter(t => t.type === 'api' && selectedToolIds.includes(t.id));
+  const filteredDbModels = useMemo(() => {
+    const filtered = dbModels.filter(m => 
+      (m.name || '').toLowerCase().includes(apiSearchQuery.toLowerCase()) ||
+      (m.id || '').toLowerCase().includes(apiSearchQuery.toLowerCase())
+    );
+
+    if (apiSearchQuery.trim() === '') {
+      return sortModelsForDisplay(filtered);
+    } else {
+      return filtered.sort((a, b) => (a.name || a.id || '').localeCompare(b.name || b.id || ''));
+    }
+  }, [dbModels, apiSearchQuery]);
 
   // STEP 1 RENDER
   const renderStep1 = () => (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
+      <style>{`
+        .wizard-body-wide {
+          max-width: 1100px;
+          width: 100%;
+          padding: 32px 24px;
+          margin: 0 auto;
+          box-sizing: border-box;
+        }
+        .split-workspace {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          margin-bottom: 18px;
+        }
+        .workspace-panel {
+          background-color: #FFFFFF;
+          border: 1px solid #E5E7EB;
+          border-radius: 18px;
+          padding: 24px;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+          display: flex;
+          flex-direction: column;
+          height: 620px;
+          box-sizing: border-box;
+        }
+        .panel-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: #1F2937;
+          margin-top: 0;
+          margin-bottom: 16px;
+        }
+        .panel-search-wrapper {
+          position: relative;
+          margin-bottom: 16px;
+        }
+        
+        /* Custom Tool Scroll Container */
+        .subscription-scroll-container {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+        .subscription-scroll-container::-webkit-scrollbar,
+        .api-scroll-container::-webkit-scrollbar {
+          width: 5px;
+        }
+        .subscription-scroll-container::-webkit-scrollbar-track,
+        .api-scroll-container::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .subscription-scroll-container::-webkit-scrollbar-thumb,
+        .api-scroll-container::-webkit-scrollbar-thumb {
+          background: #CBD5E1;
+          border-radius: 999px;
+        }
+        .subscription-scroll-container::-webkit-scrollbar-thumb:hover,
+        .api-scroll-container::-webkit-scrollbar-thumb:hover {
+          background: #94A3B8;
+        }
+        
+        .tool-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          margin-bottom: 0;
+        }
+        .tool-card {
+          padding: 12px;
+          gap: 12px;
+        }
+
+        /* Direct API List */
+        .api-scroll-container {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding-right: 4px;
+        }
+        
+        .api-model-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 12px 14px;
+          border: 1.5px solid #F3F4F6;
+          background-color: #FAFAFA;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 180ms ease;
+          margin-bottom: 8px;
+          box-sizing: border-box;
+        }
+        .api-model-row:hover {
+          background-color: #FFFFFF;
+          border-color: #3B82F6;
+          transform: translateY(-1px);
+        }
+        .api-model-row.selected {
+          background-color: #F0F7FF;
+          border-color: #3B82F6;
+        }
+        .api-row-left {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          min-width: 0;
+          flex: 1;
+        }
+        .api-row-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+        }
+        .api-model-name {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #1F2937;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .api-provider-name {
+          font-size: 11px;
+          color: #6B7280;
+          margin-top: 1px;
+        }
+        
+        /* Bottom CTA Success Container */
+        .bottom-cta-banner {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 24px;
+          background-color: #ECFDF5;
+          border: 1.5px solid #A7F3D0;
+          border-radius: 14px;
+          color: #065F46;
+          margin-top: 0;
+        }
+        .bottom-cta-text {
+          font-size: 14px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        @media (max-width: 768px) {
+          .split-workspace {
+            grid-template-columns: 1fr;
+            gap: 20px;
+          }
+          .workspace-panel {
+            height: auto;
+            max-height: 620px;
+          }
+          .wizard-body-wide {
+            padding: 24px 16px;
+          }
+        }
+      `}</style>
+
       <header className="wizard-header">
         <div className="container">
           <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
@@ -210,141 +912,239 @@ export default function WizardFlow({
         </div>
       </header>
       
-      <main className="main-content wizard-body">
+      <main className="main-content wizard-body-wide">
         <div className="wizard-progress-meta">✦ Step 1 of 4 - 25% Complete</div>
-        <h2 className="wizard-title">Which AI tools does your team use?</h2>
-        <p className="wizard-desc">Select active subscriptions and direct API access nodes currently in use.</p>
+        <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '18px' }}>Which AI tools does your team use?</h2>
+        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '20px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
 
-        <div className="wizard-card" style={{ padding: '32px' }}>
+        <div className="split-workspace">
           
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>Subscription-Based AI Tools</h3>
-          <div className="tool-grid" style={{ marginBottom: '40px' }}>
-            {subscriptionTools.map(tool => {
-              const isSelected = selectedToolIds.includes(tool.id);
-              return (
-                <div 
-                  key={tool.id} 
-                  className={`tool-card ${isSelected ? 'selected' : ''}`}
-                  onClick={() => toggleToolSelection(tool.id)}
-                >
-                  <div className="tool-card-icon">{tool.icon}</div>
-                  <div className="tool-card-info">
-                    <span className="tool-card-name">{tool.name}</span>
-                    <span className="tool-card-desc">{tool.desc}</span>
-                  </div>
-                  <div className="tool-card-select-badge"></div>
+          {/* Left Panel: Subscription Tools */}
+          <div className="workspace-panel">
+            <h3 className="panel-title">Subscription AI Tools</h3>
+            
+            <div className="panel-search-wrapper">
+              <input 
+                type="text"
+                placeholder="Search ChatGPT, Claude, Gemini, DeepSeek..."
+                className="search-input"
+                value={subSearchQuery}
+                onChange={(e) => setSubSearchQuery(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box' }}
+              />
+              <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+            </div>
+
+            <div className="subscription-scroll-container">
+              {subscriptionTools.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
+                  <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#1F2937' }}>No subscription tools found</span>
+                  <span style={{ fontSize: '12px', color: '#6B7280' }}>Try another search or add a custom tool below.</span>
                 </div>
-              );
-            })}
-          </div>
+              ) : (
+                <div className="tool-grid">
+                  {subscriptionTools.map(tool => {
+                    const isSelected = selectedToolIds.includes(tool.id);
+                    return (
+                      <div 
+                        key={tool.id} 
+                        className={`tool-card ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleToolSelection(tool.id)}
+                      >
+                        <div className="tool-card-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <ProviderLogo provider={tool.id} size={22} />
+                        </div>
+                        <div className="tool-card-info">
+                          <span className="tool-card-name">{tool.name}</span>
+                          <span className="tool-card-desc">{tool.desc}</span>
+                        </div>
+                        <div className="tool-card-select-badge"></div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-          <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '32px 0' }}></div>
-
-          <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#1E293B', marginBottom: '16px' }}>Direct API Access</h3>
-          
-          {/* Dropdown for adding direct API models */}
-          <div style={{ marginBottom: '20px' }}>
-            <select
-              className="sub-select"
-              value=""
-              onChange={(e) => handleAddApiModel(e.target.value)}
-              style={{ width: '100%', height: '42px', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '14px', fontWeight: '500', backgroundColor: '#FFFFFF', cursor: 'pointer', outline: 'none' }}
-            >
-              <option value="" disabled>Choose an API model...</option>
-              {dbModels
-                .filter(m => !selectedToolIds.includes(m.id))
-                .map(m => (
-                  <option key={m.id} value={m.id}>{m.name || m.id}</option>
-                ))
-              }
-            </select>
-          </div>
-
-          {/* Selected API Model blocks */}
-          {selectedApiTools.length > 0 && (
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
-              {selectedApiTools.map(tool => (
-                <div 
-                  key={tool.id} 
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '8px 16px',
-                    backgroundColor: 'var(--color-bg-accent)',
-                    border: '1px solid var(--color-border)',
-                    borderRadius: '20px',
-                    fontSize: '13.5px',
-                    fontWeight: '600',
-                    color: 'var(--color-text-primary)'
-                  }}
-                >
-                  <span>🔑 {tool.name}</span>
+            {/* Compact Custom Tool section */}
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E5E7EB', boxSizing: 'border-box' }}>
+              {!isAddingCustom ? (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Can't find your tool?</span>
                   <button 
                     type="button"
-                    onClick={() => handleRemoveApiModel(tool.id)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      color: 'var(--color-text-muted)',
-                      cursor: 'pointer',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      padding: '0 4px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: 1
-                    }}
-                    title="Remove model"
+                    onClick={() => setIsAddingCustom(true)}
+                    className="btn btn-outline"
+                    style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer' }}
                   >
-                    ✕
+                    + Add Custom Tool
                   </button>
                 </div>
-              ))}
-            </div>
-          )}
-
-          <div className="search-container">
-            <span className="search-label">Missing a tool? Search or add custom</span>
-            <div className="search-input-wrapper">
-              <input 
-                type="text" 
-                placeholder="e.g. Midjourney, Notion AI, Custom Script..."
-                className="search-input"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleAddCustomTool}
-              />
-              <span className="search-icon">🔍</span>
-              {searchQuery && !tools.some(t => t.name.toLowerCase() === searchQuery.toLowerCase()) && (
-                <button 
-                  onClick={() => handleAddCustomTool({ key: 'Enter' })} 
-                  className="btn btn-black"
-                  style={{ borderRadius: '6px', padding: '10px 16px' }}
-                >
-                  + Add Custom
-                </button>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: '#6B7280', textTransform: 'uppercase' }}>Tool Name</span>
+                    <button 
+                      type="button" 
+                      onClick={() => { setIsAddingCustom(false); setSearchQuery(''); }}
+                      style={{ background: 'none', border: 'none', color: '#9CA3AF', cursor: 'pointer', fontSize: '12px' }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Midjourney, Notion AI, Custom Script..."
+                      className="search-input"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleAddCustomTool(e);
+                          setIsAddingCustom(false);
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        height: '40px',
+                        padding: '8px 12px 8px 36px',
+                        border: '1.5px solid #E5E7EB',
+                        borderRadius: '10px',
+                        fontSize: '13px',
+                        backgroundColor: '#FAFAFA'
+                      }}
+                      autoFocus
+                    />
+                    <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        handleAddCustomTool({ key: 'Enter' });
+                        setIsAddingCustom(false);
+                      }} 
+                      className="btn btn-black"
+                      disabled={!searchQuery.trim()}
+                      style={{ borderRadius: '10px', padding: '0 16px', height: '40px', display: 'flex', alignItems: 'center', fontSize: '13px' }}
+                    >
+                      Add
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          {selectedToolIds.length > 0 && (
-            <div className="selection-alert">
-              <span>✔</span> {selectedToolIds.length} tools selected · proceed to configure usage
+          {/* Right Panel: Direct API Models */}
+          <div className="workspace-panel">
+            <h3 className="panel-title">Direct API Models</h3>
+
+            <div className="panel-search-wrapper">
+              <input 
+                type="text"
+                placeholder="Search GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro..."
+                className="search-input"
+                value={apiSearchQuery}
+                onChange={(e) => setApiSearchQuery(e.target.value)}
+                style={{ width: '100%', boxSizing: 'border-box' }}
+              />
+              <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
-          )}
+
+            <div className="api-scroll-container">
+              {filteredDbModels.length === 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
+                  <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
+                  <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#1F2937' }}>No API models found</span>
+                  <span style={{ fontSize: '12px', color: '#6B7280' }}>Try another search.</span>
+                </div>
+              ) : (
+                filteredDbModels.map(model => {
+                  const isSelected = selectedToolIds.includes(model.id);
+                  return (
+                    <div 
+                      key={model.id}
+                      className={`api-model-row ${isSelected ? 'selected' : ''}`}
+                      onClick={() => toggleApiModelSelection(model.id)}
+                    >
+                      <div className="api-row-left">
+                        <ProviderLogo provider={model.id} size={22} />
+                        <div className="api-row-info">
+                          <span className="api-model-name">{getCleanModelName(model)}</span>
+                          <span className="api-provider-name">{getProviderName(model.id)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Checkbox badge Selection Indicator */}
+                      <div style={{
+                        width: '18px',
+                        height: '18px',
+                        borderRadius: '50%',
+                        border: isSelected ? '1.5px solid #3B82F6' : '1.5px solid #D1D5DB',
+                        backgroundColor: isSelected ? '#3B82F6' : '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 180ms ease'
+                      }}>
+                        {isSelected && (
+                          <span style={{ color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
         </div>
 
-        <div className="wizard-actions" style={{ justifyContent: 'flex-end' }}>
-          <button 
-            onClick={() => onNavigateToView('step2')} 
-            className={`btn ${selectedToolIds.length > 0 ? 'btn-black' : 'btn-disabled'}`}
-            disabled={selectedToolIds.length === 0}
-          >
-            Continue to Configure Usage <span style={{ marginLeft: '6px' }}>→</span>
-          </button>
-        </div>
+        {/* Success Banner Bottom CTA */}
+        {selectedToolIds.length > 0 ? (
+          <div className="bottom-cta-banner">
+            <span className="bottom-cta-text">
+              <span>✔</span> {selectedToolIds.length} tools selected
+            </span>
+            <button 
+              onClick={() => onNavigateToView('step2')} 
+              className="btn btn-black"
+              style={{
+                borderRadius: '10px',
+                padding: '10px 20px',
+                fontSize: '13.5px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              Proceed to Configure Usage <span>→</span>
+            </button>
+          </div>
+        ) : (
+          <div className="bottom-cta-banner" style={{ backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#6B7280' }}>
+            <span className="bottom-cta-text" style={{ fontWeight: '500' }}>
+              Select at least one tool to proceed
+            </span>
+            <button 
+              className="btn btn-disabled"
+              disabled
+              style={{
+                borderRadius: '10px',
+                padding: '10px 20px',
+                fontSize: '13.5px',
+                fontWeight: '700',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
+              }}
+            >
+              Proceed to Configure Usage <span>→</span>
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -359,7 +1159,7 @@ export default function WizardFlow({
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
           <div className="wizard-steps-indicator">
-            <span className="wizard-step-dot completed">✓</span>
+            <span className="wizard-step-dot completed">1</span>
             <span className="wizard-step-line completed"></span>
             <span className="wizard-step-dot active">2</span>
             <span className="wizard-step-line"></span>
@@ -386,7 +1186,21 @@ export default function WizardFlow({
                 <div key={toolId} style={{ border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', backgroundColor: '#FFFFFF' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <span style={{ fontSize: '24px' }}>{tool.icon}</span>
+                      <div 
+                        style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '8px',
+                          backgroundColor: '#FAFAFA',
+                          border: '1px solid #E2E8F0',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <ProviderLogo provider={tool.id} size={22} />
+                      </div>
                       <div>
                         <strong style={{ fontSize: '18px', color: '#1E293B' }}>{tool.name}</strong>
                         <span style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', backgroundColor: tool.type === 'subscription' ? '#EEF2FF' : '#ECFDF5', color: tool.type === 'subscription' ? '#4F46E5' : '#059669', fontWeight: 600 }}>
@@ -404,7 +1218,7 @@ export default function WizardFlow({
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    {configs.map((config, index) => (
+                    {configs.map((config) => (
                       <div key={config.id} className="allocation-row" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', alignItems: 'flex-end', backgroundColor: '#F8FAFC', padding: '16px', borderRadius: '8px' }}>
                         
                         {tool.type === 'subscription' ? (
@@ -512,43 +1326,10 @@ export default function WizardFlow({
                         {/* Common Purpose Field */}
                         <div className="sub-input-col" style={{ flex: '1 1 180px' }}>
                           <span className="sub-input-label">Purpose / Team Role</span>
-                          <select 
-                            className="sub-select"
+                          <PurposeSelect 
                             value={config.purpose}
-                            onChange={(e) => handleConfigChange(toolId, config.id, 'purpose', e.target.value)}
-                            style={{ width: '100%' }}
-                          >
-                            <option value="Coding">Coding 💻</option>
-                            <option value="Writing">Writing ✍</option>
-                            <option value="Research">Research 🔍</option>
-                            <option value="Math">Math 🔢</option>
-                            <option value="Data">Data 📊</option>
-                            <option value="Chinese">Chinese 🇨🇳</option>
-                            <option value="English">English 🇬🇧</option>
-                            <option value="French">French 🇫🇷</option>
-                            <option value="German">German 🇩🇪</option>
-                            <option value="Japanese">Japanese 🇯🇵</option>
-                            <option value="Korean">Korean 🇰🇷</option>
-                            <option value="Polish">Polish 🇵🇱</option>
-                            <option value="Russian">Russian 🇷🇺</option>
-                            <option value="Spanish">Spanish 🇪🇸</option>
-                            <option value="Non-English">Non-English 🌐</option>
-                            <option value="Hard-prompts">Hard Prompts 💣</option>
-                            <option value="Hard-prompts-english">Hard Prompts (English) 🇬🇧💣</option>
-                            <option value="Instruction-following">Instruction Following 📋</option>
-                            <option value="Multi-turn">Multi-turn Chat 💬</option>
-                            <option value="Longer-query">Longer Queries 📝</option>
-                            <option value="Expert">Expert Tasks 🎓</option>
-                            <option value="Business">Business & Finance 💼</option>
-                            <option value="Media">Entertainment & Media 🎬</option>
-                            <option value="Legal">Legal & Government ⚖</option>
-                            <option value="Science">Life & Social Science 🔬</option>
-                            <option value="Math-industry">Mathematical Industry 📐</option>
-                            <option value="Healthcare">Medicine & Healthcare 🏥</option>
-                            <option value="Software">Software & IT Services 🖥</option>
-                            <option value="Literature">Literature & Language 📚</option>
-                            <option value="Mixed">Mixed Workloads ⚙</option>
-                          </select>
+                            onChange={(val) => handleConfigChange(toolId, config.id, 'purpose', val)}
+                          />
                         </div>
 
                         {configs.length > 1 && (
@@ -599,9 +1380,9 @@ export default function WizardFlow({
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
             </a>
             <div className="wizard-steps-indicator">
-              <span className="wizard-step-dot completed">✓</span>
+              <span className="wizard-step-dot completed">1</span>
               <span className="wizard-step-line completed"></span>
-              <span className="wizard-step-dot completed">✓</span>
+              <span className="wizard-step-dot completed">2</span>
               <span className="wizard-step-line completed"></span>
               <span className="wizard-step-dot active">3</span>
               <span className="wizard-step-line"></span>
@@ -611,7 +1392,7 @@ export default function WizardFlow({
           </div>
         </header>
 
-        <main className="main-content wizard-body">
+        <main className="main-content wizard-body-extra-wide">
           <div className="wizard-progress-meta">✦ Step 3 of 4 - 75% Complete</div>
           <h2 className="wizard-title">Select Optimization Target</h2>
           <p className="wizard-desc">Configure your cost-saving thresholds and quality limits for the spend engine audit.</p>
@@ -670,69 +1451,192 @@ export default function WizardFlow({
             <div className="form-group">
               <label className="form-label" style={{ marginBottom: '16px' }}>Optimization Strategy</label>
               
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+              <style>{`
+                .wizard-body-extra-wide {
+                  max-width: 1250px;
+                  width: 100%;
+                  padding: 32px 24px;
+                  margin: 0 auto;
+                  box-sizing: border-box;
+                }
+                .strategy-card {
+                  background-color: #FFFFFF;
+                  border: 2px solid #E2E8F0;
+                  border-radius: 16px;
+                  padding: 20px;
+                  cursor: pointer;
+                  display: flex;
+                  flex-direction: column;
+                  justify-content: space-between;
+                  transition: all 150ms ease;
+                  box-sizing: border-box;
+                  height: 100%;
+                }
+                .strategy-card:hover {
+                  transform: translateY(-3px);
+                  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.06);
+                  border-color: #CBD5E1;
+                }
+                .strategy-card.selected {
+                  background-color: rgba(16, 185, 129, 0.04);
+                  border-color: #10B981;
+                  box-shadow: 0 10px 30px rgba(16, 185, 129, 0.12);
+                }
+                .strategy-icon-box {
+                  width: 52px;
+                  height: 52px;
+                  border-radius: 14px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  transition: all 150ms ease;
+                  border: 1px solid rgba(79, 70, 229, 0.08);
+                }
+                @media (max-width: 900px) {
+                  .strategy-cards-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                  }
+                }
+                @media (max-width: 600px) {
+                  .strategy-cards-grid {
+                    grid-template-columns: 1fr !important;
+                  }
+                }
+              `}</style>
+              
+              <div className="strategy-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '24px' }}>
                 
                 {/* Performance Preservation */}
                 <div 
                   onClick={() => setOptimizationGoal('performance')}
-                  style={{
-                    border: '2px solid ' + (optimizationGoal === 'performance' ? '#10B981' : '#E2E8F0'),
-                    borderRadius: '12px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    backgroundColor: optimizationGoal === 'performance' ? '#F0FDF4' : '#FFFFFF',
-                    transition: 'all 0.2s ease'
-                  }}
+                  className={`strategy-card ${optimizationGoal === 'performance' ? 'selected' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '24px' }}>🛡️</span>
-                    <strong style={{ fontSize: '16px', color: '#1E293B' }}>Performance Preservation</strong>
+                  <div>
+                    <div 
+                      className="strategy-icon-box"
+                      style={{
+                        backgroundColor: optimizationGoal === 'performance' ? '#10B981' : '#ECFDF5',
+                        marginBottom: '12px'
+                      }}
+                    >
+                      <ShieldCheck size={20} style={{ color: optimizationGoal === 'performance' ? '#FFFFFF' : '#10B981' }} />
+                    </div>
+                    <h4 
+                      style={{ 
+                        fontSize: '18px', 
+                        fontWeight: '600', 
+                        color: optimizationGoal === 'performance' ? '#10B981' : '#1E293B',
+                        margin: '0 0 8px 0',
+                        transition: 'color 150ms ease'
+                      }}
+                    >
+                      Performance Preservation
+                    </h4>
+                    <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.65', margin: 0 }}>
+                      Reduce subscription costs while preserving or improving capabilities. Recommends cheaper options of equal or higher performance.
+                    </p>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
-                    Reduce subscription costs while preserving or improving model capabilities. Recommends cheaper options of equal or higher performance.
-                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Preserves model quality
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Finds lower-cost alternatives
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Ideal for production teams
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Target Cost Reduction */}
                 <div 
                   onClick={() => setOptimizationGoal('cost')}
-                  style={{
-                    border: '2px solid ' + (optimizationGoal === 'cost' ? '#10B981' : '#E2E8F0'),
-                    borderRadius: '12px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    backgroundColor: optimizationGoal === 'cost' ? '#F0FDF4' : '#FFFFFF',
-                    transition: 'all 0.2s ease'
-                  }}
+                  className={`strategy-card ${optimizationGoal === 'cost' ? 'selected' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '24px' }}>📉</span>
-                    <strong style={{ fontSize: '16px', color: '#1E293B' }}>Target Cost Reduction</strong>
+                  <div>
+                    <div 
+                      className="strategy-icon-box"
+                      style={{
+                        backgroundColor: optimizationGoal === 'cost' ? '#F97316' : '#FFF7ED',
+                        marginBottom: '12px'
+                      }}
+                    >
+                      <TrendingDown size={20} style={{ color: optimizationGoal === 'cost' ? '#FFFFFF' : '#F97316' }} />
+                    </div>
+                    <h4 
+                      style={{ 
+                        fontSize: '18px', 
+                        fontWeight: '600', 
+                        color: optimizationGoal === 'cost' ? '#10B981' : '#1E293B',
+                        margin: '0 0 8px 0',
+                        transition: 'color 150ms ease'
+                      }}
+                    >
+                      Target Cost Reduction
+                    </h4>
+                    <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.65', margin: 0 }}>
+                      Prioritize cost reduction. Recommends models that meet a minimum specified budget cut target, allowing acceptable capability tradeoffs.
+                    </p>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
-                    Prioritize cost reduction. Recommends models that meet a minimum specified budget cut target, allowing acceptable capability degradation.
-                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Maximizes savings
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Meets your budget target
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Accepts controlled tradeoffs
+                    </li>
+                  </ul>
                 </div>
 
                 {/* Quality Focus */}
                 <div 
                   onClick={() => setOptimizationGoal('quality')}
-                  style={{
-                    border: '2px solid ' + (optimizationGoal === 'quality' ? '#10B981' : '#E2E8F0'),
-                    borderRadius: '12px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    backgroundColor: optimizationGoal === 'quality' ? '#F0FDF4' : '#FFFFFF',
-                    transition: 'all 0.2s ease'
-                  }}
+                  className={`strategy-card ${optimizationGoal === 'quality' ? 'selected' : ''}`}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                    <span style={{ fontSize: '24px' }}>💎</span>
-                    <strong style={{ fontSize: '16px', color: '#1E293B' }}>Quality Focus</strong>
+                  <div>
+                    <div 
+                      className="strategy-icon-box"
+                      style={{
+                        backgroundColor: optimizationGoal === 'quality' ? '#4F46E5' : '#EEF2FF',
+                        marginBottom: '12px'
+                      }}
+                    >
+                      <Gem 
+                        size={22} 
+                        strokeWidth={2.2} 
+                        style={{ color: optimizationGoal === 'quality' ? '#FFFFFF' : '#4F46E5' }} 
+                      />
+                    </div>
+                    <h4 
+                      style={{ 
+                        fontSize: '18px', 
+                        fontWeight: '600', 
+                        color: optimizationGoal === 'quality' ? '#10B981' : '#1E293B',
+                        margin: '0 0 8px 0',
+                        transition: 'color 150ms ease'
+                      }}
+                    >
+                      Quality Focus
+                    </h4>
+                    <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.65', margin: 0 }}>
+                      Prioritize maximum AI capability. Recommends the absolute highest-performing models and subscriptions for your workload, regardless of cost.
+                    </p>
                   </div>
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
-                    Prioritize maximum AI capability. Recommends the absolute highest-performing models and subscriptions for your workload, regardless of cost.
-                  </p>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Highest-performing models
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Best benchmark scores
+                    </li>
+                    <li style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                      <span style={{ color: '#10B981', fontWeight: 'bold' }}>✓</span> Cost is secondary
+                    </li>
+                  </ul>
                 </div>
 
               </div>
@@ -775,9 +1679,35 @@ export default function WizardFlow({
               onClick={onTriggerAudit} 
               className={`btn ${isBlocked ? 'btn-disabled' : 'btn-green'}`} 
               disabled={isBlocked}
-              style={{ padding: '12px 28px' }}
+              style={{ 
+                padding: '0 28px',
+                height: '48px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                borderRadius: '10px',
+                fontWeight: '700',
+                fontSize: '14.5px',
+                boxShadow: isBlocked ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.2)',
+                transition: 'all 150ms ease',
+                cursor: isBlocked ? 'not-allowed' : 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                if (!isBlocked) {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.25)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isBlocked) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.2)';
+                }
+              }}
             >
-              📊 Run Audit
+              <BarChart3 size={18} />
+              <span>Run Audit</span>
             </button>
           </div>
         </main>

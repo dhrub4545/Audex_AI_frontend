@@ -1,26 +1,82 @@
 import React from 'react';
+import {
+  Circle,
+  CircleCheckBig,
+  Sparkles,
+  X,
+  ArrowLeft,
+  ArrowRight,
+  Server,
+  CreditCard,
+  Activity,
+  Target,
+  Users,
+  Info,
+  BadgeCheck,
+  BarChart3,
+  TrendingUp
+} from 'lucide-react';
 import logoImg from '../assets/audex-ai-logo.png';
-import openaiLogo from '../assets/openai.svg';
-import claudeLogo from '../assets/claude.svg';
-import geminiLogo from '../assets/gemini.svg';
-import githubLogo from '../assets/github.svg';
-import perplexityLogo from '../assets/perplexity.svg';
-import xaiLogo from '../assets/xai.svg';
-import cursorLogo from '../assets/cursor.svg';
-import windsurfLogo from '../assets/windsurf.svg';
-
-const getProviderLogo = (name) => {
-  const n = (name || '').toLowerCase();
-  if (n.includes('openai') || n.includes('chatgpt')) return openaiLogo;
-  if (n.includes('anthropic') || n.includes('claude')) return claudeLogo;
-  if (n.includes('google') || n.includes('gemini')) return geminiLogo;
-  if (n.includes('github') || n.includes('copilot')) return githubLogo;
-  if (n.includes('perplexity')) return perplexityLogo;
-  if (n.includes('xai') || n.includes('grok')) return xaiLogo;
-  if (n.includes('cursor')) return cursorLogo;
-  if (n.includes('windsurf') || n.includes('codeium')) return windsurfLogo;
-  return null;
+import { ProviderLogo } from './MarketIntelView';
+const getNormalizedProvider = (prov) => {
+  const p = (prov || '').toLowerCase().trim();
+  if (p.includes('gpt') || p.includes('openai') || p.includes('chatgpt')) {
+    return 'OpenAI';
+  }
+  if (p.includes('claude') || p.includes('anthropic')) {
+    return 'Anthropic';
+  }
+  if (p.includes('gemini') || p.includes('google')) {
+    return 'Google';
+  }
+  return prov;
 };
+
+const getRecommendedOption = (rec) => {
+  const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
+  const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
+  return apiSav >= subSav ? 'api' : 'subscription';
+};
+
+function ProviderBadge({ provider, model, plan, size = 18 }) {
+  const getBadgeStyles = (prov) => {
+    const p = (prov || '').toLowerCase().trim();
+    if (p.includes('openai') || p.includes('chatgpt')) return { color: '#10B981', backgroundColor: '#ECFDF5', borderColor: 'rgba(16, 185, 129, 0.15)' };
+    if (p.includes('anthropic') || p.includes('claude')) return { color: '#D97754', backgroundColor: '#FFF7ED', borderColor: 'rgba(217, 119, 84, 0.15)' };
+    if (p.includes('google') || p.includes('gemini')) return { color: '#2563EB', backgroundColor: '#EFF6FF', borderColor: 'rgba(37, 99, 235, 0.15)' };
+    if (p.includes('meta') || p.includes('llama')) return { color: '#044E95', backgroundColor: '#F0F9FF', borderColor: 'rgba(4, 78, 149, 0.15)' };
+    if (p.includes('deepseek')) return { color: '#4D6BFE', backgroundColor: '#EEF2FF', borderColor: 'rgba(77, 107, 254, 0.15)' };
+    if (p.includes('xai') || p.includes('grok')) return { color: '#0F172A', backgroundColor: '#F8FAFC', borderColor: 'rgba(15, 23, 42, 0.15)' };
+    if (p.includes('perplexity')) return { color: '#13B5B1', backgroundColor: '#F0FDFA', borderColor: 'rgba(19, 181, 177, 0.15)' };
+    return { color: '#475569', backgroundColor: '#F8FAFC', borderColor: '#E2E8F0' };
+  };
+
+  const badgeStyle = getBadgeStyles(provider);
+
+  return (
+    <div style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '8px',
+      padding: '4px 10px',
+      borderRadius: '8px',
+      border: `1px solid ${badgeStyle.borderColor}`,
+      backgroundColor: badgeStyle.backgroundColor,
+      boxSizing: 'border-box'
+    }}>
+      <ProviderLogo provider={getNormalizedProvider(provider)} size={size} />
+      <span style={{
+        fontSize: '12px',
+        fontWeight: '700',
+        color: badgeStyle.color,
+        letterSpacing: '-0.01em',
+        lineHeight: 1
+      }}>
+        {model || plan || provider}
+      </span>
+    </div>
+  );
+}
 
 const parseRecDetails = (rec) => {
   if (rec.originalAlloc) {
@@ -31,7 +87,7 @@ const parseRecDetails = (rec) => {
       plan: rec.originalAlloc.plan,
       type: rec.originalAlloc.type || 'subscription',
       currentCost: rec.originalAlloc.currentCost || 0,
-      provider: rec.originalAlloc.provider || 'OpenAI',
+      provider: getNormalizedProvider(rec.originalAlloc.provider || 'OpenAI'),
       modelName: rec.originalAlloc.modelName || 'GPT-4o'
     };
   }
@@ -78,7 +134,7 @@ const parseRecDetails = (rec) => {
   if (rec.tool) {
     const cleanTool = rec.tool.split('(')[0].trim();
     toolName = cleanTool;
-    if (cleanTool.toLowerCase().includes('chatgpt') || cleanTool.toLowerCase().includes('openai')) {
+    if (cleanTool.toLowerCase().includes('chatgpt') || cleanTool.toLowerCase().includes('openai') || cleanTool.toLowerCase().includes('gpt')) {
       provider = 'OpenAI';
     } else if (cleanTool.toLowerCase().includes('claude') || cleanTool.toLowerCase().includes('anthropic')) {
       provider = 'Anthropic';
@@ -108,7 +164,7 @@ const parseRecDetails = (rec) => {
     toolName,
     type,
     currentCost,
-    provider,
+    provider: getNormalizedProvider(provider),
     modelName
   };
 };
@@ -233,12 +289,22 @@ export default function ActionPlanView({
   };
 
   const getSavingsPillStyle = (savings) => ({
-    fontSize: '11.5px',
-    fontWeight: '750',
-    color: savings < 0 ? '#DC2626' : '#10B981',
-    backgroundColor: savings < 0 ? '#FEF2F2' : '#F0FDF4',
-    padding: '3px 8px',
-    borderRadius: '9999px'
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    whiteSpace: 'nowrap',
+    width: 'fit-content',
+    minWidth: '120px',
+    padding: '6px 16px',
+    borderRadius: '9999px',
+    lineHeight: 1,
+    fontSize: '13px',
+    fontWeight: '700',
+    color: savings < 0 ? '#DC2626' : '#047857',
+    backgroundColor: savings < 0 ? '#FEF2F2' : '#ECFDF5',
+    border: `1px solid ${savings < 0 ? '#FCA5A5' : '#BBF7D0'}`,
+    boxShadow: `0 2px 6px ${savings < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)'}`
   });
 
   return (
@@ -249,21 +315,26 @@ export default function ActionPlanView({
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="wizard-steps-indicator">
-            <span className="wizard-step-dot completed">✓</span>
+          <div className="wizard-steps-indicator" style={{ display: 'flex', alignItems: 'center' }}>
+            <span className="wizard-step-dot completed">1</span>
             <span className="wizard-step-line completed"></span>
-            <span className="wizard-step-dot completed">✓</span>
+            <span className="wizard-step-dot completed">2</span>
             <span className="wizard-step-line completed"></span>
-            <span className="wizard-step-dot completed">✓</span>
+            <span className="wizard-step-dot completed">3</span>
             <span className="wizard-step-line completed"></span>
             <span className="wizard-step-dot active">4</span>
           </div>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close">✕</a>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={18} />
+          </a>
         </div>
       </header>
-
+ 
       <main className="main-content wizard-body" style={{ paddingBottom: '60px', maxWidth: '1200px' }}>
-        <div className="wizard-progress-meta">✦ Step 4 of 4 - 100% Complete</div>
+        <div className="wizard-progress-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Sparkles size={14} style={{ color: 'var(--color-green-primary)' }} />
+          <span>Step 4 of 4 - 100% Complete</span>
+        </div>
         <h2 className="wizard-title">Optimisation Action Plan</h2>
         <p className="wizard-desc">
           We analyzed your stack and detected {recs.length} key waste indicators. Select your preferred pathway for each recommendation.
@@ -288,119 +359,209 @@ export default function ActionPlanView({
                 100% { transform: scale(0.95); opacity: 0.65; }
               }
             `}</style>
-            <div style={{
-              background: 'linear-gradient(135deg, #1E293B 0%, #0F172A 100%)',
-              border: '1px solid #334155',
-              borderRadius: '16px',
-              padding: '20px 24px',
-              marginBottom: '16px',
-              boxShadow: '0 10px 30px -10px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              {/* Pulsing indicator */}
-              <div style={{
-                position: 'absolute',
-                top: '20px',
-                right: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                <span style={{
-                  width: '8px',
-                  height: '8px',
-                  backgroundColor: '#10B981',
-                  borderRadius: '50%',
-                  display: 'inline-block',
-                  boxShadow: '0 0 8px #10B981',
-                  animation: 'pulse 1.8s infinite'
-                }} />
-                <span style={{ fontSize: '10px', color: '#10B981', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Simulating</span>
-              </div>
+             <div 
+               style={{
+                 background: 'rgba(255, 255, 255, 0.72)',
+                 backdropFilter: 'blur(18px)',
+                 WebkitBackdropFilter: 'blur(18px)',
+                 border: '1px solid rgba(255, 255, 255, 0.75)',
+                 borderRadius: '18px',
+                 padding: '24px',
+                 marginBottom: '16px',
+                 boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
+                 position: 'relative',
+                 overflow: 'hidden',
+                 transition: 'all 250ms ease'
+               }}
+               onMouseEnter={(e) => {
+                 e.currentTarget.style.transform = 'translateY(-3px)';
+                 e.currentTarget.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
+               }}
+               onMouseLeave={(e) => {
+                 e.currentTarget.style.transform = 'translateY(0)';
+                 e.currentTarget.style.boxShadow = '0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
+               }}
+             >
+               {/* Pulsing indicator */}
+               <div style={{
+                 position: 'absolute',
+                 top: '20px',
+                 right: '20px',
+                 display: 'flex',
+                 alignItems: 'center',
+                 gap: '6px',
+                 backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                 border: '1px solid rgba(16, 185, 129, 0.15)',
+                 padding: '4px 10px',
+                 borderRadius: '12px',
+                 backdropFilter: 'blur(4px)',
+                 boxShadow: '0 2px 8px rgba(16, 185, 129, 0.04)'
+               }}>
+                 <span style={{
+                   width: '6px',
+                   height: '6px',
+                   backgroundColor: '#10B981',
+                   borderRadius: '50%',
+                   display: 'inline-block',
+                   boxShadow: '0 0 8px #10B981',
+                   animation: 'pulse 1.8s infinite'
+                 }} />
+                 <span style={{ fontSize: '10.5px', color: '#047857', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Live Simulation</span>
+               </div>
 
-              <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#94A3B8', margin: '0 0 16px 0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                ⚡ Live Projection
-              </h4>
+               <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#1E293B', margin: '0 0 20px 0', textTransform: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                 <TrendingUp size={16} style={{ color: '#10B981' }} /> <span>Live Projection</span>
+               </h4>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                {/* Cost Metric */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '10.5px', color: '#64748B', textTransform: 'uppercase', fontWeight: '700' }}>Projected Cost</span>
-                    <strong style={{ fontSize: '24px', color: '#F8FAFC', fontWeight: '850', marginTop: '2px' }}>
-                      ${dynamicOptimizedCost.toLocaleString()}<span style={{ fontSize: '13px', color: '#64748B', fontWeight: 'normal' }}>/mo</span>
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', fontSize: '11px', color: '#64748B', textDecoration: 'line-through', marginTop: '16px' }}>
-                    Orig: ${totalCurrentCost.toLocaleString()}/mo
-                  </div>
-                </div>
+               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                 {/* Cost Metric Card */}
+                 <div style={{
+                   background: 'rgba(255, 255, 255, 0.9)',
+                   border: '1px solid rgba(226, 232, 240, 0.8)',
+                   borderRadius: '12px',
+                   padding: '16px',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   position: 'relative',
+                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
+                 }}>
+                   <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Projected Cost</span>
+                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
+                     <strong style={{ fontSize: '34px', color: '#1E293B', fontWeight: '700', lineHeight: '1' }}>
+                       ${dynamicOptimizedCost.toLocaleString()}
+                     </strong>
+                     <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/month</span>
+                   </div>
+                   
+                   {/* Original Cost gray pill */}
+                   <div style={{
+                     position: 'absolute',
+                     top: '16px',
+                     right: '16px',
+                     display: 'flex',
+                     flexDirection: 'column',
+                     alignItems: 'flex-end'
+                   }}>
+                     <span style={{ fontSize: '8px', fontWeight: '800', textTransform: 'uppercase', color: '#94A3B8', letterSpacing: '0.05em' }}>Original Cost</span>
+                     <span style={{ fontSize: '12px', color: '#94A3B8', textDecoration: 'line-through', fontWeight: '600' }}>
+                       ${totalCurrentCost.toLocaleString()}/mo
+                     </span>
+                   </div>
+                 </div>
 
-                {/* Savings Metric */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '10.5px', color: '#10B981', textTransform: 'uppercase', fontWeight: '750' }}>Projected Savings</span>
-                    <strong style={{ fontSize: '20px', color: '#10B981', fontWeight: '850', marginTop: '2px' }}>
-                      +${dynamicSavings.toLocaleString()}<span style={{ fontSize: '12px', fontWeight: 'normal' }}>/mo</span>
-                    </strong>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <span style={{ fontSize: '9px', color: '#64748B', textTransform: 'uppercase' }}>Annualized</span>
-                    <span style={{ fontSize: '13.5px', color: '#E2E8F0', fontWeight: '700' }}>
-                      ${dynamicSavingsAnnual.toLocaleString()}/yr
-                    </span>
-                  </div>
-                </div>
+                 {/* Savings Metric Card */}
+                 <div style={{
+                   background: 'rgba(236, 253, 245, 0.8)',
+                   border: '1px solid rgba(187, 247, 208, 0.8)',
+                   borderRadius: '12px',
+                   padding: '16px',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   boxShadow: '0 2px 8px rgba(16, 185, 129, 0.02)'
+                 }}>
+                   <span style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Projected Savings</span>
+                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px', gap: '4px' }}>
+                     <TrendingUp size={22} style={{ color: '#10B981', alignSelf: 'center' }} />
+                     <strong style={{ fontSize: '34px', color: '#047857', fontWeight: '700', lineHeight: '1' }}>
+                       +${dynamicSavings.toLocaleString()}
+                     </strong>
+                     <span style={{ fontSize: '14px', color: '#047857', fontWeight: '600' }}>/month</span>
+                   </div>
+                 </div>
 
-                {/* Progress Bar showing reduction */}
-                <div style={{ marginTop: '6px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '6px' }}>
-                    <span style={{ color: '#94A3B8' }}>Budget Efficiency</span>
-                    <span style={{ color: '#10B981', fontWeight: '800' }}>-{dynamicReductionPercent}% Cost Cut</span>
-                  </div>
-                  <div style={{ width: '100%', height: '6px', backgroundColor: '#334155', borderRadius: '999px', overflow: 'hidden' }}>
-                    <div style={{ 
-                      width: `${Math.min(100, dynamicReductionPercent)}%`, 
-                      height: '100%', 
-                      backgroundColor: '#10B981', 
-                      borderRadius: '999px',
-                      boxShadow: '0 0 10px rgba(16, 185, 129, 0.5)',
-                      transition: 'width 0.3s ease'
-                    }} />
-                  </div>
-                </div>
-              </div>
-            </div>
+                 {/* Annual Savings Card */}
+                 <div style={{
+                   background: 'rgba(255, 255, 255, 0.9)',
+                   border: '1px solid rgba(226, 232, 240, 0.8)',
+                   borderRadius: '12px',
+                   padding: '16px',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
+                 }}>
+                   <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Annual Savings</span>
+                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
+                     <strong style={{ fontSize: '34px', color: '#1E293B', fontWeight: '700', lineHeight: '1' }}>
+                       ${dynamicSavingsAnnual.toLocaleString()}
+                     </strong>
+                     <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/year</span>
+                   </div>
+                 </div>
+
+                 {/* Budget Efficiency Card */}
+                 <div style={{
+                   background: 'rgba(239, 246, 255, 0.8)',
+                   border: '1px solid rgba(191, 219, 254, 0.8)',
+                   borderRadius: '12px',
+                   padding: '16px',
+                   display: 'flex',
+                   flexDirection: 'column',
+                   boxShadow: '0 2px 8px rgba(37, 99, 235, 0.02)'
+                 }}>
+                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <span style={{ fontSize: '11px', color: '#1D4ED8', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Budget Efficiency</span>
+                     <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '800' }}>-{dynamicReductionPercent}% Cost Cut</span>
+                   </div>
+                   
+                   {/* Premium Progress Bar */}
+                   <div style={{ marginTop: '10px' }}>
+                     <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(226, 232, 240, 0.8)', borderRadius: '999px', overflow: 'hidden' }}>
+                       <div style={{ 
+                         width: `${Math.min(100, dynamicReductionPercent)}%`, 
+                         height: '100%', 
+                         background: 'linear-gradient(90deg, #34D399 0%, #10B981 100%)', 
+                         borderRadius: '999px',
+                         boxShadow: '0 0 8px rgba(16, 185, 129, 0.3)',
+                         transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+                       }} />
+                     </div>
+                   </div>
+                 </div>
+               </div>
+             </div>
 
             {/* Quick Stats Summary */}
             <div style={{
               backgroundColor: '#FFFFFF',
               border: '1px solid #E2E8F0',
               borderRadius: '16px',
-              padding: '20px 24px',
+              padding: '16px 20px',
               marginBottom: '16px'
             }}>
-              <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#1E293B', margin: '0 0 14px 0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                📊 Audit Summary
+              <h4 style={{ fontSize: '12.5px', fontWeight: '800', color: '#1E293B', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <BarChart3 size={15} style={{ color: '#1E293B' }} /> AUDIT SUMMARY
               </h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>Tools Analyzed</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B' }}>{recs.length}</span>
+                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Tools Analyzed</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>{recs.length}</span>
                 </div>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>Est. Monthly Savings</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>
-                    ${(auditResult.savings.totalMonthly || 0).toLocaleString()}
+                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Monthly Spend</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>
+                    ${totalCurrentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12px', color: '#64748B' }}>Est. Annual Savings</span>
-                  <span style={{ fontSize: '14px', fontWeight: '700', color: '#10B981' }}>
-                    ${(auditResult.savings.totalAnnual || 0).toLocaleString()}
+                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Annual Spend</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>
+                    ${(totalCurrentCost * 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Monthly Savings</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#10B981' }}>
+                    ${(auditResult.savings.totalMonthly || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+                <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Annual Savings</span>
+                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#10B981' }}>
+                    ${(auditResult.savings.totalAnnual || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -422,7 +583,7 @@ export default function ActionPlanView({
               }} />
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <span style={{ fontSize: '20px' }}>🧭</span>
+                <Target size={18} style={{ color: '#1E293B' }} />
                 <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
                   How This Works
                 </h3>
@@ -444,9 +605,10 @@ export default function ActionPlanView({
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: '26px', height: '26px', borderRadius: '7px',
-                    backgroundColor: '#EFF6FF', color: '#3B82F6',
-                    fontSize: '12px', fontWeight: '800'
-                  }}>A</span>
+                    backgroundColor: '#EFF6FF', color: '#3B82F6'
+                  }}>
+                    <Server size={14} />
+                  </span>
                   <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#1E293B' }}>Direct API Integration</span>
                 </div>
                 <p style={{ fontSize: '11.5px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
@@ -466,9 +628,10 @@ export default function ActionPlanView({
                   <span style={{
                     display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
                     width: '26px', height: '26px', borderRadius: '7px',
-                    backgroundColor: '#ECFDF5', color: '#047857',
-                    fontSize: '12px', fontWeight: '800'
-                  }}>B</span>
+                    backgroundColor: '#ECFDF5', color: '#047857'
+                  }}>
+                    <CreditCard size={14} />
+                  </span>
                   <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#1E293B' }}>Subscription Migration</span>
                 </div>
                 <p style={{ fontSize: '11.5px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
@@ -484,7 +647,7 @@ export default function ActionPlanView({
                 padding: '14px 16px'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{ fontSize: '14px' }}>💡</span>
+                  <Info size={15} style={{ color: '#92400E' }} />
                   <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#92400E' }}>Pro Tip</span>
                 </div>
                 <p style={{ fontSize: '11.5px', color: '#78350F', lineHeight: '1.6', margin: 0 }}>
@@ -531,15 +694,8 @@ export default function ActionPlanView({
                 <div className="rec-info" style={{ width: '100%' }}>
                   {/* Header Row */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span className="rec-tool" style={{ fontWeight: '850', fontSize: '16px', display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#1E293B' }}>
-                      {(() => {
-                        const logo = getProviderLogo(details.provider || details.toolName);
-                        return logo ? (
-                          <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                        ) : (
-                          <span style={{ color: '#94A3B8' }}>●</span>
-                        );
-                      })()}
+                    <span className="rec-tool" style={{ fontWeight: '800', fontSize: '15px', display: 'inline-flex', alignItems: 'center', gap: '10px', color: '#1E293B', letterSpacing: '-0.01em' }}>
+                      <ProviderLogo provider={getNormalizedProvider(details.provider || details.toolName)} size={32} />
                       <span>{getFullSubscriptionOrModelName(details).toUpperCase()}</span>
                     </span>
                     <span style={{ fontSize: '13px', fontWeight: '800', color: '#475569', backgroundColor: '#F1F5F9', padding: '6px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
@@ -560,15 +716,15 @@ export default function ActionPlanView({
                     alignItems: 'center'
                   }}>
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      🎯 <span style={{ color: '#64748B', fontWeight: 'normal' }}>Purpose:</span> <strong style={{ color: '#0F172A' }}>{details.purpose}</strong>
+                      <Target size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Purpose:</span> <strong style={{ color: '#0F172A' }}>{details.purpose}</strong>
                     </span>
                     <span style={{ width: '4px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '50%' }} />
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      👥 <span style={{ color: '#64748B', fontWeight: 'normal' }}>Seats:</span> <strong style={{ color: '#0F172A' }}>{details.seats} seat{details.seats > 1 ? 's' : ''}</strong>
+                      <Users size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Seats:</span> <strong style={{ color: '#0F172A' }}>{details.seats} seat{details.seats > 1 ? 's' : ''}</strong>
                     </span>
                     <span style={{ width: '4px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '50%' }} />
                     <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      💳 <span style={{ color: '#64748B', fontWeight: 'normal' }}>Billing Model:</span> <strong style={{ color: '#0F172A', textTransform: 'capitalize' }}>{details.type === 'subscription' ? 'Subscription-based' : 'API-based (Tokens)'}</strong>
+                      <CreditCard size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Billing Model:</span> <strong style={{ color: '#0F172A', textTransform: 'capitalize' }}>{details.type === 'subscription' ? 'Subscription-based' : 'API-based (Tokens)'}</strong>
                     </span>
                   </div>
                   
@@ -599,6 +755,30 @@ export default function ActionPlanView({
                           position: 'relative'
                         }}
                       >
+                        {getRecommendedOption(rec) === 'api' && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-10px',
+                            right: '36px',
+                            backgroundColor: '#3B82F6',
+                            color: '#FFFFFF',
+                            padding: '3px 10px',
+                            borderRadius: '20px',
+                            fontSize: '9.5px',
+                            fontWeight: '800',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
+                            zIndex: 10
+                          }}>
+                            
+                            <span>Recommended</span>
+                          </div>
+                        )}
+
                         {/* Radio Check Indicator */}
                         <div style={{
                           position: 'absolute',
@@ -619,6 +799,7 @@ export default function ActionPlanView({
                             </span>
                             {!rec.apiOption.statusText && (
                               <span style={getSavingsPillStyle(rec.apiOption.savings)}>
+                                {rec.apiOption.savings >= 0 && <CircleCheckBig size={11} />}
                                 {rec.apiOption.savings < 0 ? `+$${Math.abs(rec.apiOption.savings).toLocaleString()}` : `-$${rec.apiOption.savings.toLocaleString()}`} save
                               </span>
                             )}
@@ -649,127 +830,121 @@ export default function ActionPlanView({
                               return (
                                 <div style={{
                                   display: 'flex',
+                                  flexDirection: 'column',
                                   alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  backgroundColor: '#0F172A',
-                                  borderRadius: '10px',
-                                  padding: '12px 14px',
-                                  color: '#F8FAFC',
-                                  fontSize: '12px',
+                                  justifyContent: 'center',
+                                  gap: '8px',
+                                  padding: '16px 20px',
+                                  background: 'rgba(255, 255, 255, 0.72)',
+                                  backdropFilter: 'blur(18px)',
+                                  borderRadius: '14px',
+                                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                                  boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
                                   marginTop: '10px',
                                   marginBottom: '12px',
-                                  border: '1px solid #1E293B',
-                                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)',
-                                  gap: '12px'
+                                  textAlign: 'center',
+                                  transition: 'all 250ms ease'
                                 }}>
-                                  {/* Left Side: Current */}
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                    {(() => {
-                                      const logo = getProviderLogo(details.provider);
-                                      return logo ? (
-                                        <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                          <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                        </div>
-                                      ) : (
-                                        <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                          {details.provider?.charAt(0) || 'C'}
-                                        </div>
-                                      );
-                                    })()}
-                                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                      <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
-                                      <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
-                                        {currentDisplayName}
-                                      </span>
-                                      <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
-                                    </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <BadgeCheck size={18} style={{ color: '#047857' }} />
+                                    <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
                                   </div>
-
-                                  {/* Right Side: Optimized Box */}
-                                  <div style={{
-                                    flex: 1.2,
-                                    backgroundColor: '#1E293B',
-                                    borderRadius: '6px',
-                                    padding: '8px 10px',
-                                    border: '1px solid #334155',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    color: '#38BDF8',
-                                    fontSize: '10.5px',
-                                    fontWeight: '750',
-                                    lineHeight: '1.3'
-                                  }}>
-                                    <span style={{ fontSize: '13px' }}>✨</span>
-                                    <span>The current API is the best and optimized.</span>
-                                  </div>
+                                  <p style={{ fontSize: '11.5px', color: '#065F46', margin: 0, fontWeight: '500' }}>
+                                    Your current plan already provides the best value. No migration required.
+                                  </p>
                                 </div>
                               );
                             }
 
                             return (
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                backgroundColor: '#0F172A',
-                                borderRadius: '10px',
-                                padding: '12px 14px',
-                                color: '#F8FAFC',
-                                fontSize: '12px',
-                                marginTop: '10px',
-                                marginBottom: '12px',
-                                border: '1px solid #1E293B',
-                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)'
-                              }}>
-                                {/* Left Side: Current */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                  {(() => {
-                                    const logo = getProviderLogo(details.provider);
-                                    return logo ? (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                        <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                      </div>
-                                    ) : (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                        {details.provider?.charAt(0) || 'C'}
-                                      </div>
-                                    );
-                                  })()}
-                                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
-                                    <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
+                              <div 
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  background: 'rgba(255, 255, 255, 0.72)',
+                                  backdropFilter: 'blur(18px)',
+                                  borderRadius: '14px',
+                                  padding: '16px 20px',
+                                  marginTop: '10px',
+                                  marginBottom: '12px',
+                                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                                  boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
+                                  gap: '16px',
+                                  transition: 'all 250ms ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(-3px)';
+                                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
+                                }}
+                              >
+                                {/* Left Column: Current */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
+                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.08em' }}>Current Configuration</span>
+                                  <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <ProviderLogo provider={getNormalizedProvider(details.provider)} size={28} />
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
+                                    <span style={{ fontWeight: '750', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={currentDisplayName}>
                                       {currentDisplayName}
                                     </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
+                                    <span style={{ fontSize: '9px', color: '#64748B', fontWeight: '500' }}>{details.provider}</span>
                                   </div>
                                 </div>
 
-                                {/* Arrow */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px', color: '#475569', fontSize: '14px', fontWeight: '800' }}>
-                                  ➔
+                                {/* Arrow Badge */}
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                  border: '1px solid #E5E7EB',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                                  flexShrink: 0
+                                }}>
+                                  <ArrowRight size={16} style={{ color: '#475569' }} />
                                 </div>
 
-                                {/* Right Side: Suggested */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                  {(() => {
-                                    const logo = getProviderLogo(sugProvider || sugApiModel);
-                                    return logo ? (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                        <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                      </div>
-                                    ) : (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#059669', color: '#A7F3D0', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                        {sugProvider?.charAt(0) || 'S'}
-                                      </div>
-                                    );
-                                  })()}
+                                {/* Right Column: Suggested */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
+                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#2563EB', letterSpacing: '0.08em' }}>Recommended Configuration</span>
+                                  <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <ProviderLogo provider={getNormalizedProvider(sugProvider || sugApiModel)} size={28} />
+                                  </div>
                                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Suggested (api)</span>
-                                    <span style={{ fontWeight: '750', color: '#10B981', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={sugApiModel}>
+                                    <span style={{ fontWeight: '750', color: '#2563EB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={sugApiModel}>
                                       {sugApiModel}
                                     </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B' }}>{sugProvider}</span>
+                                    <span style={{ fontSize: '9px', color: '#2563EB', fontWeight: '500' }}>{sugProvider}</span>
                                   </div>
                                 </div>
                               </div>
@@ -781,13 +956,13 @@ export default function ActionPlanView({
                           </p>
                           {rec.apiOption.statusText && (
                             <p style={{ fontSize: '12px', color: '#3B82F6', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              💡 <span>{rec.apiOption.statusText}</span>
+                              <Info size={14} style={{ color: '#3B82F6' }} /> <span>{rec.apiOption.statusText}</span>
                             </p>
                           )}
                           
                           {rec.apiOption.limits && (
                             <div style={{ fontSize: '12.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '10px', backgroundColor: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px dashed #E2E8F0', fontStyle: 'normal' }}>
-                              <span style={{ fontSize: '13px' }}>ℹ️</span> <span>{rec.apiOption.limits}</span>
+                              <Info size={13} style={{ color: '#475569', marginTop: '2px' }} /> <span>{rec.apiOption.limits}</span>
                             </div>
                           )}
 
@@ -843,6 +1018,30 @@ export default function ActionPlanView({
                           position: 'relative'
                         }}
                       >
+                        {getRecommendedOption(rec) === 'subscription' && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-10px',
+                            right: '36px',
+                            backgroundColor: '#10B981',
+                            color: '#FFFFFF',
+                            padding: '3px 10px',
+                            borderRadius: '20px',
+                            fontSize: '9.5px',
+                            fontWeight: '800',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+                            zIndex: 10
+                          }}>
+                            
+                            <span>Recommended</span>
+                          </div>
+                        )}
+
                         {/* Radio Check Indicator */}
                         <div style={{
                           position: 'absolute',
@@ -863,6 +1062,7 @@ export default function ActionPlanView({
                             </span>
                             {!rec.subscriptionOption.statusText && (
                               <span style={getSavingsPillStyle(rec.subscriptionOption.savings)}>
+                                {rec.subscriptionOption.savings >= 0 && <CircleCheckBig size={11} />}
                                 {rec.subscriptionOption.savings < 0 ? `+$${Math.abs(rec.subscriptionOption.savings).toLocaleString()}` : `-$${rec.subscriptionOption.savings.toLocaleString()}`} save
                               </span>
                             )}
@@ -889,128 +1089,121 @@ export default function ActionPlanView({
                               return (
                                 <div style={{
                                   display: 'flex',
+                                  flexDirection: 'column',
                                   alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  backgroundColor: '#0F172A',
-                                  borderRadius: '10px',
-                                  padding: '12px 14px',
-                                  color: '#F8FAFC',
-                                  fontSize: '12px',
+                                  justifyContent: 'center',
+                                  gap: '8px',
+                                  padding: '16px 20px',
+                                  background: 'rgba(255, 255, 255, 0.72)',
+                                  backdropFilter: 'blur(18px)',
+                                  borderRadius: '14px',
+                                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                                  boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
                                   marginTop: '10px',
                                   marginBottom: '12px',
-                                  border: '1px solid #1E293B',
-                                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)',
-                                  gap: '12px'
+                                  textAlign: 'center',
+                                  transition: 'all 250ms ease'
                                 }}>
-                                  {/* Left Side: Current */}
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                    {(() => {
-                                      const logo = getProviderLogo(details.provider);
-                                      return logo ? (
-                                        <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                          <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                        </div>
-                                      ) : (
-                                        <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                          {details.provider?.charAt(0) || 'C'}
-                                        </div>
-                                      );
-                                    })()}
-                                    <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                      <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
-                                      <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
-                                        {currentDisplayName}
-                                      </span>
-                                      <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
-                                    </div>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <BadgeCheck size={18} style={{ color: '#047857' }} />
+                                    <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
                                   </div>
-
-                                  {/* Right Side: Optimized Box */}
-                                  <div style={{
-                                    flex: 1.2,
-                                    backgroundColor: '#1E293B',
-                                    borderRadius: '6px',
-                                    padding: '8px 10px',
-                                    border: '1px solid #334155',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '6px',
-                                    color: '#38BDF8',
-                                    fontSize: '10.5px',
-                                    fontWeight: '750',
-                                    lineHeight: '1.3'
-                                  }}>
-                                    <span style={{ fontSize: '13px' }}>✨</span>
-                                    <span>The current subscription is the best and optimized.</span>
-                                  </div>
+                                  <p style={{ fontSize: '11.5px', color: '#065F46', margin: 0, fontWeight: '500' }}>
+                                    Your current plan already provides the best value. No migration required.
+                                  </p>
                                 </div>
                               );
                             }
 
                             return (
-                              <div style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContext: 'space-between',
-                                justifyContent: 'space-between',
-                                backgroundColor: '#0F172A',
-                                borderRadius: '10px',
-                                padding: '12px 14px',
-                                color: '#F8FAFC',
-                                fontSize: '12px',
-                                marginTop: '10px',
-                                marginBottom: '12px',
-                                border: '1px solid #1E293B',
-                                boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.05), 0 4px 6px -1px rgba(0,0,0,0.1)'
-                              }}>
-                                {/* Left Side: Current */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                  {(() => {
-                                    const logo = getProviderLogo(details.provider);
-                                    return logo ? (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                        <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                      </div>
-                                    ) : (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#334155', color: '#94A3B8', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                        {details.provider?.charAt(0) || 'C'}
-                                      </div>
-                                    );
-                                  })()}
-                                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Current ({details.type})</span>
-                                    <span style={{ fontWeight: '750', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={currentDisplayName}>
+                              <div 
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  background: 'rgba(255, 255, 255, 0.72)',
+                                  backdropFilter: 'blur(18px)',
+                                  borderRadius: '14px',
+                                  padding: '16px 20px',
+                                  marginTop: '10px',
+                                  marginBottom: '12px',
+                                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                                  boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
+                                  gap: '16px',
+                                  transition: 'all 250ms ease'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(-3px)';
+                                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.transform = 'translateY(0)';
+                                  e.currentTarget.style.boxShadow = '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
+                                }}
+                              >
+                                {/* Left Column: Current */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
+                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.08em' }}>Current Configuration</span>
+                                  <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <ProviderLogo provider={getNormalizedProvider(details.provider)} size={28} />
+                                  </div>
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
+                                    <span style={{ fontWeight: '750', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={currentDisplayName}>
                                       {currentDisplayName}
                                     </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B' }}>{details.provider}</span>
+                                    <span style={{ fontSize: '9px', color: '#64748B', fontWeight: '500' }}>{details.provider}</span>
                                   </div>
                                 </div>
 
-                                {/* Arrow */}
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 8px', color: '#475569', fontSize: '14px', fontWeight: '800' }}>
-                                  ➔
+                                {/* Arrow Badge */}
+                                <div style={{
+                                  width: '32px',
+                                  height: '32px',
+                                  borderRadius: '50%',
+                                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                  border: '1px solid #E5E7EB',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                                  flexShrink: 0
+                                }}>
+                                  <ArrowRight size={16} style={{ color: '#475569' }} />
                                 </div>
 
-                                {/* Right Side: Suggested */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                                  {(() => {
-                                    const logo = getProviderLogo(sugProvider || sugModel);
-                                    return logo ? (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#FFFFFF', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, padding: '2px' }}>
-                                        <img src={logo} alt="" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
-                                      </div>
-                                    ) : (
-                                      <div style={{ width: '26px', height: '26px', backgroundColor: '#059669', color: '#A7F3D0', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0, fontSize: '11px' }}>
-                                        {sugProvider?.charAt(0) || 'S'}
-                                      </div>
-                                    );
-                                  })()}
+                                {/* Right Column: Suggested */}
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
+                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#059669', letterSpacing: '0.08em' }}>Recommended Configuration</span>
+                                  <div style={{
+                                    width: '40px',
+                                    height: '40px',
+                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                                    borderRadius: '12px',
+                                    border: '1px solid #E5E7EB',
+                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <ProviderLogo provider={getNormalizedProvider(sugProvider || sugModel)} size={28} />
+                                  </div>
                                   <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontSize: '8px', textTransform: 'uppercase', color: '#94A3B8', fontWeight: '800', letterSpacing: '0.04em' }}>Suggested (subscription)</span>
-                                    <span style={{ fontWeight: '750', color: '#10B981', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px' }} title={sugModel}>
+                                    <span style={{ fontWeight: '750', color: '#059669', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={sugModel}>
                                       {sugModel}
                                     </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B' }}>{rec.subscriptionOption.recommendedProvider || details.provider}</span>
+                                    <span style={{ fontSize: '9px', color: '#059669', fontWeight: '500' }}>{sugProvider}</span>
                                   </div>
                                 </div>
                               </div>
@@ -1022,13 +1215,13 @@ export default function ActionPlanView({
                           </p>
                           {rec.subscriptionOption.statusText && (
                             <p style={{ fontSize: '12px', color: '#10B981', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              💡 <span>{rec.subscriptionOption.statusText}</span>
+                              <Info size={14} style={{ color: '#10B981' }} /> <span>{rec.subscriptionOption.statusText}</span>
                             </p>
                           )}
 
                           {rec.subscriptionOption.limits && (
                             <div style={{ fontSize: '12.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '10px', backgroundColor: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px dashed #A7F3D0', fontStyle: 'normal' }}>
-                              <span style={{ fontSize: '13px' }}>ℹ️</span> <span>{rec.subscriptionOption.limits}</span>
+                              <Info size={13} style={{ color: '#475569', marginTop: '2px' }} /> <span>{rec.subscriptionOption.limits}</span>
                             </div>
                           )}
 
@@ -1073,15 +1266,37 @@ export default function ActionPlanView({
 
             {/* Wizard Footer Navigation Actions */}
             <div className="wizard-actions" style={{ marginTop: '32px' }}>
-              <button onClick={() => onNavigateToView('step3')} className="btn btn-outline">
-                ← Back to Step 3
+              <button onClick={() => onNavigateToView('step3')} className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <ArrowLeft size={16} /> Back to Step 3
               </button>
               <button 
                 onClick={() => onNavigateToView('results')} 
                 className="btn btn-green"
-                style={{ padding: '12px 32px' }}
+                style={{ 
+                  padding: '0 32px',
+                  height: '48px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  fontSize: '14.5px',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)',
+                  transition: 'all 150ms ease',
+                  cursor: 'pointer'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.25)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.2)';
+                }}
               >
-                Generate Final Audit Report 📊
+                <BarChart3 size={18} />
+                <span>Generate Final Audit Report</span>
               </button>
             </div>
           </div>

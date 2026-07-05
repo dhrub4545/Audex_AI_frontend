@@ -1,18 +1,20 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
+import { ProviderLogo } from './MarketIntelView';
+import { Code2, Brain, Calculator, PenTool, Search, Link2, FileText, Image, Zap, Coins } from 'lucide-react';
 
-// Category Definitions with Emojis and descriptions
+// Category Definitions with Icons and descriptions
 const CATEGORIES = [
-  { name: 'Coding', sub: 'SWE-Bench', icon: '💻', color: '#10B981', bg: '#D1FAE5', key: 'coding' },
-  { name: 'Reasoning', sub: 'GPQA Diamond', icon: '🧠', color: '#EC4899', bg: '#FCE7F3', key: 'reasoning' },
-  { name: 'Math', sub: 'AIME 2024', icon: '🔢', color: '#8B5CF6', bg: '#EDE9FE', key: 'math' },
-  { name: 'Writing', sub: 'MT-Bench', icon: '✍️', color: '#F59E0B', bg: '#FEF3C7', key: 'writing' },
-  { name: 'Research', sub: 'HLE', icon: '🔍', color: '#3B82F6', bg: '#DBEAFE', key: 'research' },
-  { name: 'Function Calling', sub: 'BFCL v3', icon: '🔗', color: '#06B6D4', bg: '#CFFAFE', key: 'funcCalling' },
-  { name: 'Long Context', sub: 'Needle In A Haystack', icon: '📄', color: '#64748B', bg: '#F1F5F9', key: 'longContext' },
-  { name: 'Multimodal', sub: 'MMMU', icon: '🖼️', color: '#14B8A6', bg: '#CCFBF1', key: 'multimodal' },
-  { name: 'Speed', sub: 'Tokens/sec', icon: '⚡', color: '#F59E0B', bg: '#FEF3C7', key: 'speedNorm' },
-  { name: 'Cost Efficiency', sub: 'USD / 1M Tokens', icon: '🪙', color: '#D97706', bg: '#FEF3C7', key: 'costEff' }
+  { name: 'Coding', sub: 'SWE-Bench', icon: Code2, color: '#10B981', bg: '#D1FAE5', key: 'coding' },
+  { name: 'Reasoning', sub: 'GPQA Diamond', icon: Brain, color: '#EC4899', bg: '#FCE7F3', key: 'reasoning' },
+  { name: 'Math', sub: 'AIME 2024', icon: Calculator, color: '#8B5CF6', bg: '#EDE9FE', key: 'math' },
+  { name: 'Writing', sub: 'MT-Bench', icon: PenTool, color: '#F59E0B', bg: '#FEF3C7', key: 'writing' },
+  { name: 'Research', sub: 'HLE', icon: Search, color: '#3B82F6', bg: '#DBEAFE', key: 'research' },
+  { name: 'Function Calling', sub: 'BFCL v3', icon: Link2, color: '#06B6D4', bg: '#CFFAFE', key: 'funcCalling' },
+  { name: 'Long Context', sub: 'Needle In A Haystack', icon: FileText, color: '#64748B', bg: '#F1F5F9', key: 'longContext' },
+  { name: 'Multimodal', sub: 'MMMU', icon: Image, color: '#14B8A6', bg: '#CCFBF1', key: 'multimodal' },
+  { name: 'Speed', sub: 'Tokens/sec', icon: Zap, color: '#F59E0B', bg: '#FEF3C7', key: 'speedNorm' },
+  { name: 'Cost Efficiency', sub: 'USD / 1M Tokens', icon: Coins, color: '#D97706', bg: '#FEF3C7', key: 'costEff' }
 ];
 
 // Helper to compute metrics
@@ -20,7 +22,7 @@ function getBenchmarkScores(model, explicitBlendedCost = null, explicitTps = nul
   if (!model) return {};
 
   const ev = model.evaluations || {};
-  
+
   // 1. Coding (SWE-Bench)
   let coding = null;
   const rawCoding = ev.artificial_analysis_coding_index;
@@ -55,9 +57,9 @@ function getBenchmarkScores(model, explicitBlendedCost = null, explicitTps = nul
   // 4. Writing (MT-Bench) - Look up from creative-writing rank file
   let writing = null;
   if (intelData && intelData.categories && intelData.categories['creative-writing']) {
-    const found = intelData.categories['creative-writing'].find(m => 
-      m.slug === model.slug || 
-      m.modelId === model.modelId || 
+    const found = intelData.categories['creative-writing'].find(m =>
+      m.slug === model.slug ||
+      m.modelId === model.modelId ||
       (model.modelId && m.slug === model.modelId.split('/')[1])
     );
     if (found && found.rating) {
@@ -161,7 +163,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
   // Fetch Gemini report comparing the two models
   useEffect(() => {
     if (!baseline || !recommended) return;
-    
+
     setLoadingReport(true);
     setErrorMsg(null);
 
@@ -208,8 +210,8 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     const blended = (input || output) ? (input * 0.75 + output * 0.25) : (baseline?.blendedPrice ?? null);
     const speed = baseline?.tokens_per_second ?? baseline?.throughput ?? null;
     return getBenchmarkScores(
-      baseline, 
-      blended, 
+      baseline,
+      blended,
       speed,
       intelData
     );
@@ -221,8 +223,8 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     const blended = (input || output) ? (input * 0.75 + output * 0.25) : (recommended?.blendedPrice ?? null);
     const speed = recommended?.tokens_per_second ?? recommended?.throughput ?? null;
     return getBenchmarkScores(
-      recommended, 
-      blended, 
+      recommended,
+      blended,
       speed,
       intelData
     );
@@ -240,16 +242,16 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
   // Dimension helpers for the SVG Graph
   const paddingLeft = 85;
   const paddingRight = 45;
-  const paddingTop = 45;
+  const paddingTop = 30;
   const paddingBottom = 65;
   const chartWidth = 900 - paddingLeft - paddingRight;
-  const chartHeight = 420 - paddingTop - paddingBottom;
+  const chartHeight = 340 - paddingTop - paddingBottom;
 
   const getX = (idx) => {
     if (activeCategories.length <= 1) return paddingLeft + chartWidth / 2;
     return paddingLeft + idx * (chartWidth / (activeCategories.length - 1));
   };
-  const getY = (score) => 420 - paddingBottom - (score / 100) * chartHeight;
+  const getY = (score) => 340 - paddingBottom - (score / 100) * chartHeight;
 
   // Chart data points
   const pointsBaseline = useMemo(() => {
@@ -317,12 +319,12 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
   return (
     <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '64px' }}>
-      
+
       {/* Sleek Sub-Header Navbar */}
       <header className="navbar" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button 
+            <button
               onClick={onNavigateBack}
               style={{
                 background: 'none',
@@ -358,11 +360,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
       </header>
 
       {/* Main Container */}
-      <main className="container" style={{ marginTop: '36px', maxWidth: '1100px' }}>
-        
+      <main className="container" style={{ marginTop: '20px', maxWidth: '1100px' }}>
+
         {/* Spend Comparison Widget Panel */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginBottom: '32px' }}>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '20px' }}>
+          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Spend Impact</div>
             <div style={{ fontSize: '26px', fontWeight: '850', color: isMoreExpensive ? '#EF4444' : '#10B981', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
               {isMoreExpensive ? `+$${Math.abs(monthlySavings).toLocaleString()}` : `-$${Math.abs(monthlySavings).toLocaleString()}`}<span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>/mo</span>
@@ -372,7 +374,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Inference speedup</div>
             <div style={{ fontSize: '26px', fontWeight: '850', color: '#3B82F6', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
               {speedup}x
@@ -382,7 +384,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#FFFFFF', padding: '20px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
             <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Blended token pricing</div>
             <div style={{ fontSize: '26px', fontWeight: '850', color: 'var(--color-text-primary)', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
               ${recommendedScores.blendedCost?.toFixed(2)}<span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>/1M</span>
@@ -394,39 +396,40 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
         </div>
 
         {/* 1. Sleek Dashboard Card */}
-        <div style={{ 
-          backgroundColor: '#0F172A', 
-          borderRadius: '20px', 
-          padding: '36px', 
-          color: '#FFFFFF', 
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)', 
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+        <div style={{
+          backgroundColor: '#FFFFFF',
+          borderRadius: '20px',
+          padding: '24px',
+          color: 'var(--color-text-primary)',
+          boxShadow: 'var(--shadow-md)',
+          border: '1px solid var(--color-border)',
           position: 'relative'
         }}>
-          
-          <div style={{ marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#F8FAFC', marginBottom: '6px' }}>
+
+          <div style={{ marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
               AI Model Benchmarks Across Key Categories
             </h2>
-            <p style={{ fontSize: '13.5px', color: '#94A3B8', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
               Normalized score (0–100) across major benchmark categories
             </p>
           </div>
 
           {/* Graphic Section with Legend & SVG */}
           <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '20px', alignItems: 'stretch' }}>
-            
             {/* Legend Column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
-              
+
               {/* Recommended Model Legend item */}
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#10B981', marginTop: '3px', flexShrink: 0, boxShadow: '0 0 10px #10B981' }}></div>
+                <div style={{ flexShrink: 0, marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ProviderLogo provider={recommended?.provider || recommended?.developer} size={22} />
+                </div>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '750', color: '#F8FAFC' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '750', color: 'var(--color-text-primary)' }}>
                     {recommended?.name?.replace(/^.*?:\s*/, '')}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '1px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
                     {recommended?.developer || 'Recommended'}
                   </div>
                 </div>
@@ -434,12 +437,14 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
               {/* Baseline Model Legend item */}
               <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ width: '16px', height: '16px', borderRadius: '4px', backgroundColor: '#F97316', marginTop: '3px', flexShrink: 0, boxShadow: '0 0 10px #F97316' }}></div>
+                <div style={{ flexShrink: 0, marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <ProviderLogo provider={baseline?.provider || baseline?.developer} size={22} />
+                </div>
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '750', color: '#E2E8F0' }}>
+                  <div style={{ fontSize: '14px', fontWeight: '750', color: 'var(--color-text-primary)' }}>
                     {baseline?.name?.replace(/^.*?:\s*/, '')}
                   </div>
-                  <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '1px' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
                     {baseline?.developer || 'Baseline'}
                   </div>
                 </div>
@@ -449,8 +454,8 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
             {/* SVG Graph Workspace */}
             <div style={{ position: 'relative', overflow: 'visible' }}>
-              <svg 
-                viewBox="0 0 900 420" 
+              <svg
+                viewBox="0 0 900 340"
                 style={{ width: '100%', height: '100%', display: 'block', overflow: 'visible' }}
                 onMouseMove={handleSvgMouseMove}
                 onMouseLeave={() => setHoveredCategoryIndex(null)}
@@ -476,11 +481,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 {/* Y Axis Gridlines (0, 25, 50, 75, 100) */}
                 {Array.from({ length: 5 }).map((_, i) => {
                   const val = 25 * i;
-                  const y = 420 - paddingBottom - (val / 100) * chartHeight;
+                  const y = 340 - paddingBottom - (val / 100) * chartHeight;
                   return (
                     <g key={i}>
-                      <line x1={paddingLeft} y1={y} x2={paddingLeft + chartWidth} y2={y} stroke="rgba(255, 255, 255, 0.08)" strokeDasharray="4 4" />
-                      <text x={paddingLeft - 15} y={y + 4} textAnchor="end" style={{ fill: '#94A3B8', fontSize: '11px', fontWeight: '600' }}>
+                      <line x1={paddingLeft} y1={y} x2={paddingLeft + chartWidth} y2={y} stroke="rgba(15, 23, 42, 0.08)" strokeDasharray="4 4" />
+                      <text x={paddingLeft - 15} y={y + 4} textAnchor="end" style={{ fill: '#64748B', fontSize: '11px', fontWeight: '600' }}>
                         {val}
                       </text>
                     </g>
@@ -488,11 +493,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 })}
 
                 {/* Axis Titles */}
-                <text 
-                  x={15} 
-                  y={420 - paddingBottom - chartHeight / 2} 
-                  textAnchor="middle" 
-                  transform={`rotate(-90, 20, ${420 - paddingBottom - chartHeight / 2})`}
+                <text
+                  x={15}
+                  y={340 - paddingBottom - chartHeight / 2}
+                  textAnchor="middle"
+                  transform={`rotate(-90, 20, ${340 - paddingBottom - chartHeight / 2})`}
                   style={{ fill: '#64748B', fontSize: '11px', fontWeight: '750', letterSpacing: '0.05em', textTransform: 'uppercase' }}
                 >
                   Normalized Score (0-100)
@@ -506,35 +511,35 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     <g key={idx}>
                       {/* Hover column background overlay (visible only on hover) */}
                       {isHovered && (
-                        <rect 
-                          x={x - 30} 
-                          y={paddingTop - 10} 
-                          width="60" 
-                          height={chartHeight + 20} 
-                          fill="rgba(255, 255, 255, 0.05)"
+                        <rect
+                          x={x - 30}
+                          y={paddingTop - 10}
+                          width="60"
+                          height={chartHeight + 20}
+                          fill="rgba(15, 23, 42, 0.04)"
                           pointerEvents="none"
                         />
                       )}
 
                       {/* Invisible permanent hit-target rectangle for capture events */}
-                      <rect 
-                        x={x - 30} 
-                        y={paddingTop - 10} 
-                        width="60" 
-                        height={chartHeight + 20} 
-                        fill="rgba(255, 255, 255, 0.001)"
+                      <rect
+                        x={x - 30}
+                        y={paddingTop - 10}
+                        width="60"
+                        height={chartHeight + 20}
+                        fill="rgba(15, 23, 42, 0.001)"
                         pointerEvents="all"
                         style={{ cursor: 'pointer' }}
                         onMouseEnter={() => setHoveredCategoryIndex(idx)}
                       />
-                      
+
                       {/* Vertical line indicator */}
-                      <line 
-                        x1={x} 
-                        y1={paddingTop - 10} 
-                        x2={x} 
-                        y2={420 - paddingBottom} 
-                        stroke={isHovered ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.03)'} 
+                      <line
+                        x1={x}
+                        y1={paddingTop - 10}
+                        x2={x}
+                        y2={340 - paddingBottom}
+                        stroke={isHovered ? 'rgba(15, 23, 42, 0.15)' : 'rgba(15, 23, 42, 0.03)'}
                         strokeWidth={isHovered ? 1.5 : 1}
                         strokeDasharray={isHovered ? 'none' : '2 2'}
                         pointerEvents="none"
@@ -544,20 +549,20 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 })}
 
                 {/* Draw curve lines */}
-                <path 
-                  d={baselinePath} 
-                  fill="none" 
-                  stroke="#F97316" 
-                  strokeWidth="3" 
+                <path
+                  d={baselinePath}
+                  fill="none"
+                  stroke="#F97316"
+                  strokeWidth="3"
                   opacity="0.85"
                   filter="url(#glow-base)"
                 />
-                
-                <path 
-                  d={recommendedPath} 
-                  fill="none" 
-                  stroke="#10B981" 
-                  strokeWidth="3.5" 
+
+                <path
+                  d={recommendedPath}
+                  fill="none"
+                  stroke="#10B981"
+                  strokeWidth="3.5"
                   opacity="0.95"
                   filter="url(#glow-rec)"
                 />
@@ -565,22 +570,22 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 {/* Category Ticks, Icons, and Titles at Bottom */}
                 {activeCategories.map((cat, idx) => {
                   const x = getX(idx);
-                  const y = 420 - paddingBottom + 12;
+                  const y = 340 - paddingBottom + 12;
                   const isHovered = hoveredCategoryIndex === idx;
 
                   return (
                     <g key={idx} style={{ cursor: 'pointer' }} onMouseEnter={() => setHoveredCategoryIndex(idx)}>
-                      {/* Emoji Icon Container circle */}
-                      <circle cx={x} cy={y + 12} r="13" fill="#1E293B" stroke={isHovered ? cat.color : 'rgba(255,255,255,0.15)'} strokeWidth="1.5" />
-                      <text x={x} y={y + 16} textAnchor="middle" style={{ fontSize: '12px' }}>
-                        {cat.icon}
-                      </text>
+                      {/* Icon Container circle */}
+                      <circle cx={x} cy={y + 12} r="13" fill="#F1F5F9" stroke={isHovered ? cat.color : 'rgba(15, 23, 42, 0.1)'} strokeWidth="1.5" />
+                      <g transform={`translate(${x - 8}, ${y + 4})`}>
+                        <cat.icon size={16} style={{ color: isHovered ? cat.color : '#64748B' }} />
+                      </g>
 
                       {/* Label Text */}
-                      <text x={x} y={y + 36} textAnchor="middle" style={{ fill: isHovered ? '#FFFFFF' : '#E2E8F0', fontSize: '10.5px', fontWeight: '700' }}>
+                      <text x={x} y={y + 36} textAnchor="middle" style={{ fill: isHovered ? 'var(--color-text-primary)' : 'var(--color-text-secondary)', fontSize: '10.5px', fontWeight: '700' }}>
                         {cat.name}
                       </text>
-                      
+
                       {/* Sub benchmark name */}
                       <text x={x} y={y + 47} textAnchor="middle" style={{ fill: '#64748B', fontSize: '9px', fontWeight: '500' }}>
                         ({cat.sub})
@@ -589,19 +594,19 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                   );
                 })}
 
-                {/* Interactive Data Dots */}
+                {/* Interactive Data Dots (Baseline) */}
                 {pointsBaseline.map((pt, idx) => {
                   const isHovered = hoveredCategoryIndex === pt.idx;
                   return (
                     <g key={`db-${idx}`}>
                       {isHovered && <circle cx={pt.x} cy={pt.y} r="10" fill="rgba(249,115,22,0.2)" />}
-                      <circle 
-                        cx={pt.x} 
-                        cy={pt.y} 
-                        r={isHovered ? 6 : 4.5} 
-                        fill="#0F172A" 
-                        stroke="#F97316" 
-                        strokeWidth="2.5" 
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={isHovered ? 6 : 4.5}
+                        fill="#FFFFFF"
+                        stroke="#F97316"
+                        strokeWidth="2.5"
                         style={{ transition: 'all 0.15s ease' }}
                         onMouseEnter={() => setHoveredCategoryIndex(pt.idx)}
                       />
@@ -609,18 +614,19 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                   );
                 })}
 
+                {/* Interactive Data Dots (Recommended) */}
                 {pointsRecommended.map((pt, idx) => {
                   const isHovered = hoveredCategoryIndex === pt.idx;
                   return (
                     <g key={`dr-${idx}`}>
                       {isHovered && <circle cx={pt.x} cy={pt.y} r="10" fill="rgba(16,185,129,0.2)" />}
-                      <circle 
-                        cx={pt.x} 
-                        cy={pt.y} 
-                        r={isHovered ? 6 : 4.5} 
-                        fill="#0F172A" 
-                        stroke="#10B981" 
-                        strokeWidth="2.5" 
+                      <circle
+                        cx={pt.x}
+                        cy={pt.y}
+                        r={isHovered ? 6 : 4.5}
+                        fill="#FFFFFF"
+                        stroke="#10B981"
+                        strokeWidth="2.5"
                         style={{ transition: 'all 0.15s ease' }}
                         onMouseEnter={() => setHoveredCategoryIndex(pt.idx)}
                       />
@@ -649,8 +655,10 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                   gap: '6px',
                   minWidth: '220px'
                 }}>
-                  <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px', fontWeight: '800', color: '#F8FAFC' }}>
-                    {activeCategories[hoveredCategoryIndex].icon} {activeCategories[hoveredCategoryIndex].name} ({activeCategories[hoveredCategoryIndex].sub})
+                  <div style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '4px', fontWeight: '800', color: '#F8FAFC', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    {React.createElement(activeCategories[hoveredCategoryIndex].icon, { size: 14, style: { color: activeCategories[hoveredCategoryIndex].color } })}
+                    <span>{activeCategories[hoveredCategoryIndex].name}</span>
+                    <span style={{ fontSize: '10.5px', color: '#94A3B8', fontWeight: 'normal' }}>({activeCategories[hoveredCategoryIndex].sub})</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -658,7 +666,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                       {recommended?.name?.replace(/^.*?:\s*/, '')}:
                     </span>
                     <strong style={{ color: '#10B981', fontSize: '13px' }}>
-                      {recommendedScores[activeCategories[hoveredCategoryIndex].key] !== null 
+                      {recommendedScores[activeCategories[hoveredCategoryIndex].key] !== null
                         ? `${recommendedScores[activeCategories[hoveredCategoryIndex].key]}${activeCategories[hoveredCategoryIndex].key === 'speedNorm' ? ' t/s' : ''}`
                         : 'N/A'}
                     </strong>
@@ -669,7 +677,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                       {baseline?.name?.replace(/^.*?:\s*/, '')}:
                     </span>
                     <strong style={{ color: '#F97316', fontSize: '13px' }}>
-                      {baselineScores[activeCategories[hoveredCategoryIndex].key] !== null 
+                      {baselineScores[activeCategories[hoveredCategoryIndex].key] !== null
                         ? `${baselineScores[activeCategories[hoveredCategoryIndex].key]}${activeCategories[hoveredCategoryIndex].key === 'speedNorm' ? ' t/s' : ''}`
                         : 'N/A'}
                     </strong>
@@ -682,21 +690,21 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           </div>
 
           {/* 2. Structured comparison grid table */}
-          <div style={{ 
-            marginTop: '36px', 
-            border: '1px solid rgba(255, 255, 255, 0.08)', 
-            borderRadius: '12px', 
-            overflow: 'hidden', 
-            backgroundColor: 'rgba(30, 41, 59, 0.25)' 
+          <div style={{
+            marginTop: '20px',
+            border: '1px solid var(--color-border)',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            backgroundColor: '#F8FAFC'
           }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'center' }}>
               <thead>
-                <tr style={{ backgroundColor: 'rgba(30, 41, 59, 0.65)', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                  <th style={{ padding: '14px 16px', fontWeight: '800', color: '#94A3B8', textAlign: 'left', width: '220px' }}>Model</th>
+                <tr style={{ backgroundColor: '#F1F5F9', borderBottom: '1px solid var(--color-border)' }}>
+                  <th style={{ padding: '10px 12px', fontWeight: '800', color: '#64748B', textAlign: 'left', width: '220px' }}>Model</th>
                   {CATEGORIES.map((cat, idx) => (
-                    <th key={idx} style={{ padding: '12px', fontWeight: '750', color: '#E2E8F0', verticalAlign: 'middle' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                        <span style={{ fontSize: '14px' }}>{cat.icon}</span>
+                    <th key={idx} style={{ padding: '8px 10px', fontWeight: '750', color: '#475569', verticalAlign: 'middle' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+                        <cat.icon size={16} style={{ color: cat.color }} />
                         <span style={{ fontSize: '11px' }}>{cat.name}</span>
                       </div>
                     </th>
@@ -705,13 +713,15 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
               </thead>
               <tbody>
                 {/* Recommended Model Row */}
-                <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <td style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>
+                <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10B981', boxShadow: '0 0 6px #10B981' }}></span>
+                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ProviderLogo provider={recommended?.provider || recommended?.developer} size={20} />
+                      </div>
                       <div style={{ display: 'inline-block' }}>
-                        <div style={{ color: '#FFFFFF', fontSize: '13.5px' }}>{recommended?.name?.replace(/^.*?:\s*/, '')}</div>
-                        <div style={{ fontSize: '10px', color: '#64748B' }}>{recommended?.developer || 'Recommended'}</div>
+                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13.5px' }}>{recommended?.name?.replace(/^.*?:\s*/, '')}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{recommended?.developer || 'Recommended'}</div>
                       </div>
                     </div>
                   </td>
@@ -720,7 +730,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     const baseScore = baselineScores[cat.key];
                     const isWinner = score !== null && (baseScore === null || score > baseScore);
                     return (
-                      <td key={idx} style={{ padding: '16px', color: isWinner ? '#10B981' : '#E2E8F0', fontWeight: isWinner ? '800' : '500' }}>
+                      <td key={idx} style={{ padding: '10px 12px', color: isWinner ? '#10B981' : '#475569', fontWeight: isWinner ? '800' : '500' }}>
                         {score !== null ? `${score}${cat.key === 'speedNorm' ? ' t/s' : ''}` : 'N/A'}
                       </td>
                     );
@@ -729,12 +739,14 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
                 {/* Baseline Model Row */}
                 <tr>
-                  <td style={{ padding: '16px', textAlign: 'left', fontWeight: '700' }}>
+                  <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F97316', boxShadow: '0 0 6px #F97316' }}></span>
+                      <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <ProviderLogo provider={baseline?.provider || baseline?.developer} size={20} />
+                      </div>
                       <div style={{ display: 'inline-block' }}>
-                        <div style={{ color: '#E2E8F0', fontSize: '13.5px' }}>{baseline?.name?.replace(/^.*?:\s*/, '')}</div>
-                        <div style={{ fontSize: '10px', color: '#64748B' }}>{baseline?.developer || 'Baseline'}</div>
+                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13.5px' }}>{baseline?.name?.replace(/^.*?:\s*/, '')}</div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{baseline?.developer || 'Baseline'}</div>
                       </div>
                     </div>
                   </td>
@@ -743,7 +755,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     const recScore = recommendedScores[cat.key];
                     const isWinner = score !== null && (recScore === null || score > recScore);
                     return (
-                      <td key={idx} style={{ padding: '16px', color: isWinner ? '#F97316' : '#94A3B8', fontWeight: isWinner ? '800' : '500' }}>
+                      <td key={idx} style={{ padding: '10px 12px', color: isWinner ? '#F97316' : '#64748B', fontWeight: isWinner ? '800' : '500' }}>
                         {score !== null ? `${score}${cat.key === 'speedNorm' ? ' t/s' : ''}` : 'N/A'}
                       </td>
                     );
@@ -757,11 +769,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
         {/* Detailed Comparison Explainer & Migration Tips */}
         {errorMsg ? (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '220px', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '220px',
             marginTop: '36px',
             backgroundColor: '#FEF2F2',
             borderRadius: '12px',
@@ -783,11 +795,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </button>
           </div>
         ) : loadingReport ? (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            minHeight: '220px', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            minHeight: '220px',
             marginTop: '36px',
             backgroundColor: '#FFFFFF',
             borderRadius: '12px',
@@ -817,7 +829,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', marginTop: '36px' }}>
-            
+
             {/* Analysis breakdown */}
             <div className="wizard-card" style={{ padding: '28px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>
               <h4 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '14px', color: 'var(--color-text-primary)' }}>
@@ -838,12 +850,12 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     </p>
                   </>
                 )}
-                
+
                 <div style={{ borderLeft: '4px solid var(--color-green-primary)', paddingLeft: '14px', margin: '8px 0', backgroundColor: 'var(--color-green-light)', padding: '10px 14px', borderRadius: '4px' }}>
                   <strong>{geminiReport?.architectural_insight?.quality_analysis_box ? geminiReport.architectural_insight.quality_analysis_box.split(':')[0] + ':' : 'Quality Analysis:'}</strong>{' '}
                   <span style={{ color: 'var(--color-green-text)', fontWeight: 'bold' }}>
-                    {geminiReport?.architectural_insight?.quality_analysis_box 
-                      ? geminiReport.architectural_insight.quality_analysis_box.replace(/^Quality Analysis:\s*/i, '') 
+                    {geminiReport?.architectural_insight?.quality_analysis_box
+                      ? geminiReport.architectural_insight.quality_analysis_box.replace(/^Quality Analysis:\s*/i, '')
                       : `The recommended alternative retains approximately ${recommended?.performance_retained_percentage || 100}% of the baseline capability score while running on a more efficient inference infrastructure.`}
                   </span>
                 </div>
@@ -855,7 +867,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
               <h4 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '14px', color: 'var(--color-text-primary)' }}>
                 {geminiReport?.route_migration_checklist?.title || '🚀 Route Migration Checklist'}
               </h4>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13.5px' }}>
                 {geminiReport?.route_migration_checklist?.steps ? (
                   geminiReport.route_migration_checklist.steps.map((step, i) => (
@@ -880,16 +892,16 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     </div>
                   </>
                 )}
-                
+
                 <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '8px 0' }}></div>
 
-                <button 
+                <button
                   onClick={() => {
-                    const scriptText = geminiReport?.route_migration_checklist?.migration_script || 
+                    const scriptText = geminiReport?.route_migration_checklist?.migration_script ||
                       `Baseline: ${baseline?.name}\nAlternative: ${recommended?.name}\nModel Route ID: ${recommended?.modelId}\n\nProjected Spends cut: $${(monthlySavings).toFixed(2)}/mo.`;
                     alert(`🎉 Route Migration Initiated!\n\n${scriptText}`);
-                  }} 
-                  className="btn btn-green" 
+                  }}
+                  className="btn btn-green"
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: '700' }}
                 >
                   Download Migration Script ⬇
