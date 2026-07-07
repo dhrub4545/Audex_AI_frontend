@@ -4,8 +4,10 @@ import {
   BarChart2, ArrowRight, Check, Coins, TrendingUp, CreditCard, AlertTriangle,
   Cpu, Users, Copy, GitMerge, EyeOff, BarChart3, LineChart, Key, Binary,
   FileCheck, Scale, ShieldCheck, Recycle, Sparkles, Bot, Video, Volume2,
-  Music, Presentation, Layers, Sliders, ClipboardCheck
+  Music, Presentation, Layers, Sliders, ClipboardCheck, Shield, Lock, Database, FileText,
+  AlertCircle, CheckCircle, BadgeCheck, Percent
 } from 'lucide-react';
+
 import {
   OpenAI,
   Claude,
@@ -31,6 +33,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
   const pipelineRef = useRef(null);
   const [isPipelineAnimated, setIsPipelineAnimated] = useState(false);
+  const [activeFaqIndex, setActiveFaqIndex] = useState(null);
 
   useEffect(() => {
     const currentRef = pipelineRef.current;
@@ -60,8 +63,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
   ];
 
   const CAPABILITIES = [
-    'AI Spend', 'Cost Optimization', 'Seat Utilization', 'Duplicate Detection',
-    'Vendor Consolidation', 'Shadow AI', 'Usage Analytics', 'ROI Tracking',
+    'AI Spend Visibility', 'Cost Inefficiencies', 'Optimize Seat Licenses', 'Stop Paying Twice',
+    'Reduce AI Vendors', 'Shadow AI', 'Usage Analytics', 'ROI Tracking',
     'API Optimization', 'Token Analysis', 'License Audit',
     'Capability Benchmarking', 'AI Governance', 'Waste Recovery'
   ];
@@ -69,21 +72,21 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
   // Missing official logo in @lobehub/icons:
   // - Gamma (using custom premium gradient SVG fallback)
   const providerIcons = {
-    openai: <OpenAI size={20} />,
-    anthropic: <Claude size={20} />,
-    google: <Gemini size={20} />,
-    meta: <Meta size={20} />,
-    xai: <XAI size={20} />,
-    perplexity: <Perplexity size={20} />,
-    deepseek: <DeepSeek size={20} />,
-    mistral: <Mistral size={20} />,
-    github: <GithubCopilot size={20} />,
-    cursor: <Cursor size={20} />,
-    vercel: <Vercel size={20} />,
-    runway: <Runway size={20} />,
-    midjourney: <Midjourney size={20} />,
-    elevenlabs: <ElevenLabs size={20} />,
-    suno: <Suno size={20} />,
+    openai: <OpenAI size={20} style={{ color: '#19C37D' }} />,
+    anthropic: Claude.Color ? <Claude.Color size={20} /> : <Claude size={20} style={{ color: '#D97754' }} />,
+    google: Gemini.Color ? <Gemini.Color size={20} /> : <Gemini size={20} />,
+    meta: Meta.Color ? <Meta.Color size={20} /> : <Meta size={20} style={{ color: '#044E95' }} />,
+    xai: XAI.Color ? <XAI.Color size={20} /> : <XAI size={20} style={{ color: '#0F172A' }} />,
+    perplexity: Perplexity.Color ? <Perplexity.Color size={20} /> : <Perplexity size={20} style={{ color: '#13B5B1' }} />,
+    deepseek: DeepSeek.Color ? <DeepSeek.Color size={20} /> : <DeepSeek size={20} style={{ color: '#4D6BFE' }} />,
+    mistral: Mistral.Color ? <Mistral.Color size={20} /> : <Mistral size={20} style={{ color: '#FD7E14' }} />,
+    github: GithubCopilot.Color ? <GithubCopilot.Color size={20} /> : <GithubCopilot size={20} />,
+    cursor: Cursor.Color ? <Cursor.Color size={20} /> : <Cursor size={20} />,
+    vercel: Vercel.Color ? <Vercel.Color size={20} /> : <Vercel size={20} />,
+    runway: Runway.Color ? <Runway.Color size={20} /> : <Runway size={20} />,
+    midjourney: Midjourney.Color ? <Midjourney.Color size={20} /> : <Midjourney size={20} />,
+    elevenlabs: ElevenLabs.Color ? <ElevenLabs.Color size={20} /> : <ElevenLabs size={20} />,
+    suno: Suno.Color ? <Suno.Color size={20} /> : <Suno size={20} />,
     gamma: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ flexShrink: 0 }}>
         <path d="M12 2L2 22h20L12 2z" fill="url(#gammaGradient)" />
@@ -189,11 +192,11 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
   const getCapabilityIcon = (name) => {
     const n = name.toLowerCase();
-    if (n === 'ai spend') return <Coins size={16} />;
-    if (n === 'cost optimization') return <TrendingUp size={16} />;
-    if (n === 'seat utilization') return <Users size={16} />;
-    if (n === 'duplicate detection') return <Copy size={16} />;
-    if (n === 'vendor consolidation') return <GitMerge size={16} style={{ transform: 'rotate(90deg)' }} />;
+    if (n.includes('spend')) return <Coins size={16} />;
+    if (n.includes('cost') || n.includes('inefficiencies')) return <TrendingUp size={16} />;
+    if (n.includes('seat') || n.includes('license')) return <Users size={16} />;
+    if (n.includes('duplicate') || n.includes('twice')) return <Copy size={16} />;
+    if (n.includes('consolidation') || n.includes('vendors') || n.includes('reduce')) return <GitMerge size={16} style={{ transform: 'rotate(90deg)' }} />;
     if (n === 'shadow ai') return <EyeOff size={16} />;
     if (n === 'usage analytics') return <BarChart3 size={16} />;
     if (n === 'roi tracking') return <LineChart size={16} />;
@@ -226,8 +229,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
       iconColor = 'rgba(59, 130, 246, 0.65)';
       iconColorHover = 'rgba(59, 130, 246, 1)';
     }
-    // Purple/Indigo themed (Shadow, Duplicate, API, Token, Analytics)
-    else if (n.includes('shadow') || n.includes('duplicate') || n.includes('api') || n.includes('token') || n.includes('analytics')) {
+    // Purple/Indigo themed (Shadow, Duplicate, API, Token, Analytics, twice, reduce)
+    else if (n.includes('shadow') || n.includes('duplicate') || n.includes('twice') || n.includes('reduce') || n.includes('vendors') || n.includes('api') || n.includes('token') || n.includes('analytics')) {
       bg = 'rgba(139, 92, 246, 0.02)';
       bgHover = 'rgba(139, 92, 246, 0.05)';
       border = 'rgba(139, 92, 246, 0.12)';
@@ -255,7 +258,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
           <div className="hero-content" style={{ transform: 'translateY(-70px)' }}>
             <div>
               <span className="badge badge-green" style={{ marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <Zap size={14} fill="currentColor" /> AI-powered spend auditing · Free to start
+                <ShieldCheck size={16} strokeWidth={2.2} /> Algorithmic AI Spend Auditing · Free to Start
               </span>
               <h1 className="hero-title">
                 Stop burning cash <br />
@@ -263,15 +266,15 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </h1>
             </div>
             <p className="hero-description">
-              Audex AI audits your AI stack, flags waste, and delivers a ranked action plan — in under 60 seconds. No consultants needed.
+              Audex AI audits your enterprise subscriptions, detects duplicate licenses, and maps workload optimization paths in under 60 seconds.
             </p>
 
             <div className="hero-cta">
               <button onClick={onNavigateToStep1} className="btn btn-black" style={{ padding: '14px 28px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <Rocket size={18} /> Start Free Audit <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22C55E', marginLeft: '2px' }}></span>
+                <Rocket size={18} /> Audit My AI Stack <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22C55E', marginLeft: '2px' }}></span>
               </button>
               <button onClick={onViewSample} className="btn btn-outline" style={{ padding: '14px 28px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <Eye size={18} /> View Sample
+                <Eye size={18} /> See Sample Report
               </button>
             </div>
 
@@ -543,6 +546,9 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
           }
         `}</style>
         <div className="trusted-by-title">Everything That Powers Smarter AI Decisions</div>
+        <p style={{ textAlign: 'center', fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '24px', marginTop: '-12px', fontFamily: 'var(--font-body)' }}>
+          Supporting 40+ AI providers and hundreds of AI models.
+        </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {/* Row 1: Supported AI Platforms */}
@@ -588,6 +594,543 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Why Audex AI Section */}
+      <section className="steps-section" style={{ backgroundColor: '#F8FAFC', borderTop: '1px solid var(--color-border)', padding: '60px 0' }}>
+        <div className="container">
+          <div className="section-header" style={{ marginBottom: '48px', textAlign: 'center' }}>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>Cost Optimization</span>
+            <h2 className="section-title" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '32px', marginTop: '12px' }}>Recover Hidden AI Spending</h2>
+            <p style={{ maxWidth: '600px', margin: '12px auto 0 auto', color: 'var(--color-text-muted)', fontSize: '15px' }}>Eliminate manual billing auditing. Audex AI cross-references provider billing baselines against real capability metrics.</p>
+          </div>
+          <div className="why-audex-grid">
+            <style>{`
+              .why-audex-grid {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 24px;
+              }
+              @media (min-width: 640px) {
+                .why-audex-grid {
+                  grid-template-columns: repeat(2, 1fr);
+                }
+              }
+              @media (min-width: 1024px) {
+                .why-audex-grid {
+                  grid-template-columns: repeat(4, 1fr);
+                }
+              }
+              .why-audex-card {
+                background-color: #FFFFFF;
+                border-radius: 16px;
+                border: 1px solid var(--color-border);
+                box-shadow: var(--shadow-sm);
+                padding: 24px;
+                transition: all 250ms ease;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                text-align: left;
+              }
+              .why-audex-card:hover {
+                transform: translateY(-3px);
+                box-shadow: var(--shadow-md);
+              }
+              .why-audex-card.highlight {
+                border-color: var(--color-green-primary);
+                box-shadow: 0 10px 25px -10px rgba(0, 102, 68, 0.08);
+              }
+              .why-audex-card.highlight:hover {
+                box-shadow: 0 12px 30px -10px rgba(0, 102, 68, 0.15);
+              }
+            `}</style>
+
+            {/* Column 1: Without Audex */}
+            <div className="why-audex-card">
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '20px', color: '#EF4444', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-title)' }}>
+                  <AlertCircle size={20} /> Without Audex AI
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#EF4444', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✕</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Unchecked Duplicate Tools</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Departmental teams purchasing overlapping licenses in silos.</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#EF4444', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✕</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Manual Billing Auditing</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Wasting engineering hours parsing complex, changing API billing catalogs.</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#EF4444', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✕</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Orphaned Developer Seats</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Paying for inactive developer seats and forgotten endpoints.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 2: Graph Goes Down (AI Waste/Spend Trend) */}
+            <div className="why-audex-card">
+              <div>
+                <span style={{ fontSize: '9.5px', fontWeight: '750', textTransform: 'uppercase', color: '#EF4444', letterSpacing: '0.05em' }}>Cost Optimization</span>
+                
+                <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '4px 0 2px 0', fontFamily: 'var(--font-title)' }}>Avoidable Spend</h3>
+                <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', margin: '0 0 16px 0' }}>AI waste trend over time</p>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '20px', fontWeight: '850', color: 'var(--color-text-primary)', fontFamily: 'var(--font-title)' }}>-71%</span>
+                  <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>$12.4k to $3.6k</span>
+                </div>
+              </div>
+
+              <div style={{ width: '100%', height: '90px', position: 'relative' }}>
+                <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+                  <defs>
+                    <linearGradient id="red-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#EF4444" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#EF4444" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+
+                  <line x1="0" y1="20" x2="200" y2="20" stroke="#F1F5F9" strokeDasharray="3,3" />
+                  <line x1="0" y1="50" x2="200" y2="50" stroke="#F1F5F9" strokeDasharray="3,3" />
+                  <line x1="0" y1="80" x2="200" y2="80" stroke="#F1F5F9" strokeDasharray="3,3" />
+
+                  <path d="M 0 20 Q 50 25 100 65 T 200 85 L 200 100 L 0 100 Z" fill="url(#red-grad)" />
+                  <path d="M 0 20 Q 50 25 100 65 T 200 85" fill="none" stroke="#EF4444" strokeWidth="2.5" strokeLinecap="round" />
+
+                  <circle cx="200" cy="85" r="3.5" fill="#EF4444" />
+                  <circle cx="200" cy="85" r="7" fill="none" stroke="#EF4444" strokeWidth="1.5" opacity="0.5">
+                    <animate attributeName="r" values="3.5;9;3.5" dur="2.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              </div>
+            </div>
+
+            {/* Column 3: With Audex */}
+            <div className="why-audex-card highlight">
+              <div>
+                <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '20px', color: 'var(--color-green-primary)', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-title)' }}>
+                  <BadgeCheck size={20} color="var(--color-green-primary)" /> With Audex AI
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#22C55E', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✓</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Consolidated License Allocation</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Automatically reallocate seats onto unified, high-efficiency tiers.</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#22C55E', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✓</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Choose the Right AI with Confidence</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Identify cost-effective provider models without degrading response quality.</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                    <span style={{ color: '#22C55E', fontWeight: 'bold', fontSize: '14px', lineHeight: 1 }}>✓</span>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', marginBottom: '2px', color: 'var(--color-text-primary)' }}>Total Spend Auditing Visibility</h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', lineHeight: '1.45', margin: 0 }}>Trace orphaned endpoints and unused developer seats in 60 seconds.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Column 4: Graph Goes Up (AI Stack Efficiency) */}
+            <div className="why-audex-card">
+              <div>
+                <span style={{ fontSize: '9.5px', fontWeight: '750', textTransform: 'uppercase', color: 'var(--color-green-primary)', letterSpacing: '0.05em' }}>Performance Lift</span>
+                <h3 style={{ fontSize: '17px', fontWeight: '800', margin: '4px 0 2px 0', fontFamily: 'var(--font-title)' }}>Stack Efficiency</h3>
+                <p style={{ fontSize: '11.5px', color: 'var(--color-text-secondary)', margin: '0 0 16px 0' }}>Resource utilization curve</p>
+
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
+                  <span style={{ fontSize: '20px', fontWeight: '850', color: 'var(--color-text-primary)', fontFamily: 'var(--font-title)' }}>+300%</span>
+                  <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>24% to 96% audit baseline</span>
+                </div>
+              </div>
+
+              <div style={{ width: '100%', height: '90px', position: 'relative' }}>
+                <svg width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
+                  <defs>
+                    <linearGradient id="green-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#10B981" stopOpacity="0.25" />
+                      <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+
+                  <line x1="0" y1="20" x2="200" y2="20" stroke="#F1F5F9" strokeDasharray="3,3" />
+                  <line x1="0" y1="50" x2="200" y2="50" stroke="#F1F5F9" strokeDasharray="3,3" />
+                  <line x1="0" y1="80" x2="200" y2="80" stroke="#F1F5F9" strokeDasharray="3,3" />
+
+                  <path d="M 0 85 Q 50 80 100 45 T 200 15 L 200 100 L 0 100 Z" fill="url(#green-grad)" />
+                  <path d="M 0 85 Q 50 80 100 45 T 200 15" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" />
+
+                  <circle cx="200" cy="15" r="3.5" fill="#10B981" />
+                  <circle cx="200" cy="15" r="7" fill="none" stroke="#10B981" strokeWidth="1.5" opacity="0.5">
+                    <animate attributeName="r" values="3.5;9;3.5" dur="2.5s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.8;0;0.8" dur="2.5s" repeatCount="indefinite" />
+                  </circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* The Audex Intelligence Engine Section */}
+      <section className="steps-section intel-engine-section" style={{ padding: '40px 0', position: 'relative', overflow: 'hidden', backgroundColor: '#FFFFFF', borderTop: '1px solid var(--color-border)' }}>
+        {/* Background Accents (Grid and radial glow) */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'radial-gradient(rgba(15, 138, 95, 0.03) 1px, transparent 1px)',
+          backgroundSize: '20px 20px',
+          opacity: 0.8,
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '-20%',
+          left: '10%',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(16, 163, 74, 0.04) 0%, transparent 70%)',
+          filter: 'blur(30px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '-20%',
+          right: '10%',
+          width: '400px',
+          height: '400px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(15, 138, 95, 0.04) 0%, transparent 70%)',
+          filter: 'blur(30px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+
+        <div className="container" style={{ maxWidth: '1280px', position: 'relative', zIndex: 1 }}>
+          <div className="section-header" style={{ marginBottom: '24px', textAlign: 'center' }}>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>
+              METHODOLOGY
+            </span>
+            <h2 className="section-title" style={{
+              fontFamily: 'var(--font-title)',
+              fontWeight: 800,
+              fontSize: '48px',
+              marginTop: '16px',
+              letterSpacing: '-0.02em',
+              color: '#111827',
+              lineHeight: '1.15'
+            }}>
+              The Audex <span style={{
+                background: 'linear-gradient(90deg, #0F8A5F 0%, #16A34A 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'inline'
+              }}>Decision Engine</span>
+            </h2>
+            <p style={{
+              maxWidth: '700px',
+              margin: '12px auto 0 auto',
+              color: '#6B7280',
+              fontSize: '15.5px',
+              lineHeight: '1.6'
+            }}>
+              Our deterministic rules engine parses your AI tool configuration, benchmarks provider capability ratings, and outputs verifiable savings recommendations.
+            </p>
+          </div>
+
+          <style>{`
+            .intel-pipeline-wrapper {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 20px;
+              width: 100%;
+              margin-bottom: 32px;
+            }
+            .intel-pipeline-row {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0px;
+              width: 100%;
+              flex-wrap: wrap;
+            }
+            .intel-step-card {
+              background-color: #FCFCFD;
+              border-radius: 16px;
+              border: 1px solid #E8EDF2;
+              box-shadow: 0 4px 10px rgba(15, 23, 42, 0.02);
+              padding: 16px 14px;
+              width: 185px;
+              height: 140px;
+              text-align: center;
+              transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: flex-start;
+              position: relative;
+              box-sizing: border-box;
+            }
+            .intel-step-card:hover {
+              transform: translateY(-2px);
+              border-color: rgba(15, 138, 95, 0.4);
+              box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
+            }
+            .intel-step-num-badge {
+              width: 20px;
+              height: 20px;
+              border-radius: 50%;
+              font-size: 10px;
+              font-weight: 800;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              position: absolute;
+              top: 8px;
+              left: 8px;
+            }
+            .intel-step-icon-wrapper {
+              width: 38px;
+              height: 38px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-bottom: 10px;
+              transition: transform 250ms ease;
+            }
+            .intel-step-card:hover .intel-step-icon-wrapper {
+              transform: scale(1.08);
+            }
+            .intel-arrow-connector {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 40px;
+              height: 20px;
+              color: #E8EDF2;
+              transition: color 250ms ease;
+            }
+            .intel-step-card:hover + .intel-arrow-connector {
+              color: #0F8A5F;
+            }
+            .animated-flow-line {
+              stroke: currentColor;
+              stroke-dasharray: 4, 4;
+              animation: flow-stroke 1.2s linear infinite;
+            }
+            @keyframes flow-stroke {
+              to {
+                stroke-dashoffset: -20;
+              }
+            }
+            
+            .trust-strip-container {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 16px;
+              background-color: #FFFFFF;
+              border: 1px solid #E8EDF2;
+              border-radius: 16px;
+              padding: 14px 24px;
+              box-shadow: 0 12px 40px rgba(15, 23, 42, 0.04);
+              margin-top: 24px;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .trust-strip-item {
+              display: flex;
+              align-items: center;
+              gap: 12px;
+              text-align: left;
+            }
+            
+            @media (max-width: 1024px) {
+              .intel-pipeline-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+              }
+              .intel-step-card {
+                width: 100%;
+                height: 140px;
+              }
+              .intel-arrow-connector {
+                display: none;
+              }
+              .trust-strip-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                padding: 20px;
+              }
+            }
+            @media (max-width: 640px) {
+              .intel-pipeline-row {
+                grid-template-columns: 1fr;
+              }
+              .trust-strip-container {
+                grid-template-columns: 1fr;
+              }
+            }
+          `}</style>
+
+          <div className="intel-pipeline-wrapper">
+            {/* Row 1: Steps 1 to 5 */}
+            <div className="intel-pipeline-row">
+              {[
+                { num: '01', title: 'Billing Inventory', desc: 'Map all active licenses and API configurations.', bg: 'rgba(59, 130, 246, 0.05)', color: '#3B82F6', icon: <Layers size={18} /> },
+                { num: '02', title: 'Billing Normalization', desc: 'Standardize seats, token pricing, and access logs.', bg: 'rgba(139, 92, 246, 0.05)', color: '#8B5CF6', icon: <Binary size={18} /> },
+                { num: '03', title: 'Capability Benchmarking', desc: 'Compare model execution scores across benchmarks.', bg: 'rgba(236, 72, 153, 0.05)', color: '#EC4899', icon: <LineChart size={18} /> },
+                { num: '04', title: 'Structured Cost Analysis', desc: 'Identify unassigned seats and idle endpoints.', bg: 'rgba(245, 158, 11, 0.05)', color: '#F59E0B', icon: <Coins size={18} /> },
+                { num: '05', title: 'Rule-Based Optimization', desc: 'Reallocate workloads using cost rules.', bg: 'rgba(16, 185, 129, 0.05)', color: '#10B981', icon: <Cpu size={18} /> }
+              ].map((step, idx, arr) => (
+                <React.Fragment key={step.num}>
+                  <div className="intel-step-card">
+                    <div className="intel-step-num-badge" style={{ backgroundColor: step.bg, color: step.color }}>
+                      {step.num}
+                    </div>
+                    <div className="intel-step-icon-wrapper" style={{ backgroundColor: step.bg, color: step.color }}>
+                      {step.icon}
+                    </div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '850', margin: '0 0 6px 0', color: '#111827', fontFamily: 'var(--font-title)', lineHeight: '1.2' }}>{step.title}</h4>
+                    <p style={{ fontSize: '11.5px', color: '#6B7280', lineHeight: '1.45', margin: 0 }}>{step.desc}</p>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className="intel-arrow-connector">
+                      <svg width="40" height="20" viewBox="0 0 40 20" style={{ overflow: 'visible' }}>
+                        <path d="M 0 10 L 40 10" fill="none" className="animated-flow-line" strokeWidth="2" strokeLinecap="round" />
+                        <circle cx="20" cy="10" r="3" fill="currentColor" />
+                      </svg>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+
+            {/* Connecting line / transition curve on Desktop */}
+            <div className="intel-arrow-connector" style={{ transform: 'rotate(90deg)', margin: '2px 0', height: '20px', width: '20px' }}>
+              <svg width="40" height="20" viewBox="0 0 40 20" style={{ overflow: 'visible' }}>
+                <path d="M 0 10 L 40 10" fill="none" className="animated-flow-line" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="20" cy="10" r="3" fill="currentColor" />
+              </svg>
+            </div>
+
+            {/* Row 2: Steps 6 to 7 */}
+            <div className="intel-pipeline-row">
+              {[
+                { num: '06', title: 'Action Checklist', desc: 'Generate step-by-step seat migration checklists.', bg: 'rgba(71, 85, 105, 0.05)', color: '#475569', icon: <GitMerge size={18} /> },
+                { num: '07', title: 'Savings Report', desc: 'Download the complete verifiable cost audit.', bg: 'rgba(6, 182, 212, 0.05)', color: '#06B6D4', icon: <FileText size={18} /> }
+              ].map((step, idx, arr) => (
+                <React.Fragment key={step.num}>
+                  <div className="intel-step-card">
+                    <div className="intel-step-num-badge" style={{ backgroundColor: step.bg, color: step.color }}>
+                      {step.num}
+                    </div>
+                    <div className="intel-step-icon-wrapper" style={{ backgroundColor: step.bg, color: step.color }}>
+                      {step.icon}
+                    </div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '850', margin: '0 0 6px 0', color: '#111827', fontFamily: 'var(--font-title)', lineHeight: '1.2' }}>{step.title}</h4>
+                    <p style={{ fontSize: '11.5px', color: '#6B7280', lineHeight: '1.45', margin: 0 }}>{step.desc}</p>
+                  </div>
+                  {idx < arr.length - 1 && (
+                    <div className="intel-arrow-connector">
+                      <svg width="40" height="20" viewBox="0 0 40 20" style={{ overflow: 'visible' }}>
+                        <path d="M 0 10 L 40 10" fill="none" className="animated-flow-line" strokeWidth="2" strokeLinecap="round" />
+                        <circle cx="20" cy="10" r="3" fill="currentColor" />
+                      </svg>
+                    </div>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Trust Bar */}
+          <div className="trust-strip-container">
+            <div className="trust-strip-item">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', flexShrink: 0 }}>
+                <Shield size={16} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>Enterprise-grade Security</h4>
+                <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>Secure processing</p>
+              </div>
+            </div>
+            <div className="trust-strip-item">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', flexShrink: 0 }}>
+                <Zap size={16} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>Results in Under 60 Seconds</h4>
+                <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>Instant answers</p>
+              </div>
+            </div>
+            <div className="trust-strip-item">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', flexShrink: 0 }}>
+                <Target size={16} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>Verified Recommendations</h4>
+                <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>No guesswork</p>
+              </div>
+            </div>
+            <div className="trust-strip-item">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', flexShrink: 0 }}>
+                <CheckCircle size={16} />
+              </div>
+              <div>
+                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>No Consultants Required</h4>
+                <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>Self-serve pipeline</p>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -936,12 +1479,22 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
         <div className="container">
           <div className="section-header" style={{ marginBottom: '48px' }}>
-            <span className="section-badge">How It Works</span>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>How It Works</span>
             <h2 className="section-title" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '32px', lineHeight: 1.2 }}>
-              From AI spend to optimized savings<br />in five intelligent steps.
+              Recover Hidden AI Spending in Five Reproducible Steps.
             </h2>
             <p style={{ maxWidth: '600px', margin: '16px auto 0 auto', color: 'var(--color-text-muted)', fontSize: '15px', lineHeight: 1.6 }}>
-              Audex AI analyzes your AI stack, benchmarks every decision,<br />and delivers a prioritized optimization plan in under 60 seconds.
+              Eliminate billing waste. Map subscriptions, normalize usage baselines, and execute deterministic cost optimization plans.
             </p>
           </div>
 
@@ -958,13 +1511,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               {/* Step 1: Inventory */}
               <div className="pipeline-card">
                 <div className="pipeline-icon-container" style={{ backgroundColor: 'rgba(59, 130, 246, 0.06)', color: '#3B82F6' }}>
-                  <Layers size={22} />
+                  <Database size={22} />
                 </div>
                 <span className="pipeline-step-num">Step 01</span>
-                <h3 className="pipeline-card-title">Inventory</h3>
-                <span className="pipeline-card-subtitle">Map your AI stack</span>
+                <h3 className="pipeline-card-title">Map Subscriptions</h3>
+                <span className="pipeline-card-subtitle">Build your active inventory</span>
                 <p className="pipeline-card-desc">
-                  Import subscriptions, APIs, seat allocations and workloads in under 60 seconds.
+                  Import team seat counts, API configurations, and vendor directories in under 60 seconds.
                 </p>
                 <div className="mini-vis inventory-vis">
                   <span className="chip">ChatGPT</span>
@@ -978,13 +1531,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               {/* Step 2: Normalize */}
               <div className="pipeline-card">
                 <div className="pipeline-icon-container" style={{ backgroundColor: 'rgba(139, 92, 246, 0.06)', color: '#8B5CF6' }}>
-                  <Sliders size={22} />
+                  <Scale size={22} />
                 </div>
                 <span className="pipeline-step-num">Step 02</span>
-                <h3 className="pipeline-card-title">Normalize</h3>
-                <span className="pipeline-card-subtitle">Analyze real usage</span>
+                <h3 className="pipeline-card-title">Normalize Usage</h3>
+                <span className="pipeline-card-subtitle">Establish a structured cost baseline</span>
                 <p className="pipeline-card-desc">
-                  Audex converts seats, tokens and workloads into a comparable AI cost baseline.
+                  Convert varying monthly subscriptions, tokens-per-dollar rates, and API keys into a comparable metric.
                 </p>
                 <div className="mini-vis normalize-vis">
                   <div className="slider-row">
@@ -1005,13 +1558,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               {/* Step 3: Benchmark */}
               <div className="pipeline-card">
                 <div className="pipeline-icon-container" style={{ backgroundColor: 'rgba(236, 72, 153, 0.06)', color: '#EC4899' }}>
-                  <BarChart3 size={22} />
+                  <TrendingUp size={22} />
                 </div>
                 <span className="pipeline-step-num">Step 03</span>
-                <h3 className="pipeline-card-title">Benchmark</h3>
-                <span className="pipeline-card-subtitle">Validate every decision</span>
+                <h3 className="pipeline-card-title">Compare Capabilities</h3>
+                <span className="pipeline-card-subtitle">Choose the right model with confidence</span>
                 <p className="pipeline-card-desc">
-                  Every recommendation is verified using live capability benchmarks and task-specific scores.
+                  Cross-reference every model recommendation against standard benchmarks (coding, math, reasoning) to preserve response quality.
                 </p>
                 <div className="mini-vis benchmark-vis">
                   <svg width="70" height="70" viewBox="0 0 100 100" className="radar-svg">
@@ -1041,13 +1594,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               {/* Step 4: Optimize */}
               <div className="pipeline-card">
                 <div className="pipeline-icon-container" style={{ backgroundColor: 'rgba(245, 158, 11, 0.06)', color: '#F59E0B' }}>
-                  <Target size={22} />
+                  <Percent size={22} />
                 </div>
                 <span className="pipeline-step-num">Step 04</span>
-                <h3 className="pipeline-card-title">Optimize</h3>
-                <span className="pipeline-card-subtitle">Find the best path</span>
+                <h3 className="pipeline-card-title">Detect Waste</h3>
+                <span className="pipeline-card-subtitle">Stop paying for duplicate tools</span>
                 <p className="pipeline-card-desc">
-                  Our optimization engine compares subscriptions, APIs and pricing to maximize savings.
+                  Reveal parallel seat subscriptions, idle seats, and over-provisioned developer tiers using cost rules.
                 </p>
                 <div className="mini-vis optimize-vis">
                   <div className="cost-box current">
@@ -1066,13 +1619,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               {/* Step 5: Execute */}
               <div className="pipeline-card">
                 <div className="pipeline-icon-container" style={{ backgroundColor: 'rgba(16, 185, 129, 0.06)', color: '#10B981' }}>
-                  <ClipboardCheck size={22} />
+                  <CheckCircle size={22} />
                 </div>
                 <span className="pipeline-step-num">Step 05</span>
-                <h3 className="pipeline-card-title">Execute</h3>
-                <span className="pipeline-card-subtitle">Act with confidence</span>
+                <h3 className="pipeline-card-title">Execute Placements</h3>
+                <span className="pipeline-card-subtitle">Recover your IT budget immediately</span>
                 <p className="pipeline-card-desc">
-                  Receive a prioritized action plan with projected monthly and annual savings.
+                  Apply step-by-step seat downgrades, license reallocations, and workload switch guides.
                 </p>
                 <div className="mini-vis execute-vis">
                   <div className="check-item"><span className="check-icon">✓</span> Cancel duplicate seats</div>
@@ -1095,14 +1648,534 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
         </div>
       </section>
 
+      {/* Why Trust Our Recommendations Section */}
+      <section className="steps-section trust-section-redesign" style={{ backgroundColor: '#FAFCFB', padding: '40px 0', borderTop: '1px solid #E8EDF2', position: 'relative', overflow: 'hidden' }}>
+        {/* Background Decorative Accents */}
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: 'radial-gradient(rgba(15, 138, 95, 0.02) 1.5px, transparent 1.5px)',
+          backgroundSize: '24px 24px',
+          opacity: 0.8,
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '30%',
+          right: '-10%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(16, 163, 74, 0.03) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '10%',
+          left: '-10%',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(15, 138, 95, 0.03) 0%, transparent 70%)',
+          filter: 'blur(40px)',
+          pointerEvents: 'none',
+          zIndex: 0
+        }}></div>
+
+        <div className="container" style={{ maxWidth: '1280px', position: 'relative', zIndex: 1 }}>
+          <div className="section-header" style={{ marginBottom: '24px', textAlign: 'center' }}>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <Shield size={12} /> DATA INTEGRITY
+            </span>
+            <h2 className="section-title" style={{
+              fontFamily: 'var(--font-title)',
+              fontWeight: 800,
+              fontSize: '48px',
+              marginTop: '16px',
+              letterSpacing: '-0.02em',
+              color: '#111827',
+              lineHeight: '1.15'
+            }}>
+              Every <span style={{
+                background: 'linear-gradient(90deg, #0F8A5F 0%, #16A34A 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                display: 'inline'
+              }}>Recommendation Explained</span>
+            </h2>
+            <p style={{
+              maxWidth: '700px',
+              margin: '12px auto 0 auto',
+              color: '#6B7280',
+              fontSize: '16px',
+              lineHeight: '1.6'
+            }}>
+              We audit subscriptions using verified capability ratings and deterministic cost rules. Every recommendation is transparent, reproducible, and explainable.
+            </p>
+          </div>
+
+          <style>{`
+            .trust-two-col-layout {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 20px;
+              align-items: start;
+              margin-bottom: 24px;
+            }
+            @media (min-width: 1024px) {
+              .trust-two-col-layout {
+                grid-template-columns: 380px 1fr;
+              }
+            }
+            
+            .trust-left-evidence-card {
+              background-color: #FFFFFF;
+              border-radius: 24px;
+              border: 1px solid #E8EDF2;
+              box-shadow: 0 12px 40px rgba(15, 23, 42, 0.04);
+              padding: 24px 20px;
+              display: flex;
+              flex-direction: column;
+              transition: all 250ms ease;
+              text-align: left;
+            }
+            .trust-left-evidence-card:hover {
+              transform: translateY(-3px);
+              border-color: rgba(15, 138, 95, 0.35);
+              box-shadow: 0 16px 48px rgba(15, 23, 42, 0.07);
+            }
+            
+            .trust-checklist-item {
+              display: flex;
+              align-items: flex-start;
+              gap: 14px;
+              padding: 10px 0;
+              border-bottom: 1px dashed #E8EDF2;
+            }
+            .trust-checklist-item:last-child {
+              border-bottom: none;
+              padding-bottom: 0;
+            }
+            
+            .trust-right-grid {
+              display: grid;
+              grid-template-columns: 1fr;
+              gap: 12px;
+            }
+            @media (min-width: 640px) {
+              .trust-right-grid {
+                grid-template-columns: repeat(2, 1fr);
+              }
+            }
+            
+            .trust-feature-card {
+              background-color: #FFFFFF;
+              border-radius: 16px;
+              border: 1px solid #E8EDF2;
+              box-shadow: 0 4px 12px rgba(15, 23, 42, 0.02);
+              padding: 16px 16px;
+              position: relative;
+              transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start;
+              text-align: left;
+            }
+            .trust-feature-card:hover {
+              transform: translateY(-3px);
+              border-color: rgba(15, 138, 95, 0.4);
+              box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+            }
+            .trust-feature-icon-wrapper {
+              width: 44px;
+              height: 44px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-bottom: 12px;
+              transition: transform 250ms ease;
+            }
+            .trust-feature-card:hover .trust-feature-icon-wrapper {
+              transform: scale(1.08);
+            }
+            
+            .trust-security-card {
+              background-color: #FFFFFF;
+              border-radius: 16px;
+              border: 1px solid #E8EDF2;
+              box-shadow: 0 6px 20px rgba(15, 23, 42, 0.03);
+              padding: 12px 20px;
+              display: flex;
+              align-items: center;
+              gap: 16px;
+              transition: all 250ms ease;
+              text-align: left;
+              margin-top: 8px;
+            }
+            .trust-security-card:hover {
+              border-color: rgba(15, 138, 95, 0.3);
+              box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+            }
+            
+            .trust-stats-strip {
+              display: grid;
+              grid-template-columns: repeat(4, 1fr);
+              gap: 16px;
+              background-color: #FFFFFF;
+              border: 1px solid #E8EDF2;
+              border-radius: 28px;
+              padding: 14px 24px;
+              box-shadow: 0 20px 50px rgba(15, 23, 42, 0.05);
+              margin-top: 24px;
+              width: 100%;
+              box-sizing: border-box;
+            }
+            .trust-stats-item {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              text-align: center;
+              gap: 6px;
+              transition: transform 250ms ease;
+              position: relative;
+            }
+            .trust-stats-item:hover {
+              transform: translateY(-2px);
+            }
+            .trust-stats-underline {
+              width: 16px;
+              height: 2px;
+              background-color: #0F8A5F;
+              transition: width 250ms ease;
+              margin-top: 4px;
+            }
+            .trust-stats-item:hover .trust-stats-underline {
+              width: 32px;
+            }
+            
+            @media (max-width: 1024px) {
+              .trust-stats-strip {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+                padding: 16px;
+              }
+            }
+            @media (max-width: 640px) {
+              .trust-two-col-layout {
+                grid-template-columns: 1fr;
+              }
+              .trust-stats-strip {
+                grid-template-columns: 1fr;
+              }
+            }
+          `}</style>
+
+          <div className="trust-two-col-layout">
+            {/* Left Column: Verified Methodology */}
+            <div className="trust-left-evidence-card">
+              <span style={{ fontSize: '11px', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#0F8A5F', marginBottom: '12px', display: 'block' }}>Verified Methodology</span>
+              <h3 style={{ fontSize: '24px', fontWeight: '850', fontFamily: 'var(--font-title)', marginBottom: '14px', color: '#111827', lineHeight: '1.25' }}>
+                Every Cost Audit Is Built on Verifiable <span style={{ color: '#0F8A5F' }}>Evidence</span>
+              </h3>
+              <p style={{ fontSize: '13px', color: '#6B7280', lineHeight: '1.65', marginBottom: '24px' }}>
+                We calculate optimizations using current vendor contract pricing, standard model benchmarks, and open-source models.
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0px', borderTop: '1px solid #E8EDF2', paddingTop: '8px' }}>
+                {[
+                  { title: 'Explainable Decision Logic', desc: 'Every recommendation includes step-by-step cost formulas and performance data.' },
+                  { title: 'Capability Benchmarking', desc: "Alternate models are benchmarked on math and code to guarantee execution quality." },
+                  { title: 'Verified Pricing Data', desc: 'Recommendations are calculated against current, public provider billing catalogs.' },
+                  { title: 'Reproducible Cost Formulas', desc: "See exactly how much you save per seat, per token, and per department." },
+                ].map((pt, i) => (
+                  <div key={i} className="trust-checklist-item">
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '2px' }}>
+                      <Check size={11} strokeWidth={3} />
+                    </div>
+                    <div>
+                      <h4 style={{ fontSize: '13.5px', fontWeight: '750', color: '#111827', margin: '0 0 2px 0' }}>{pt.title}</h4>
+                      <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: '1.45' }}>{pt.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right Column: Grid and Banner */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="trust-right-grid">
+                {[
+                  { num: '01', title: 'Choose the Right AI with Confidence', desc: 'Evaluating model capability levels across coding, reasoning, and math benchmarks to ensure alternate options do not degrade quality.', icon: <BarChart2 size={18} />, bg: 'rgba(59, 130, 246, 0.05)', color: '#3B82F6' },
+                  { num: '02', title: 'Compare Real AI Pricing', desc: 'Live, data-backed indexing of seat licenses and api tokens-per-dollar values across 40+ providers.', icon: <Coins size={18} />, bg: 'rgba(245, 158, 11, 0.05)', color: '#F59E0B' },
+                  { num: '03', title: 'Stop Paying for Duplicate AI Tools', desc: 'Structured analysis of active subscriptions to detect duplicate parallel seats and capabilities.', icon: <Copy size={18} />, bg: 'rgba(139, 92, 246, 0.05)', color: '#8B5CF6' },
+                  { num: '04', title: 'Rule-Based Optimization', desc: 'Structured mathematical modeling of seat allocations and token rates rather than arbitrary AI guesses.', icon: <Sliders size={18} />, bg: 'rgba(236, 72, 153, 0.05)', color: '#EC4899' },
+                  { num: '05', title: 'Compare Providers Before You Pay More', desc: 'Transparent mapping of proprietary models (GPT, Claude, Gemini) against equivalent open workloads.', icon: <Zap size={18} />, bg: 'rgba(16, 185, 129, 0.05)', color: '#10B981' },
+                  { num: '06', title: 'Every Recommendation Explained', desc: 'Every suggestion includes clear reasoning, quality match scores, and the underlying savings calculations.', icon: <FileCheck size={18} />, bg: 'rgba(6, 182, 212, 0.05)', color: '#06B6D4' }
+                ].map((item, idx) => (
+                  <div key={idx} className="trust-feature-card">
+                    <div className="trust-feature-icon-wrapper" style={{ backgroundColor: item.bg, color: item.color }}>
+                      {item.icon}
+                    </div>
+                    <h3 style={{ fontSize: '14.5px', fontWeight: '750', margin: '0 0 6px 0', fontFamily: 'var(--font-title)', color: '#111827' }}>{item.title}</h3>
+                    <p style={{ fontSize: '11.5px', color: '#6B7280', lineHeight: '1.5', margin: 0 }}>{item.desc}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bottom Security Card */}
+              <div className="trust-security-card">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '50%', backgroundColor: 'rgba(15, 138, 95, 0.08)', color: '#0F8A5F', flexShrink: 0 }}>
+                  <Shield size={18} />
+                </div>
+                <div>
+                  <h4 style={{ fontSize: '14px', fontWeight: '750', color: '#111827', margin: '0 0 2px 0' }}>Secure by Design</h4>
+                  <p style={{ fontSize: '12px', color: '#6B7280', margin: 0, lineHeight: '1.5' }}>
+                    Audex AI analyzes your stack using encrypted benchmark data. Pricing intelligence and API token rates remain encrypted both in transit and at rest.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Statistics Strip */}
+          <div className="trust-stats-strip">
+            {[
+              { stat: '40+', label: 'Providers Supported', icon: <Cpu size={20} />, bg: 'rgba(59, 130, 246, 0.05)', color: '#3B82F6' },
+              { stat: '100+', label: 'Models Indexed', icon: <Layers size={20} />, bg: 'rgba(139, 92, 246, 0.05)', color: '#8B5CF6' },
+              { stat: '25+', label: 'Benchmark Categories', icon: <Scale size={20} />, bg: 'rgba(236, 72, 153, 0.05)', color: '#EC4899' },
+              { stat: 'Daily', label: 'Pricing Catalog Updates', icon: <Zap size={20} />, bg: 'rgba(16, 185, 129, 0.05)', color: '#10B981' }
+            ].map((item, idx) => (
+              <div key={idx} className="trust-stats-item">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', backgroundColor: item.bg, color: item.color, marginBottom: '8px' }}>
+                  {item.icon}
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '850', color: '#111827', fontFamily: 'var(--font-title)', lineHeight: 1 }}>{item.stat}</div>
+                <div style={{ fontSize: '12px', fontWeight: '600', color: '#6B7280', marginTop: '2px' }}>{item.label}</div>
+                <div className="trust-stats-underline" style={{ backgroundColor: item.color }}></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Sample Audit Preview Section */}
+      <section className="steps-section" style={{ backgroundColor: '#FFFFFF', padding: '56px 0', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container">
+          <div className="section-header" style={{ marginBottom: '48px', textAlign: 'center' }}>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>Audit Preview</span>
+            <h2 className="section-title" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '32px', marginTop: '12px' }}>See What a Spend Audit Looks Like</h2>
+            <p style={{ maxWidth: '600px', margin: '12px auto 0 auto', color: 'var(--color-text-muted)', fontSize: '15px' }}>Preview the exact report structure, seat metrics, and cost checklist generated for your team.</p>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '32px', alignItems: 'center' }} className="preview-two-col-layout">
+            <style>{`
+              @media (min-width: 1024px) {
+                .preview-two-col-layout {
+                  grid-template-columns: 35% 65% !important;
+                }
+              }
+            `}</style>
+
+            {/* Left Column: Info Panel */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: '750', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--color-green-primary)', marginBottom: '8px', display: 'block' }}>
+                  Spend Audit Capabilities
+                </span>
+                <p style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', lineHeight: '1.55', margin: 0 }}>
+                  Every spend audit maps active license counts, model execution rates, and subscription terms into a verifiable cost checklist:
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {[
+                  { label: 'Algorithmic seat & usage analysis', icon: <BarChart3 size={14} color="var(--color-green-primary)" /> },
+                  { label: 'Duplicate seat detection', icon: <Copy size={14} color="var(--color-green-primary)" /> },
+                  { label: 'Optimization recommendations', icon: <TrendingUp size={14} color="var(--color-green-primary)" /> },
+                  { label: 'Capability benchmarking', icon: <Scale size={14} color="var(--color-green-primary)" /> },
+                  { label: 'Migration checklists', icon: <ClipboardCheck size={14} color="var(--color-green-primary)" /> },
+                  { label: 'PDF export options', icon: <Download size={14} color="var(--color-green-primary)" /> }
+                ].map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--color-text-secondary)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '22px', height: '22px', borderRadius: '50%', backgroundColor: 'var(--color-green-light)', flexShrink: 0 }}>
+                      {item.icon}
+                    </div>
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ marginTop: '4px' }}>
+                <button
+                  onClick={onNavigateToStep1}
+                  className="btn btn-green"
+                  style={{ padding: '12px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px', fontWeight: '700', borderRadius: '8px', fontSize: '13.5px' }}
+                >
+                  Find Hidden AI Waste <ArrowRight size={16} />
+                </button>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '8px', margin: '8px 0 0 0' }}>
+                  No credit card required • Results in under 60 seconds
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Premium Report Mockup */}
+            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '18px 20px', boxShadow: 'var(--shadow-lg)' }}>
+              {/* Report Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px', marginBottom: '12px', alignItems: 'center' }}>
+                <div>
+                  <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.05em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Audex Cost Audit & Savings Report</span>
+                  <h3 style={{ fontSize: '18px', fontWeight: '800', margin: '2px 0 0 0', fontFamily: 'var(--font-title)' }}>Acme Corp Audit</h3>
+                </div>
+                <div style={{ display: 'flex', gap: '20px' }}>
+                  <div>
+                    <div style={{ fontSize: '9px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase' }}>EST. ANNUAL SAVINGS</div>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: '#10B981', fontFamily: 'var(--font-title)' }}>$18,400 / yr</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '9px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase' }}>EST. MONTHLY SAVINGS</div>
+                    <div style={{ fontSize: '16px', fontWeight: '800', color: 'var(--color-green-primary)', fontFamily: 'var(--font-title)' }}>$1,533 / mo</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Audit Findings */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+                {[
+                  {
+                    title: 'Over-provisioned ChatGPT seats',
+                    desc: 'Detected 12 active seats with under 5% daily prompt activity. Recommend converting to standard tier.',
+                    savings: '-$360/mo',
+                    status: 'Action Required',
+                    statusColor: '#EF4444',
+                    statusBg: 'rgba(239, 68, 68, 0.05)',
+                    provider: 'openai'
+                  },
+                  {
+                    title: 'Inactive Cursor developer seats',
+                    desc: 'Detected 21 active developer seats with no interactions for over 14 business days.',
+                    savings: '-$420/mo',
+                    status: 'Action Required',
+                    statusColor: '#EF4444',
+                    statusBg: 'rgba(239, 68, 68, 0.05)',
+                    provider: 'cursor'
+                  },
+                  {
+                    title: 'Overlapping Copywriting tools',
+                    desc: 'Parallel active seat subscriptions found across multiple overlapping copywriting tools.',
+                    savings: '-$180/mo',
+                    status: 'Overlapping Stack',
+                    statusColor: '#8B5CF6',
+                    statusBg: 'rgba(139, 92, 246, 0.05)',
+                    provider: 'anthropic'
+                  },
+                  {
+                    title: 'Unused GitHub Copilot seats',
+                    desc: 'Identified 37 developer seats with obsolete configuration routes and duplicate API key accesses.',
+                    savings: '-$1,110/mo',
+                    status: 'Potential Optimization',
+                    statusColor: '#F59E0B',
+                    statusBg: 'rgba(245, 158, 11, 0.05)',
+                    provider: 'github'
+                  }
+                ].map((item, idx) => (
+                  <div key={idx} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '6px', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', flexShrink: 0, transform: 'scale(0.85)' }}>
+                        {getProviderIcon(item.provider)}
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <h4 style={{ fontWeight: '700', fontSize: '12px', color: 'var(--color-text-primary)', margin: '0 0 1px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h4>
+                        <p style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.desc}</p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '9px', fontWeight: '750', padding: '1.5px 5px', borderRadius: '4px', color: item.statusColor, backgroundColor: item.statusBg, textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                        {item.status}
+                      </span>
+                      <span style={{ fontWeight: '800', color: '#EF4444', fontSize: '12px' }}>{item.savings}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Migration Action Checklist */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px', marginBottom: '12px' }}>
+                <h4 style={{ fontSize: '10.5px', fontWeight: '750', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>Migration Action Checklist</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '6px' }}>
+                  {[
+                    'Remove unused licenses',
+                    'Consolidate overlapping providers',
+                    'Switch selected workloads',
+                    'Optimize subscription allocation',
+                    'Downgrade idle premium tiers',
+                    'Configure cost allocation tags'
+                  ].map((text, idx) => (
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--color-text-primary)' }}>
+                      <Check size={12} color="#22C55E" strokeWidth={3} />
+                      <span>{text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom Summary trust strip */}
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', textAlign: 'center' }}>
+                <p style={{ fontSize: '9.5px', color: 'var(--color-text-muted)', margin: 0, lineHeight: '1.4' }}>
+                  Report generated using deterministic optimization rules, public pricing indexes, and capability scores.
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       {/* Pricing Section */}
       <section id="pricing" className="steps-section" style={{ backgroundColor: '#F8FAFC', borderTop: '1px solid var(--color-border)' }}>
         <div className="container">
           <div className="section-header">
-            <span className="section-badge">Pricing System</span>
-            <h2 className="section-title">Flexible plans for every stage of growth</h2>
-            <p>Scale your AI investments with confidence. Our transparent pricing ensures you only pay for the intelligence you need.</p>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>Pricing Plans</span>
+            <h2 className="section-title">Simple, Transparent Credit-Based Pricing</h2>
+            <p>No monthly commitments. Buy audit credits as needed, or choose a flat-rate subscription for ongoing checks.</p>
           </div>
 
           <div className="steps-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
@@ -1110,8 +2183,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
                 <span className="step-number" style={{ top: '24px', right: '24px' }}>Pay As You Go</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Starter</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For individuals and testing.</div>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Single Audit</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For single audits of teams up to 50 seats.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                   <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$4.99</span>
@@ -1120,16 +2193,16 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 1 credit = 1 report audit
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 1 credit = 1 complete spend audit
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Up to 4 active AI models
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Up to 4 active provider models
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Basic AI insights
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Standard cost optimization reports
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Community support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Email support
                   </div>
                 </div>
               </div>
@@ -1139,7 +2212,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
               >
-                Add 1 Credit
+                Purchase 1 Audit Credit
               </button>
             </div>
 
@@ -1150,8 +2223,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </div>
               <div>
                 <span className="step-number" style={{ top: '24px', right: '24px' }}>Monthly Sub</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Pro</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For scaling teams optimizing spend.</div>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Team Subscription</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For ongoing monthly audits of scaling teams.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                   <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$49.99</span>
@@ -1160,16 +2233,16 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 10 credits included per month
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 10 spend audits included per month
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> All AI models available
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> All providers and models indexed
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Advanced logic reports
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Prioritized migration checklists
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Priority email support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Priority support
                   </div>
                 </div>
               </div>
@@ -1179,7 +2252,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 className="btn btn-green"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
               >
-                Subscribe (10 Credits)
+                Subscribe to Pro Plan
               </button>
             </div>
 
@@ -1187,8 +2260,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
                 <span className="step-number" style={{ top: '24px', right: '24px' }}>All-Inclusive</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Pro Max</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For premium consultants and large teams.</div>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Consultant Plan</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For IT procurement teams and external consultants.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                   <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$20.00</span>
@@ -1197,16 +2270,16 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 20 credits added to account
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 20 spend audits included per month
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> All AI models available
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> All providers and models indexed
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Real-time expertise consultant
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 1-on-1 implementation support
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 24/7 priority Slack support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Dedicated Slack support
                   </div>
                 </div>
               </div>
@@ -1216,96 +2289,114 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 className="btn btn-black"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
               >
-                Upgrade (20 Credits)
+                Upgrade to Pro Max
               </button>
-            </div>
-          </div>
-
-          {/* Savings Calculator Section */}
-          <div style={{ marginTop: '80px', display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '48px', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '24px', padding: '48px', boxShadow: 'var(--shadow-lg)' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-green-primary)', fontWeight: '700', fontSize: '20px', fontFamily: 'var(--font-title)', marginBottom: '16px' }}>
-                <span><Coins size={24} /></span> Credex Credits
-              </div>
-              <h3 style={{ fontSize: '32px', marginBottom: '16px' }}>Turn AI optimization into tangible savings</h3>
-              <p style={{ color: 'var(--color-text-secondary)', fontSize: '15px', lineHeight: '1.6', marginBottom: '32px' }}>
-                Earn credits by successfully implementing our AI audit recommendations, directly reducing your operational costs. Use accumulated credits to subsidize future AI subscriptions.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--color-bg-accent)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text)' }}><Search size={20} /></div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>Analyze & Identify</h4>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Run audits to uncover inefficiencies in your AI toolstack.</p>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--color-bg-accent)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text)' }}><TrendingUp size={20} /></div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>Optimize & Earn</h4>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Apply recommendations to earn up to 25% back in credits.</p>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: '16px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '8px', backgroundColor: 'var(--color-bg-accent)', border: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: 'var(--color-text)' }}><CreditCard size={20} /></div>
-                  <div>
-                    <h4 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '4px' }}>Redeem</h4>
-                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Use accumulated credits to subsidize future AI subscriptions.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Calculator Panel */}
-            <div style={{ border: '1px solid var(--color-border)', borderRadius: '16px', padding: '32px', backgroundColor: '#F8FAFC' }}>
-              <h4 style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em', marginBottom: '24px' }}>Potential Savings Calculator</h4>
-
-              <div style={{ marginBottom: '24px' }}>
-                <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', marginBottom: '8px' }}>Monthly AI Spend</label>
-                <div style={{ position: 'relative' }}>
-                  <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', fontWeight: '500' }}>$</span>
-                  <input
-                    type="number"
-                    value={monthlySpend}
-                    onChange={(e) => setMonthlySpend(Math.max(0, parseInt(e.target.value) || 0))}
-                    style={{ width: '100%', padding: '12px 12px 12px 32px', border: '1px solid var(--color-border)', borderRadius: '8px', fontSize: '16px', fontWeight: '700', fontFamily: 'var(--font-body)' }}
-                  />
-                </div>
-                <input
-                  type="range"
-                  min="500"
-                  max="50000"
-                  step="500"
-                  value={monthlySpend}
-                  onChange={(e) => setMonthlySpend(parseInt(e.target.value))}
-                  style={{ width: '100%', marginTop: '16px', accentColor: 'var(--color-green-primary)' }}
-                />
-              </div>
-
-              <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
-                  <span>Estimated Inefficiency (Industry Avg: 18%)</span>
-                  <span style={{ fontWeight: '700' }}>18%</span>
-                </div>
-                <div style={{ width: '100%', height: '6px', backgroundColor: 'var(--color-border)', borderRadius: '9999px', overflow: 'hidden' }}>
-                  <div style={{ width: '18%', height: '100%', backgroundColor: '#EF4444' }}></div>
-                </div>
-              </div>
-
-              <div style={{ backgroundColor: 'var(--color-green-light)', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--color-green-text)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estimated Credex Credits</div>
-                  <div style={{ fontSize: '28px', fontWeight: '800', color: 'var(--color-green-text)', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                    ${(monthlySpend * 0.18).toLocaleString()}<span style={{ fontSize: '14px', fontWeight: '500' }}>/mo</span>
-                  </div>
-                </div>
-                <CreditCard size={32} color="var(--color-green-primary)" />
-              </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Compact FAQ Section */}
+      <section id="faq" className="steps-section" style={{ backgroundColor: '#FFFFFF', padding: '40px 0', borderTop: '1px solid var(--color-border)' }}>
+        <div className="container" style={{ maxWidth: '720px' }}>
+          <div className="section-header" style={{ marginBottom: '24px', textAlign: 'center' }}>
+            <span className="section-badge" style={{
+              backgroundColor: 'rgba(15, 138, 95, 0.08)',
+              color: '#0F8A5F',
+              padding: '6px 14px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: '750',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'inline-block'
+            }}>FAQ</span>
+            <h2 className="section-title" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '28px', marginTop: '12px' }}>Frequently Asked Questions</h2>
+          </div>
+
+          <style>{`
+            .faq-item-card {
+              padding: 16px 20px;
+              border-radius: 12px;
+              border: 1px solid var(--color-border);
+              background-color: #FFFFFF;
+              box-shadow: var(--shadow-sm);
+              cursor: pointer;
+              transition: all 250ms ease;
+              text-align: left;
+            }
+            .faq-item-card:hover {
+              border-color: rgba(15, 138, 95, 0.35);
+              box-shadow: var(--shadow-md);
+            }
+            .faq-item-card.open-card {
+              border-color: var(--color-green-primary);
+              box-shadow: 0 4px 12px rgba(15, 138, 95, 0.04);
+              background-color: #FCFCFD;
+            }
+            .faq-chevron {
+              transition: transform 250ms ease;
+              color: var(--color-text-muted);
+              flex-shrink: 0;
+            }
+            .faq-item-card.open-card .faq-chevron {
+              transform: rotate(90deg);
+              color: var(--color-green-primary);
+            }
+            .faq-answer-wrapper {
+              max-height: 0;
+              opacity: 0;
+              overflow: hidden;
+              transition: max-height 300ms cubic-bezier(0.4, 0, 0.2, 1), opacity 300ms cubic-bezier(0.4, 0, 0.2, 1), margin-top 300ms ease;
+              margin-top: 0;
+            }
+            .faq-answer-wrapper.open {
+              max-height: 120px;
+              opacity: 1;
+              margin-top: 10px;
+            }
+          `}</style>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {[
+              { q: "How long does an audit take?", a: "Our algorithms process your configuration instantly, generating a complete PDF audit in under 60 seconds." },
+              { q: "Do I need to connect my production accounts?", a: "No. Audex AI does not connect to your production keys. You upload standard CSV logs or input seat allocations manually, maintaining total account security." },
+              { q: "How are recommendations generated?", a: "We run deterministic cost rules against your inputs, matching them with current provider pricing tables and open capability benchmarks." },
+              { q: "Can I export my report?", a: "Yes. All spend reports can be downloaded instantly as print-ready PDF files with action checklists." },
+              { q: "Is my data stored?", a: "We store reports on encrypted databases. Your input CSVs are deleted immediately after the audit runs and are never sold or used for model training." },
+              { q: "What happens after the audit?", a: "You receive a step-by-step seat migration checklist. Starter credits are one-time payments with no recurring commitments or subscriptions." }
+            ].map((faq, idx) => {
+              const isOpen = activeFaqIndex === idx;
+              return (
+                <div
+                  key={idx}
+                  className={`faq-item-card ${isOpen ? 'open-card' : ''}`}
+                  onClick={() => setActiveFaqIndex(isOpen ? null : idx)}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                    <h3 style={{ fontSize: '14.5px', fontWeight: '750', color: 'var(--color-text-primary)', margin: 0 }}>{faq.q}</h3>
+                    <ArrowRight size={14} className="faq-chevron" />
+                  </div>
+                  <div className={`faq-answer-wrapper ${isOpen ? 'open' : ''}`}>
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', lineHeight: '1.5', margin: 0 }}>{faq.a}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Privacy & Security Strip */}
+      <div style={{ backgroundColor: '#FAFAFA', borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: '24px 0', textAlign: 'center' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '32px', flexWrap: 'wrap', fontSize: '11px', fontWeight: '750', color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Shield size={14} color="var(--color-green-primary)" /> Zero-Trust Privacy</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Key size={14} color="var(--color-green-primary)" /> Secure Authentication</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Lock size={14} color="var(--color-green-primary)" /> TLS 1.3 Encryption</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><Database size={14} color="var(--color-green-primary)" /> Zero Data Persistence Option</span>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}><FileText size={14} color="var(--color-green-primary)" /> Secure PDF Generation</span>
+        </div>
+      </div>
     </main>
   );
 }

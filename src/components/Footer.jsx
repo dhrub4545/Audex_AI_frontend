@@ -1,6 +1,6 @@
 import React from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
-import { ShieldCheck, Lock, ArrowRight, CheckCircle } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, CheckCircle, Rocket } from 'lucide-react';
 import { OpenAI, Claude, Gemini, Meta, DeepSeek, Mistral, GithubCopilot, Cursor, Perplexity, Google } from '@lobehub/icons';
 
 export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
@@ -17,99 +17,86 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
     <footer className="footer" style={{ borderTop: '1px solid var(--color-border)', backgroundColor: '#F8FAFC' }}>
       <div className="container" style={{ padding: '64px 24px 32px' }}>
         
-        {/* Pre-footer CTA */}
-        <style>{`
-          .premium-cta-container {
-            background-color: rgba(255, 255, 255, 0.55);
-            background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, rgba(34, 197, 94, 0.02) 100%);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            border-radius: 72px;
-            padding: 24px 64px;
-            text-align: center;
-            margin-bottom: 64px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-              0 24px 64px -12px rgba(34, 197, 94, 0.06),
-              0 8px 24px -8px rgba(0, 0, 0, 0.03),
-              inset 0 1px 2px rgba(255, 255, 255, 0.8),
-              inset 0 -1px 1px rgba(34, 197, 94, 0.05);
-            transition: all 350ms ease;
-            max-width: 900px;
-            margin-left: auto;
-            margin-right: auto;
-          }
-          .premium-cta-container:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-              0 32px 72px -16px rgba(34, 197, 94, 0.1),
-              0 12px 32px -8px rgba(0, 0, 0, 0.04),
-              inset 0 1px 2px rgba(255, 255, 255, 1),
-              inset 0 -1px 2px rgba(34, 197, 94, 0.08);
-            border-color: rgba(34, 197, 94, 0.35);
-            background-color: rgba(255, 255, 255, 0.65);
-          }
-          .premium-cta-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -10%;
-            width: 120%;
-            height: 200%;
-            background: radial-gradient(ellipse at 50% 10%, rgba(34, 197, 94, 0.06) 0%, transparent 60%);
-            pointer-events: none;
-            z-index: 0;
-          }
-          .premium-cta-content {
-            position: relative;
-            z-index: 1;
-          }
-          .premium-btn-outline {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 1px solid var(--color-border);
-            color: var(--color-text-primary);
-            transition: all 300ms ease;
-          }
-          .premium-btn-outline:hover {
-            background-color: #FFFFFF;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-color: rgba(34, 197, 94, 0.3);
-          }
-          .premium-btn-green {
-            transition: all 300ms ease;
-          }
-          .premium-btn-green:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(34,197,94,0.25);
-            filter: brightness(1.05);
-          }
-          @media (max-width: 768px) {
-            .premium-cta-container {
-              border-radius: 48px;
-              padding: 32px 24px;
-            }
-          }
-        `}</style>
-        <div className="premium-cta-container">
-          <div className="premium-cta-content">
-            <h2 style={{ fontSize: '26px', fontWeight: '800', marginBottom: '4px', fontFamily: 'var(--font-title)', color: 'var(--color-text-primary)', letterSpacing: '-0.02em', lineHeight: '1.2' }}>Ready to reduce unnecessary AI spending?</h2>
-            <p style={{ color: 'var(--color-text-secondary)', fontSize: '15.5px', marginBottom: '20px' }}>Start your first audit in under 60 seconds.</p>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-              <button onClick={onNavigateToStep1} className="btn btn-green premium-btn-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', fontSize: '15px' }}>
-                Start Free Audit <ArrowRight size={18} />
+        <div className="premium-cta-container" style={{
+          backgroundColor: '#FFFFFF',
+          border: '1px solid var(--color-border)',
+          borderRadius: '16px',
+          padding: '24px 32px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '24px',
+          maxWidth: '1000px',
+          margin: '0 auto 64px auto',
+          boxShadow: 'var(--shadow-sm)',
+          flexWrap: 'wrap',
+          textAlign: 'left'
+        }}>
+          {/* Left Side: Icon + Heading and Subtitle */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: '1', minWidth: '300px' }}>
+            <div style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              backgroundColor: 'var(--color-green-light)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-green-primary)',
+              flexShrink: 0
+            }}>
+              <Rocket size={22} />
+            </div>
+            <div>
+              <h3 style={{
+                fontSize: '18px',
+                fontWeight: '800',
+                margin: '0 0 4px 0',
+                color: 'var(--color-text-primary)',
+                fontFamily: 'var(--font-title)',
+                lineHeight: '1.2'
+              }}>
+                Ready to reduce unnecessary AI spending?
+              </h3>
+              <p style={{
+                fontSize: '13.5px',
+                color: 'var(--color-text-secondary)',
+                margin: 0
+              }}>
+                Start your free audit in under 60 seconds.
+              </p>
+            </div>
+          </div>
+
+          {/* Right Side: Buttons + Caption */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', minWidth: '280px' }} className="cta-right-col">
+            <style>{`
+              @media (max-width: 768px) {
+                .cta-right-col {
+                  align-items: flex-start !important;
+                  width: 100%;
+                }
+              }
+            `}</style>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+              <button
+                onClick={onNavigateToStep1}
+                className="btn btn-green"
+                style={{ padding: '10px 20px', fontWeight: '700', borderRadius: '8px', fontSize: '13.5px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                Start Free Audit <ArrowRight size={14} />
               </button>
-              <button onClick={(e) => { e.preventDefault(); alert('Sample report page is not configured.'); }} className="btn btn-outline premium-btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', fontSize: '15px' }}>
+              <button
+                onClick={(e) => { e.preventDefault(); alert('Sample report page is not configured.'); }}
+                className="btn btn-outline"
+                style={{ padding: '10px 20px', fontWeight: '700', borderRadius: '8px', fontSize: '13.5px', backgroundColor: '#FFFFFF' }}
+              >
                 View Sample Report
               </button>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '16px', color: 'var(--color-text-muted)', fontSize: '12.5px', flexWrap: 'wrap', opacity: 0.9 }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><CheckCircle size={13} /> No credit card required</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Lock size={13} /> Secure processing</span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><ShieldCheck size={13} /> Results in under 60 seconds</span>
-            </div>
+            <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+              No credit card required • Results in under 60 seconds
+            </span>
           </div>
         </div>
 

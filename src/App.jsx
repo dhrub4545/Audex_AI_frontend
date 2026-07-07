@@ -130,6 +130,24 @@ export default function App() {
     }
   }, [auditResult]);
 
+  // Global scroll indicator to show scrollbar thumb only during active scrolling
+  useEffect(() => {
+    let scrollTimeout;
+    const handleScroll = () => {
+      document.documentElement.classList.add('is-scrolling');
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        document.documentElement.classList.remove('is-scrolling');
+      }, 1000);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
+  }, []);
+
   // Spend comparison states
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);

@@ -28,11 +28,9 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     const observerCallback = (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          if (entry.target.classList.contains('hero')) {
-            setActiveSection('');
-          } else {
-            setActiveSection(entry.target.id);
-          }
+          setActiveSection(entry.target.id);
+        } else {
+          setActiveSection((prev) => (prev === entry.target.id ? '' : prev));
         }
       });
     };
@@ -44,9 +42,6 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     };
 
     const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    const heroEl = document.querySelector('.hero');
-    if (heroEl) observer.observe(heroEl);
 
     const howItWorksEl = document.getElementById('how-it-works');
     if (howItWorksEl) observer.observe(howItWorksEl);
