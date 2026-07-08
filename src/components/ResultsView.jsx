@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
+import { Lock, Sparkles } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
 import openaiLogo from '../assets/openai.svg';
 import claudeLogo from '../assets/claude.svg';
@@ -491,7 +492,8 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
 
 export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {} }) {
   const [intelData, setIntelData] = useState(null);
-  const [showDetailedReport, setShowDetailedReport] = useState(initialView === 'detailed');
+  const isStarter = auditResult?.tierUsed === 'starter' && !(user?.credits?.pro > 0 || user?.credits?.proMax > 0);
+  const [showDetailedReport, setShowDetailedReport] = useState((initialView === 'detailed') && !isStarter);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/audits/analysis/raw-data')
@@ -655,41 +657,84 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
               </div>
 
-              {/* Detailed Analysis Report Button — hidden when viewing from history */}
+              {/* Detailed Analysis Report Button / Locked Banner — hidden when viewing from history */}
               {!fromHistory && (
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '40px' }}>
-                <button
-                  onClick={() => {
-                    setShowDetailedReport(true);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  style={{
-                    background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '14px 32px',
-                    fontSize: '15px',
-                    fontWeight: '750',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
-                    transition: 'transform 0.2s, box-shadow 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.45)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 14px rgba(99, 102, 241, 0.35)';
-                  }}
-                >
-                  <span>📊</span> View Detailed Analysis Report
-                </button>
-              </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '40px', gap: '12px' }}>
+                  {isStarter ? (
+                    <div style={{
+                      padding: '20px 24px',
+                      backgroundColor: '#F8FAFC',
+                      border: '1px dashed #CBD5E1',
+                      borderRadius: '16px',
+                      textAlign: 'center',
+                      maxWidth: '560px',
+                      boxSizing: 'border-box'
+                    }}>
+                      <div style={{ display: 'inline-flex', padding: '10px', backgroundColor: '#FEF3C7', color: '#D97706', borderRadius: '50%', marginBottom: '12px' }}>
+                        <Lock size={20} />
+                      </div>
+                      <h4 style={{ fontSize: '15px', fontWeight: '850', color: '#1E293B', margin: '0 0 6px 0' }}>
+                        Detailed Analysis Report Locked
+                      </h4>
+                      <p style={{ fontSize: '12.5px', color: '#64748B', margin: '0 0 16px 0', lineHeight: '1.4' }}>
+                        Your Starter plan only includes the spend optimization action plan. Upgrade to the Pro plan to unlock ELO benchmarks, master recommendation tables, and multi-category metrics.
+                      </p>
+                      <button
+                        onClick={() => {
+                          onNavigateToView('landing');
+                          setTimeout(() => {
+                            const el = document.getElementById('pricing');
+                            if (el) el.scrollIntoView({ behavior: 'smooth' });
+                          }, 150);
+                        }}
+                        className="btn btn-green"
+                        style={{
+                          padding: '8px 18px',
+                          fontSize: '12.5px',
+                          fontWeight: '700',
+                          borderRadius: '8px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <Sparkles size={14} /> Upgrade to Pro
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setShowDetailedReport(true);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      }}
+                      style={{
+                        background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '12px',
+                        padding: '14px 32px',
+                        fontSize: '15px',
+                        fontWeight: '750',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
+                        transition: 'transform 0.2s, box-shadow 0.2s'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.45)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 14px rgba(99, 102, 241, 0.35)';
+                      }}
+                    >
+                      <span>📊</span> View Detailed Analysis Report
+                    </button>
+                  )}
+                </div>
               )}
 
               {/* Recommendation list (showing only the chosen options) */}

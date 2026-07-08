@@ -11,6 +11,7 @@ import ModelAuditorView from './components/ModelAuditorView';
 import MarketIntelView from './components/MarketIntelView';
 import ComparisonView from './components/ComparisonView';
 import ActionPlanView from './components/ActionPlanView';
+import FreeResultsView from './components/FreeResultsView';
 
 const INITIAL_TOOLS = [
   { id: 'GitHub Copilot', name: 'GitHub Copilot', desc: 'GitHub AI assistant', icon: '🤖', type: 'subscription', plans: ['Copilot Free', 'Copilot Pro', 'Copilot Pro+'], defaultPlan: 'Copilot Pro', defaultSeats: 5 },
@@ -70,7 +71,86 @@ export default function App() {
     };
     fetchSubscriptionTiers();
   }, []);
-  
+
+  // Google & GitHub OAuth callback detection effect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Google params
+    const googleToken = params.get('google_token');
+    const googleUserId = params.get('google_user_id');
+    const googleUserName = params.get('google_user_name');
+    const googleUserEmail = params.get('google_user_email');
+    const googleError = params.get('google_error');
+
+    // GitHub params
+    const githubToken = params.get('github_token');
+    const githubUserId = params.get('github_user_id');
+    const githubUserName = params.get('github_user_name');
+    const githubUserEmail = params.get('github_user_email');
+    const githubError = params.get('github_error');
+
+    if (googleToken && googleUserId) {
+      const parsedUser = {
+        id: googleUserId,
+        name: decodeURIComponent(googleUserName || 'Google User'),
+        email: decodeURIComponent(googleUserEmail || ''),
+        credits: { starter: 1, pro: 0, proMax: 0 }
+      };
+
+      // Store in localStorage
+      localStorage.setItem('audex_token', googleToken);
+      localStorage.setItem('audex_user', JSON.stringify(parsedUser));
+
+      // Update React state
+      setToken(googleToken);
+      setUser(parsedUser);
+      setAuthError(null);
+      setAuthMessage('Successfully logged in with Google!');
+      setCurrentView('landing');
+
+      // Clear query params from the URL address bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    } else if (googleError) {
+      setAuthError(`Google Sign-In failed: ${decodeURIComponent(googleError)}`);
+      setCurrentView('signin');
+
+      // Clear query params from the URL address bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    } else if (githubToken && githubUserId) {
+      const parsedUser = {
+        id: githubUserId,
+        name: decodeURIComponent(githubUserName || 'GitHub User'),
+        email: decodeURIComponent(githubUserEmail || ''),
+        credits: { starter: 1, pro: 0, proMax: 0 }
+      };
+
+      // Store in localStorage
+      localStorage.setItem('audex_token', githubToken);
+      localStorage.setItem('audex_user', JSON.stringify(parsedUser));
+
+      // Update React state
+      setToken(githubToken);
+      setUser(parsedUser);
+      setAuthError(null);
+      setAuthMessage('Successfully logged in with GitHub!');
+      setCurrentView('landing');
+
+      // Clear query params from the URL address bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    } else if (githubError) {
+      setAuthError(`GitHub Sign-In failed: ${decodeURIComponent(githubError)}`);
+      setCurrentView('signin');
+
+      // Clear query params from the URL address bar
+      const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
+    }
+  }, []);
+
   // State for search and custom tools
   const [tools, setTools] = useState(INITIAL_TOOLS);
   
@@ -281,6 +361,18 @@ export default function App() {
 
   // Run audit backend API post
   const triggerAudit = async () => {
+    // If not logged in OR out of credits, run client-side free audit instead of hitting backend
+    const credits = user?.credits || { starter: 0, pro: 0, proMax: 0 };
+    const totalCredits = (credits.starter || 0) + (credits.pro || 0) + (credits.proMax || 0);
+
+    if (!token || totalCredits <= 0) {
+      setCurrentView('loading');
+      setTimeout(() => {
+        setCurrentView('free_results');
+      }, 1000);
+      return;
+    }
+
     setCurrentView('loading');
     setApiError(null);
 
@@ -591,6 +683,18 @@ export default function App() {
 
       case 'loading':
         return <LoadingIndicator />;
+
+      case 'free_results':
+        return (
+          <FreeResultsView 
+            selectedToolIds={selectedToolIds}
+            toolConfigs={toolConfigs}
+            tools={tools}
+            onNavigateToView={(view) => setCurrentView(view)}
+            user={user}
+            onNavigateToSignIn={() => setCurrentView('signin')}
+          />
+        );
 
       case 'results':
         return (

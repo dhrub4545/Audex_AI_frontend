@@ -2182,37 +2182,37 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             {/* Starter Plan */}
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
-                <span className="step-number" style={{ top: '24px', right: '24px' }}>Pay As You Go</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Single Audit</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For single audits of teams up to 50 seats.</div>
+                <span className="step-number" style={{ top: '24px', right: '24px' }}>Starter Sub</span>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Starter</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For individuals and light optimization.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$4.99</span>
-                  <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ credit</span>
+                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$19.99</span>
+                  <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 1 credit = 1 complete spend audit
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 10 credits included per month
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
                     <Check size={16} color="#22C55E" strokeWidth={3} /> Up to 4 active provider models
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Standard cost optimization reports
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Optimization Action Plan (Upto Step 5)
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Email support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Basic AI insights &amp; support
                   </div>
                 </div>
               </div>
 
               <button
-                onClick={() => onPurchase('Starter Credit', 'starter', 1)}
+                onClick={() => onPurchase('Starter Subscription', 'starter', 10)}
                 className="btn btn-outline"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
               >
-                Purchase 1 Audit Credit
+                Subscribe (10 Credits)
               </button>
             </div>
 
@@ -2222,9 +2222,9 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 Most Popular
               </div>
               <div>
-                <span className="step-number" style={{ top: '24px', right: '24px' }}>Monthly Sub</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Team Subscription</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For ongoing monthly audits of scaling teams.</div>
+                <span className="step-number" style={{ top: '24px', right: '24px' }}>Scaling Sub</span>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Pro</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For teams scaling and maximizing savings.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
                   <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$49.99</span>
@@ -2233,13 +2233,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 10 spend audits included per month
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> 20 credits included per month
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
                     <Check size={16} color="#22C55E" strokeWidth={3} /> All providers and models indexed
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Prioritized migration checklists
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Action Plan + Detailed Analysis Report
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
                     <Check size={16} color="#22C55E" strokeWidth={3} /> Priority support
@@ -2248,11 +2248,11 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </div>
 
               <button
-                onClick={() => onPurchase('Pro Subscription', 'pro', 10)}
+                onClick={() => onPurchase('Pro Subscription', 'pro', 20)}
                 className="btn btn-green"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
               >
-                Subscribe to Pro Plan
+                Subscribe (20 Credits)
               </button>
             </div>
 
