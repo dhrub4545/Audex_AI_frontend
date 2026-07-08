@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Lenis from 'lenis';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import LandingView from './components/LandingView';
@@ -228,6 +229,48 @@ export default function App() {
     };
   }, []);
 
+  // Initialize Lenis for smooth scrolling
+  useEffect(() => {
+    // Gracefully respect users who prefer reduced motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (prefersReducedMotion) return;
+
+    const lenisInstance = new Lenis({
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      syncTouch: false
+    });
+
+    let rafId;
+    function raf(time) {
+      lenisInstance.raf(time);
+      rafId = requestAnimationFrame(raf);
+    }
+
+    rafId = requestAnimationFrame(raf);
+
+    // Save instance to window for global access
+    window.lenis = lenisInstance;
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      lenisInstance.destroy();
+      window.lenis = undefined;
+    };
+  }, []);
+
+  // Scroll to top on view changes
+  useEffect(() => {
+    if (window.lenis) {
+      window.lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [currentView]);
+
   // Spend comparison states
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);
@@ -339,7 +382,13 @@ export default function App() {
             setCurrentView('landing');
             setTimeout(() => {
               const el = document.getElementById('pricing');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              if (el) {
+                if (window.lenis) {
+                  window.lenis.scrollTo(el);
+                } else {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }
             }, 100);
           }} style={{
             display: 'block',

@@ -61,7 +61,13 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     onNavigateToLanding();
     setTimeout(() => {
       const el = document.getElementById('pricing');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) {
+        if (window.lenis) {
+          window.lenis.scrollTo(el);
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }, 100);
   };
 
@@ -194,7 +200,13 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             onNavigateToLanding();
             setTimeout(() => {
               const el = document.getElementById('how-it-works');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              if (el) {
+                if (window.lenis) {
+                  window.lenis.scrollTo(el);
+                } else {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                }
+              }
             }, 100);
           }} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`}>How it works</a>
           <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing</a>
