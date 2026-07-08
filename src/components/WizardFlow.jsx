@@ -1422,7 +1422,7 @@ export default function WizardFlow({
               ⚠️ <strong>Out of Credits:</strong> You do not have any remaining audit credits in your account balance.
               <div style={{ marginTop: '12px' }}>
                 <button 
-                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150); }} 
+                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) { if (window.lenis) { window.lenis.scrollTo(el); } else { el.scrollIntoView({ behavior: 'smooth' }); } } }, 150); }} 
                   className="btn btn-black" 
                   style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}
                 >
@@ -1437,7 +1437,7 @@ export default function WizardFlow({
               ⚠️ <strong>Premium Credits Required:</strong> You have selected {numTools} tools. Starter credits only allow auditing up to 4 tools. Please purchase a Pro or Pro Max subscription, or deselect some tools in Step 1.
               <div style={{ marginTop: '12px' }}>
                 <button 
-                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) el.scrollIntoView({ behavior: 'smooth' }); }, 150); }} 
+                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) { if (window.lenis) { window.lenis.scrollTo(el); } else { el.scrollIntoView({ behavior: 'smooth' }); } } }, 150); }} 
                   className="btn btn-black" 
                   style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}
                 >

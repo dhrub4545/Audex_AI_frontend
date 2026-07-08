@@ -9,7 +9,13 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
     onNavigateToLanding();
     setTimeout(() => {
       const el = document.getElementById(sectionId);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+      if (el) {
+        if (window.lenis) {
+          window.lenis.scrollTo(el);
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }, 100);
   };
 
