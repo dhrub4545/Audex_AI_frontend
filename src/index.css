@@ -651,6 +651,9 @@ p {
 .wizard-header {
   border-bottom: 1px solid var(--color-border);
   background-color: #FFFFFF;
+  position:sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .wizard-header .container {

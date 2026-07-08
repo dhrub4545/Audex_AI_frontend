@@ -935,7 +935,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className="subscription-scroll-container">
+            <div className="subscription-scroll-container" data-lenis-prevent>
               {subscriptionTools.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
@@ -1052,7 +1052,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className="api-scroll-container">
+            <div className="api-scroll-container" data-lenis-prevent>
               {filteredDbModels.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
