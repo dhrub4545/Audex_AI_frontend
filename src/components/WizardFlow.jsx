@@ -1369,7 +1369,7 @@ export default function WizardFlow({
     const hasPremiumCredits = (credits.pro || 0) > 0 || (credits.proMax || 0) > 0;
     const hasAnyCredits = (credits.starter || 0) > 0 || hasPremiumCredits;
     const numTools = selectedToolIds.length;
-    const isBlocked = user && (!hasAnyCredits || (numTools > 4 && !hasPremiumCredits));
+    const isBlocked = user && hasAnyCredits && numTools > 4 && !hasPremiumCredits;
 
     return (
       <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
