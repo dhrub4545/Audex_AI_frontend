@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import logoImg from '../assets/audex-ai-logo.png';
+import ChatDrawer from './ChatDrawer';
 import {
   Users,
   Briefcase,
@@ -7,12 +8,17 @@ import {
   Search,
   ClipboardCheck,
   BarChart3,
-  RefreshCw
+  RefreshCw,
+  Target,
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 
 export default function HistoryView({
   pastAudits,
   user,
+  token,
+  backendUrl = 'http://localhost:5000/api',
   onLogout,
   onNavigateToView,
   onLoadPastAuditDetail,
@@ -20,8 +26,28 @@ export default function HistoryView({
   renderCoinDropdown,
   onDeleteAudit
 }) {
+  const [activeChatAudit, setActiveChatAudit] = useState(null);
+  const [showChatDrawer, setShowChatDrawer] = useState(false);
+
   return (
     <div className="app-container">
+      <style dangerouslySetInnerHTML={{__html: `
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+          height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #F8FAFC;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: #CBD5E1;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background-color: #94A3B8;
+        }
+      `}} />
       {/* Header */}
       <header className="navbar">
         <div className="container">
@@ -69,7 +95,7 @@ export default function HistoryView({
           ) : (
             <div className="history-grid">
               {pastAudits.map((audit) => (
-                <div key={audit._id} className="history-card" style={{ cursor: 'default' }}>
+                <div key={audit._id} className="history-card" style={{ cursor: 'default', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div className="history-card-header">
                     <div>
                       <span className="history-card-date" style={{ fontWeight: '600' }}>
@@ -101,9 +127,20 @@ export default function HistoryView({
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                        <Briefcase size={15} strokeWidth={2} /> Use Case:
+                        <Target size={15} strokeWidth={2} /> Audit Mode:
                       </span>
-                      <strong style={{ fontSize: '13px' }}>{audit.useCase}</strong>
+                      <strong style={{ 
+                        fontSize: '11px',
+                        fontWeight: '800',
+                        color: audit.optimizationGoal === 'cost' ? '#DC2626' : (audit.optimizationGoal === 'quality' ? '#2563EB' : 'var(--color-green-primary)'),
+                        backgroundColor: audit.optimizationGoal === 'cost' ? '#FEE2E2' : (audit.optimizationGoal === 'quality' ? '#EFF6FF' : 'var(--color-green-light)'),
+                        padding: '2px 8px',
+                        borderRadius: '6px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.03em'
+                      }}>
+                        {audit.optimizationGoal === 'cost' ? 'Cost Cutting' : (audit.optimizationGoal === 'quality' ? 'Quality Focus' : 'Performance Preservation Mode')}
+                      </strong>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: 'var(--color-text-secondary)' }}>
@@ -114,96 +151,157 @@ export default function HistoryView({
 
                     {/* Compact Detailed Audited Tools Table */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', borderTop: '1px solid var(--color-border)', paddingTop: '10px', marginTop: '4px' }}>
-                      <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '4px' }}>
-                        📋 Audited Tools:
+                      <div style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '4px' }}>
+                        Audited Tools
                       </div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: '#334155' }}>
-                        <thead>
-                          <tr style={{ borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#64748B', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
-                            <th style={{ padding: '4px 0', fontWeight: '800' }}>Tool</th>
-                            <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'center' }}>Type</th>
-                            <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'center' }}>Seats</th>
-                            <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'right' }}>Use Case</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {(audit.allocations || []).map((alloc, idx) => (
-                            <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                              <td style={{ padding: '6px 0', fontWeight: '700', color: '#1E293B' }}>{alloc.toolName}</td>
-                              <td style={{ padding: '6px 0', textAlign: 'center' }}>
-                                <span style={{ 
-                                  fontSize: '8.5px', 
-                                  fontWeight: '800', 
-                                  color: alloc.type === 'api' ? '#2563EB' : '#059669',
-                                  backgroundColor: alloc.type === 'api' ? '#EFF6FF' : '#ECFDF5',
-                                  padding: '1px 4px',
-                                  borderRadius: '3px',
-                                  textTransform: 'uppercase'
-                                }}>
-                                  {alloc.type === 'api' ? 'API' : 'Sub'}
-                                </span>
-                              </td>
-                              <td style={{ padding: '6px 0', textAlign: 'center', fontWeight: '600' }}>{alloc.seats || 1}</td>
-                              <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>{alloc.purpose || 'Mixed'}</td>
+                      <div 
+                        className="custom-scrollbar"
+                        data-lenis-prevent
+                        style={{ 
+                          maxHeight: '135px', 
+                          overflowY: 'auto',
+                          paddingRight: '4px'
+                        }}
+                      >
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', color: '#334155' }}>
+                          <thead>
+                            <tr style={{ borderBottom: '1px solid #E2E8F0', textAlign: 'left', color: '#64748B', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
+                              <th style={{ padding: '4px 0', fontWeight: '800' }}>Tool</th>
+                              <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'center' }}>Type</th>
+                              <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'center' }}>Seats</th>
+                              <th style={{ padding: '4px 0', fontWeight: '800', textAlign: 'right' }}>Use Case</th>
                             </tr>
-                          ))}
-                        </tbody>
-                      </table>
+                          </thead>
+                          <tbody>
+                            {(audit.allocations || []).map((alloc, idx) => (
+                              <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
+                                <td style={{ padding: '6px 0', fontWeight: '700', color: '#1E293B' }}>{alloc.toolName}</td>
+                                <td style={{ padding: '6px 0', textAlign: 'center' }}>
+                                  <span style={{ 
+                                    fontSize: '8.5px', 
+                                    fontWeight: '800', 
+                                    color: alloc.type === 'api' ? '#2563EB' : '#059669',
+                                    backgroundColor: alloc.type === 'api' ? '#EFF6FF' : '#ECFDF5',
+                                    padding: '1px 4px',
+                                    borderRadius: '3px',
+                                    textTransform: 'uppercase'
+                                  }}>
+                                    {alloc.type === 'api' ? 'API' : 'Sub'}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '6px 0', textAlign: 'center', fontWeight: '600' }}>{alloc.seats || 1}</td>
+                                <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>{alloc.purpose || 'Mixed'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </div>
                   </div>
                   
                   <div style={{ 
-                    borderTop: '1px dashed var(--color-border)', 
-                    paddingTop: '14px', 
+                    borderTop: '1px solid var(--color-border)', 
+                    paddingTop: '16px', 
                     display: 'flex', 
                     flexDirection: 'column', 
-                    gap: '8px' 
+                    gap: '8px',
+                    marginTop: 'auto'
                   }}>
-                    <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Search size={12} strokeWidth={2} /> View Saved Report
-                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                       <button 
                         onClick={() => onLoadPastAuditDetail(audit._id, 'saved_plan')}
-                        className="btn btn-outline"
                         style={{ 
-                          fontSize: '11px', 
-                          padding: '8px 10px', 
-                          height: 'auto', 
-                          display: 'flex', 
+                          fontSize: '11.5px', 
+                          padding: '10px 12px', 
+                          display: 'inline-flex', 
                           alignItems: 'center', 
                           justifyContent: 'center', 
                           gap: '6px',
-                          borderColor: '#3B82F6',
-                          color: '#2563EB',
-                          backgroundColor: '#F0F9FF',
-                          fontWeight: '800',
-                          cursor: 'pointer'
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '8px',
+                          color: 'var(--color-text-primary)',
+                          backgroundColor: '#FFFFFF',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border-hover)';
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-accent)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border)';
+                          e.currentTarget.style.backgroundColor = '#FFFFFF';
                         }}
                       >
-                        <ClipboardCheck size={14} strokeWidth={2} /> Final Plan
+                        <ClipboardCheck size={14} style={{ color: '#2563EB' }} /> Final Plan
                       </button>
                       <button 
                         onClick={() => onLoadPastAuditDetail(audit._id, 'saved_report')}
-                        className="btn btn-outline"
                         style={{ 
-                          fontSize: '11px', 
-                          padding: '8px 10px', 
-                          height: 'auto', 
-                          display: 'flex', 
+                          fontSize: '11.5px', 
+                          padding: '10px 12px', 
+                          display: 'inline-flex', 
                           alignItems: 'center', 
                           justifyContent: 'center', 
                           gap: '6px',
-                          borderColor: '#10B981',
-                          color: '#059669',
-                          backgroundColor: '#F0FDF4',
-                          fontWeight: '800',
-                          cursor: 'pointer'
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '8px',
+                          color: 'var(--color-text-primary)',
+                          backgroundColor: '#FFFFFF',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border-hover)';
+                          e.currentTarget.style.backgroundColor = 'var(--color-bg-accent)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--color-border)';
+                          e.currentTarget.style.backgroundColor = '#FFFFFF';
                         }}
                       >
-                        <BarChart3 size={14} strokeWidth={2} /> Detailed Report
+                        <BarChart3 size={14} style={{ color: '#059669' }} /> Detailed Report
                       </button>
                     </div>
+
+                    <button 
+                      onClick={() => {
+                        setActiveChatAudit(audit);
+                        setShowChatDrawer(true);
+                      }}
+                      style={{ 
+                        fontSize: '12px', 
+                        padding: '11px 12px', 
+                        display: 'inline-flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center', 
+                        gap: '6px',
+                        border: '1px solid var(--color-green-primary)',
+                        borderRadius: '8px',
+                        color: '#FFFFFF',
+                        backgroundColor: 'var(--color-green-primary)',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        marginTop: '4px',
+                        width: '100%',
+                        transition: 'all 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-green-hover)';
+                        e.currentTarget.style.borderColor = 'var(--color-green-hover)';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--color-green-primary)';
+                        e.currentTarget.style.borderColor = 'var(--color-green-primary)';
+                        e.currentTarget.style.transform = 'none';
+                      }}
+                    >
+                      <Sparkles size={14} /> Consult AI Spend Specialist
+                    </button>
+
                     {onDeleteAudit && (
                       <button 
                         onClick={() => {
@@ -211,26 +309,35 @@ export default function HistoryView({
                             onDeleteAudit(audit._id);
                           }
                         }}
-                        className="btn btn-outline"
                         style={{ 
                           fontSize: '11px', 
-                          padding: '8px 10px', 
-                          height: 'auto', 
-                          display: 'flex', 
+                          padding: '6px 12px', 
+                          display: 'inline-flex', 
                           alignItems: 'center', 
                           justifyContent: 'center', 
                           gap: '6px',
-                          borderColor: '#EF4444',
-                          color: '#DC2626',
-                          backgroundColor: '#FEF2F2',
-                          fontWeight: '800',
+                          border: '1px solid transparent',
+                          borderRadius: '8px',
+                          color: 'var(--color-text-muted)',
+                          backgroundColor: 'transparent',
+                          fontWeight: '600',
                           cursor: 'pointer',
-                          marginTop: '8px',
+                          marginTop: '4px',
                           width: '100%',
                           transition: 'all 0.15s ease'
                         }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.color = '#DC2626';
+                          e.currentTarget.style.backgroundColor = '#FEF2F2';
+                          e.currentTarget.style.borderColor = '#FCA5A5';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.color = 'var(--color-text-muted)';
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
                       >
-                        🗑️ Delete Report
+                        <Trash2 size={13} /> Delete Report
                       </button>
                     )}
                   </div>
@@ -240,6 +347,14 @@ export default function HistoryView({
           )}
         </div>
       </main>
+
+      <ChatDrawer 
+        show={showChatDrawer}
+        onClose={() => setShowChatDrawer(false)}
+        audit={activeChatAudit}
+        token={token}
+        backendUrl={backendUrl}
+      />
     </div>
   );
 }

@@ -611,6 +611,31 @@ export default function App() {
     }
   };
 
+  const handleViewSample = async () => {
+    setCurrentView('loading');
+    try {
+      const response = await fetch(`${BACKEND_URL}/audits/6a4fb719471a97ae89e88f49`);
+      if (!response.ok) {
+        throw new Error('Failed to load sample report.');
+      }
+      const data = await response.json();
+      setAuditResult(data);
+      
+      const initialChoices = {};
+      const recs = data.savings?.recommendations || [];
+      recs.forEach((rec, idx) => {
+        initialChoices[idx] = 'api';
+      });
+      setSelectedOptions(initialChoices);
+      
+      setCurrentView('sample_report');
+    } catch (err) {
+      console.error('Failed to load sample audit report:', err);
+      alert('Sample report is currently unavailable. Please try again later.');
+      setCurrentView('landing');
+    }
+  };
+
   const handleAuthSubmit = async (payload, mode) => {
     setAuthLoading(true);
     setAuthError(null);
@@ -678,27 +703,13 @@ export default function App() {
             />
             <LandingView 
               onNavigateToStep1={() => setCurrentView('step1')} 
-              onViewSample={() => {
-                setAuditResult({
-                  teamSize: 3,
-                  useCase: 'Coding',
-                  savings: {
-                    totalMonthly: 4250,
-                    totalAnnual: 51000,
-                    recommendations: [
-                      { tool: 'ChatGPT Enterprise', issue: 'Over-provisioned by 12 seats', action: 'Downgrade inactive Enterprise seats to Team tier', monthlySavings: 1200 },
-                      { tool: 'GitHub Copilot', issue: '14 inactive users detected', action: 'Revoke seats without editor interactions in past 30 days', monthlySavings: 850 },
-                      { tool: 'Midjourney', issue: 'Duplicate with Canva AI', action: 'Revoke team seats, consolidate with corporate Canva package', monthlySavings: 600 }
-                    ]
-                  }
-                });
-                setCurrentView('results');
-              }}
+              onViewSample={handleViewSample}
               onPurchase={handlePurchase}
             />
             <Footer 
               onNavigateToStep1={() => setCurrentView('step1')}
               onNavigateToLanding={() => setCurrentView('landing')}
+              onViewSample={handleViewSample}
             />
           </div>
         );
@@ -758,6 +769,20 @@ export default function App() {
           />
         );
 
+      case 'sample_report':
+        return (
+          <ResultsView 
+            auditResult={auditResult}
+            selectedOptions={selectedOptions}
+            onNavigateToView={(view) => setCurrentView(view)}
+            user={user}
+            renderCoinDropdown={renderCoinDropdown}
+            tokenAdjustments={tokenAdjustments}
+            setTokenAdjustments={setTokenAdjustments}
+            isSample={true}
+          />
+        );
+
       case 'step4':
         return (
           <ActionPlanView 
@@ -778,7 +803,11 @@ export default function App() {
                   body: JSON.stringify({ selectedOptions })
                 }).catch(err => console.error('Failed to save selected options:', err));
               }
-              setCurrentView(view);
+              if (view === 'results' && auditResult?._id === '6a4fb719471a97ae89e88f49') {
+                setCurrentView('sample_report');
+              } else {
+                setCurrentView(view);
+              }
             }}
           />
         );
@@ -828,6 +857,8 @@ export default function App() {
           <HistoryView 
             pastAudits={pastAudits}
             user={user}
+            token={token}
+            backendUrl={BACKEND_URL}
             onLogout={handleLogout}
             onNavigateToView={(view) => setCurrentView(view)}
             onLoadPastAuditDetail={loadPastAuditDetail}

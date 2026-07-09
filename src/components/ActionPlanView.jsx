@@ -300,9 +300,10 @@ export default function ActionPlanView({
 
   const dynamicOptimizedCost = Math.max(0, totalCurrentCost - dynamicSavings);
   const dynamicSavingsAnnual = dynamicSavings * 12;
-  const dynamicReductionPercent = totalCurrentCost > 0 
-    ? ((dynamicSavings / totalCurrentCost) * 100).toFixed(1) 
-    : 0;
+  const isSavingsPositive = dynamicSavings >= 0;
+  const absReductionPercent = totalCurrentCost > 0 
+    ? Math.abs((dynamicSavings / totalCurrentCost) * 100).toFixed(1) 
+    : '0.0';
 
 
   const handleSelectOption = (idx, option) => {
@@ -359,7 +360,48 @@ export default function ActionPlanView({
           <Sparkles size={14} style={{ color: 'var(--color-green-primary)' }} />
           <span>Step 4 of 4 - 100% Complete</span>
         </div>
-        <h2 className="wizard-title">Optimisation Action Plan</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '8px' }}>
+          <h2 className="wizard-title" style={{ margin: 0 }}>Optimisation Action Plan</h2>
+          {(() => {
+            const goal = auditResult.optimizationGoal || 'performance';
+            let label = 'Performance Preservation Mode';
+            let bgColor = '#E0F2FE';
+            let textColor = '#0369A1';
+            let borderColor = '#BAE6FD';
+            
+            if (goal === 'quality') {
+              label = 'Quality Focus';
+              bgColor = '#EEF2FF';
+              textColor = '#4338CA';
+              borderColor = '#C7D2FE';
+            } else if (goal === 'cost') {
+              label = 'Cost Cutting';
+              bgColor = '#FEE2E2';
+              textColor = '#B91C1C';
+              borderColor = '#FCA5A5';
+            }
+            
+            return (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                padding: '4px 12px',
+                borderRadius: '20px',
+                fontSize: '11px',
+                fontWeight: '800',
+                backgroundColor: bgColor,
+                color: textColor,
+                border: `1px solid ${borderColor}`,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                marginTop: '4px'
+              }}>
+                {label}
+              </span>
+            );
+          })()}
+        </div>
         <p className="wizard-desc">
           We analyzed your stack and detected {recs.length} key waste indicators. Select your preferred pathway for each recommendation.
         </p>
@@ -452,7 +494,7 @@ export default function ActionPlanView({
                    <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Projected Cost</span>
                    <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
                      <strong style={{ fontSize: '34px', color: '#1E293B', fontWeight: '700', lineHeight: '1' }}>
-                       ${dynamicOptimizedCost.toLocaleString()}
+                       ${dynamicOptimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                      </strong>
                      <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/month</span>
                    </div>
@@ -468,28 +510,30 @@ export default function ActionPlanView({
                    }}>
                      <span style={{ fontSize: '8px', fontWeight: '800', textTransform: 'uppercase', color: '#94A3B8', letterSpacing: '0.05em' }}>Original Cost</span>
                      <span style={{ fontSize: '12px', color: '#94A3B8', textDecoration: 'line-through', fontWeight: '600' }}>
-                       ${totalCurrentCost.toLocaleString()}/mo
+                       ${totalCurrentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
                      </span>
                    </div>
                  </div>
 
                  {/* Savings Metric Card */}
                  <div style={{
-                   background: 'rgba(236, 253, 245, 0.8)',
-                   border: '1px solid rgba(187, 247, 208, 0.8)',
+                   background: isSavingsPositive ? 'rgba(236, 253, 245, 0.8)' : 'rgba(254, 242, 242, 0.8)',
+                   border: `1px solid ${isSavingsPositive ? 'rgba(187, 247, 208, 0.8)' : 'rgba(254, 202, 202, 0.8)'}`,
                    borderRadius: '12px',
                    padding: '16px',
                    display: 'flex',
                    flexDirection: 'column',
-                   boxShadow: '0 2px 8px rgba(16, 185, 129, 0.02)'
+                   boxShadow: isSavingsPositive ? '0 2px 8px rgba(16, 185, 129, 0.02)' : '0 2px 8px rgba(239, 68, 68, 0.02)'
                  }}>
-                   <span style={{ fontSize: '11px', color: '#047857', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Projected Savings</span>
+                   <span style={{ fontSize: '11px', color: isSavingsPositive ? '#047857' : '#B91C1C', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>
+                     {isSavingsPositive ? 'Projected Savings' : 'Projected Change'}
+                   </span>
                    <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px', gap: '4px' }}>
-                     <TrendingUp size={22} style={{ color: '#10B981', alignSelf: 'center' }} />
-                     <strong style={{ fontSize: '34px', color: '#047857', fontWeight: '700', lineHeight: '1' }}>
-                       +${dynamicSavings.toLocaleString()}
+                     <TrendingUp size={22} style={{ color: isSavingsPositive ? '#10B981' : '#EF4444', alignSelf: 'center', transform: isSavingsPositive ? 'none' : 'rotate(180deg)' }} />
+                     <strong style={{ fontSize: '34px', color: isSavingsPositive ? '#047857' : '#B91C1C', fontWeight: '700', lineHeight: '1' }}>
+                       {isSavingsPositive ? '+' : '-'}${Math.abs(dynamicSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                      </strong>
-                     <span style={{ fontSize: '14px', color: '#047857', fontWeight: '600' }}>/month</span>
+                     <span style={{ fontSize: '14px', color: isSavingsPositive ? '#047857' : '#B91C1C', fontWeight: '600' }}>/month</span>
                    </div>
                  </div>
 
@@ -505,8 +549,8 @@ export default function ActionPlanView({
                  }}>
                    <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Annual Savings</span>
                    <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
-                     <strong style={{ fontSize: '34px', color: '#1E293B', fontWeight: '700', lineHeight: '1' }}>
-                       ${dynamicSavingsAnnual.toLocaleString()}
+                     <strong style={{ fontSize: '34px', color: isSavingsPositive ? '#1E293B' : '#B91C1C', fontWeight: '700', lineHeight: '1' }}>
+                       {isSavingsPositive ? '' : '-'}${Math.abs(dynamicSavingsAnnual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                      </strong>
                      <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/year</span>
                    </div>
@@ -514,28 +558,30 @@ export default function ActionPlanView({
 
                  {/* Budget Efficiency Card */}
                  <div style={{
-                   background: 'rgba(239, 246, 255, 0.8)',
-                   border: '1px solid rgba(191, 219, 254, 0.8)',
+                   background: isSavingsPositive ? 'rgba(239, 246, 255, 0.8)' : 'rgba(254, 242, 242, 0.8)',
+                   border: `1px solid ${isSavingsPositive ? 'rgba(191, 219, 254, 0.8)' : 'rgba(254, 202, 202, 0.8)'}`,
                    borderRadius: '12px',
                    padding: '16px',
                    display: 'flex',
                    flexDirection: 'column',
-                   boxShadow: '0 2px 8px rgba(37, 99, 235, 0.02)'
+                   boxShadow: isSavingsPositive ? '0 2px 8px rgba(37, 99, 235, 0.02)' : '0 2px 8px rgba(239, 68, 68, 0.02)'
                  }}>
                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <span style={{ fontSize: '11px', color: '#1D4ED8', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Budget Efficiency</span>
-                     <span style={{ fontSize: '12px', color: '#10B981', fontWeight: '800' }}>-{dynamicReductionPercent}% Cost Cut</span>
+                     <span style={{ fontSize: '11px', color: isSavingsPositive ? '#1D4ED8' : '#B91C1C', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Budget Impact</span>
+                     <span style={{ fontSize: '12px', color: isSavingsPositive ? '#10B981' : '#EF4444', fontWeight: '800' }}>
+                       {isSavingsPositive ? `-${absReductionPercent}% Cost Cut` : `+${absReductionPercent}% Cost Increase`}
+                     </span>
                    </div>
                    
                    {/* Premium Progress Bar */}
                    <div style={{ marginTop: '10px' }}>
                      <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(226, 232, 240, 0.8)', borderRadius: '999px', overflow: 'hidden' }}>
                        <div style={{ 
-                         width: `${Math.min(100, dynamicReductionPercent)}%`, 
+                         width: `${isSavingsPositive ? Math.min(100, parseFloat(absReductionPercent)) : 0}%`, 
                          height: '100%', 
-                         background: 'linear-gradient(90deg, #34D399 0%, #10B981 100%)', 
+                         background: isSavingsPositive ? 'linear-gradient(90deg, #34D399 0%, #10B981 100%)' : '#EF4444', 
                          borderRadius: '999px',
-                         boxShadow: '0 0 8px rgba(16, 185, 129, 0.3)',
+                         boxShadow: isSavingsPositive ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none',
                          transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
                        }} />
                      </div>
@@ -572,20 +618,6 @@ export default function ActionPlanView({
                   <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Annual Spend</span>
                   <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>
                     ${(totalCurrentCost * 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Monthly Savings</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#10B981' }}>
-                    ${(auditResult.savings.totalMonthly || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Annual Savings</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#10B981' }}>
-                    ${(auditResult.savings.totalAnnual || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
@@ -675,7 +707,7 @@ export default function ActionPlanView({
                   <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#92400E' }}>Pro Tip</span>
                 </div>
                 <p style={{ fontSize: '11.5px', color: '#78350F', lineHeight: '1.6', margin: 0 }}>
-                  The green-highlighted option is our AI-recommended highest-value pathway for your usage profile.
+                  Both Option A (API) and Option B (Subscription) are recommended pathways. Choose the one that best suits your team's workflow and usage.
                 </p>
               </div>
             </div>
@@ -779,30 +811,6 @@ export default function ActionPlanView({
                           position: 'relative'
                         }}
                       >
-                        {getRecommendedOption(rec) === 'api' && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '-10px',
-                            right: '36px',
-                            backgroundColor: '#3B82F6',
-                            color: '#FFFFFF',
-                            padding: '3px 10px',
-                            borderRadius: '20px',
-                            fontSize: '9.5px',
-                            fontWeight: '800',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            boxShadow: '0 4px 12px rgba(59, 130, 246, 0.25)',
-                            zIndex: 10
-                          }}>
-                            
-                            <span>Recommended</span>
-                          </div>
-                        )}
-
                         {/* Radio Check Indicator */}
                         <div style={{
                           position: 'absolute',
@@ -845,7 +853,8 @@ export default function ActionPlanView({
 
                               return (
                                 <span style={getSavingsPillStyle(dynamicSavingsVal)}>
-                                  {isNegativeSavings ? `+$${Math.abs(dynamicSavingsVal).toFixed(2)}` : `-$${dynamicSavingsVal.toFixed(2)}`} save
+                                  {dynamicSavingsVal >= 0 && <CircleCheckBig size={11} />}
+                                  {isNegativeSavings ? `+$${Math.abs(dynamicSavingsVal).toFixed(2)} cost` : `$${dynamicSavingsVal.toFixed(2)} saved`}
                                 </span>
                               );
                             })()}
@@ -1156,30 +1165,6 @@ export default function ActionPlanView({
                           position: 'relative'
                         }}
                       >
-                        {getRecommendedOption(rec) === 'subscription' && (
-                          <div style={{
-                            position: 'absolute',
-                            top: '-10px',
-                            right: '36px',
-                            backgroundColor: '#10B981',
-                            color: '#FFFFFF',
-                            padding: '3px 10px',
-                            borderRadius: '20px',
-                            fontSize: '9.5px',
-                            fontWeight: '800',
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.05em',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
-                            zIndex: 10
-                          }}>
-                            
-                            <span>Recommended</span>
-                          </div>
-                        )}
-
                         {/* Radio Check Indicator */}
                         <div style={{
                           position: 'absolute',
@@ -1201,7 +1186,7 @@ export default function ActionPlanView({
                             {!rec.subscriptionOption.statusText && (
                               <span style={getSavingsPillStyle(rec.subscriptionOption.savings)}>
                                 {rec.subscriptionOption.savings >= 0 && <CircleCheckBig size={11} />}
-                                {rec.subscriptionOption.savings < 0 ? `+$${Math.abs(rec.subscriptionOption.savings).toLocaleString()}` : `-$${rec.subscriptionOption.savings.toLocaleString()}`} save
+                                {rec.subscriptionOption.savings < 0 ? `+$${Math.abs(rec.subscriptionOption.savings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cost` : `$${rec.subscriptionOption.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} saved`}
                               </span>
                             )}
                           </div>

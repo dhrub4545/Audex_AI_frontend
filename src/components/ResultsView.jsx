@@ -490,7 +490,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
   return { baseline: baselineModel, recommended: recommendedModel };
 };
 
-export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {} }) {
+export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {}, isSample }) {
   const [intelData, setIntelData] = useState(null);
   const isStarter = auditResult?.tierUsed === 'starter' && !(user?.credits?.pro > 0 || user?.credits?.proMax > 0);
   const [showDetailedReport, setShowDetailedReport] = useState((initialView === 'detailed') && !isStarter);
@@ -563,7 +563,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
   const bestAnnual      = bestMonthly * 12;
   const savingPct       = currentCostVal > 0 ? ((bestMonthly / currentCostVal) * 100).toFixed(1) : 0;
   const goalLabel       = auditResult.optimizationGoal === 'performance'
-    ? 'Performance Preservation'
+    ? 'Performance Preservation Mode'
     : auditResult.optimizationGoal === 'quality'
     ? 'Quality Focus'
     : `Target Cost Reduction (${auditResult.costCutPercentage || 50}%)`;
@@ -573,6 +573,50 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
   return (
     <div className="app-container">
+      {isSample && (
+        <div style={{
+          background: 'linear-gradient(90deg, #0F172A 0%, #1E293B 100%)',
+          color: '#FFFFFF',
+          padding: '14px 24px',
+          textAlign: 'center',
+          fontSize: '14px',
+          fontWeight: '600',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1000,
+          borderBottom: '1px solid #334155'
+        }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} style={{ color: '#10B981' }} />
+            You are viewing a live <strong>Sample Audit Report</strong>. Ready to optimize your own team's AI spend?
+          </span>
+          <button 
+            onClick={() => onNavigateToView('step1')} 
+            style={{
+              backgroundColor: '#10B981',
+              color: '#FFFFFF',
+              border: 'none',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              fontSize: '12px',
+              fontWeight: '800',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+              transition: 'transform 0.15s ease',
+              outline: 'none'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+          >
+            Start Free Audit
+          </button>
+        </div>
+      )}
       {/* ── Navbar ── */}
       <header className="navbar">
         <div className="container">
@@ -1369,7 +1413,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     </div>
                   ),
                   label: 'Optimization Goal',
-                  value: auditResult.optimizationGoal === 'performance' ? 'Performance' :
+                  value: auditResult.optimizationGoal === 'performance' ? 'Performance Preservation Mode' :
                          auditResult.optimizationGoal === 'quality' ? 'Quality Focus' : 'Cost Reduction',
                   sub: 'Maintain quality',
                   valColor: '#7C3AED'
