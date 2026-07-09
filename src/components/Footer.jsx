@@ -3,7 +3,7 @@ import logoImg from '../assets/audex-ai-logo.png';
 import { ShieldCheck, Lock, ArrowRight, CheckCircle, Rocket } from 'lucide-react';
 import { OpenAI, Claude, Gemini, Meta, DeepSeek, Mistral, GithubCopilot, Cursor, Perplexity, Google } from '@lobehub/icons';
 
-export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
+export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewSample }) {
   const handleScrollToSection = (e, sectionId) => {
     e.preventDefault();
     onNavigateToLanding();
@@ -93,7 +93,7 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
                 Start Free Audit <ArrowRight size={14} />
               </button>
               <button
-                onClick={(e) => { e.preventDefault(); alert('Sample report page is not configured.'); }}
+                onClick={(e) => { e.preventDefault(); onViewSample(); }}
                 className="btn btn-outline"
                 style={{ padding: '10px 20px', fontWeight: '700', borderRadius: '8px', fontSize: '13.5px', backgroundColor: '#FFFFFF' }}
               >
@@ -148,7 +148,7 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding }) {
               <li><button onClick={onNavigateToStep1} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Model Auditor</button></li>
               <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Market Intelligence route pending.'); }} className="footer-link">Market Intelligence</a></li>
               <li><a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link">Pricing</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Sample report page is not configured.'); }} className="footer-link">Sample Report</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link">Sample Report</a></li>
               <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">How it Works</a></li>
               <li><button onClick={onNavigateToStep1} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, color: 'var(--color-green-primary)', fontWeight: '600' }}>Start Free Audit</button></li>
             </ul>
