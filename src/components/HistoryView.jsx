@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import ChatDrawer from './ChatDrawer';
 import {
@@ -18,7 +19,7 @@ export default function HistoryView({
   pastAudits,
   user,
   token,
-  backendUrl = 'http://localhost:5000/api',
+  backendUrl = API_BASE_URL,
   onLogout,
   onNavigateToView,
   onLoadPastAuditDetail,

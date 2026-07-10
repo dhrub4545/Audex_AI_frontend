@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
 import { 
@@ -542,7 +543,7 @@ export default function WizardFlow({
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/audits/models/list');
+        const response = await fetch(`${API_BASE_URL}/audits/models/list`);
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {

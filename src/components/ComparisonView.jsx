@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
 import { Code2, Brain, Calculator, PenTool, Search, Link2, FileText, Image, Zap, Coins } from 'lucide-react';
@@ -151,7 +152,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
   // Fetch raw dataset on mount for creative-writing index ranks
   useEffect(() => {
-    fetch('http://localhost:5000/api/audits/analysis/raw-data')
+    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
       .then(res => {
         if (!res.ok) throw new Error('Network error');
         return res.json();
@@ -174,7 +175,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    fetch('http://localhost:5000/api/audits/compare/report', {
+    fetch(`${API_BASE_URL}/audits/compare/report`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ baseline, recommended }),

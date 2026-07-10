@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import { Lock, Sparkles } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
@@ -496,7 +497,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
   const [showDetailedReport, setShowDetailedReport] = useState((initialView === 'detailed') && !isStarter);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/audits/analysis/raw-data')
+    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch raw market data');
         return res.json();

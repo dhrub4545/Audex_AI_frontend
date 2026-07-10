@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import { LoadingIndicator } from './CommonComponents';
 import { Sliders, HelpCircle, ArrowRight, Lock, Key, CreditCard, Sparkles, TrendingDown, Coins, ShieldCheck, Check, BarChart2 } from 'lucide-react';
@@ -43,8 +44,8 @@ export default function FreeResultsView({
   useEffect(() => {
     // Fetch raw analysis benchmark data & subscription tiers prices
     Promise.all([
-      fetch('http://localhost:5000/api/audits/analysis/raw-data').then(res => res.json()),
-      fetch('http://localhost:5000/api/audits/subscription-tiers/raw').then(res => res.json())
+      fetch(`${API_BASE_URL}/audits/analysis/raw-data`).then(res => res.json()),
+      fetch(`${API_BASE_URL}/audits/subscription-tiers/raw`).then(res => res.json())
     ])
       .then(([intel, tiers]) => {
         setIntelData(intel);

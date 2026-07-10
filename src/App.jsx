@@ -13,6 +13,7 @@ import MarketIntelView from './components/MarketIntelView';
 import ComparisonView from './components/ComparisonView';
 import ActionPlanView from './components/ActionPlanView';
 import FreeResultsView from './components/FreeResultsView';
+import { API_BASE_URL } from './config';
 
 const INITIAL_TOOLS = [
   { id: 'GitHub Copilot', name: 'GitHub Copilot', desc: 'GitHub AI assistant', icon: '🤖', type: 'subscription', plans: ['Copilot Free', 'Copilot Pro', 'Copilot Pro+'], defaultPlan: 'Copilot Pro', defaultSeats: 5 },
@@ -34,7 +35,7 @@ const INITIAL_TOOLS = [
   { id: 'Suno', name: 'Suno', desc: 'AI music generator', icon: '🎵', type: 'subscription', plans: ['Free', 'Pro', 'Premier'], defaultPlan: 'Free', defaultSeats: 1 }
 ];
 
-const BACKEND_URL = 'http://localhost:5000/api';
+const BACKEND_URL = API_BASE_URL;
 
 export default function App() {
   // Navigation: 'landing', 'step1', 'step2', 'step3', 'loading', 'results', 'history', 'signin', 'signup'

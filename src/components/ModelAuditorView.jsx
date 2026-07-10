@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { API_BASE_URL } from '../config';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
 import {
@@ -428,7 +429,7 @@ export default function ModelAuditorView({
 
   // Fetch raw analysis data from the backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/audits/analysis/raw-data')
+    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch raw market data');
         return res.json();
@@ -523,7 +524,7 @@ export default function ModelAuditorView({
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/audits/models/list');
+        const response = await fetch(`${API_BASE_URL}/audits/models/list`);
         if (response.ok) {
           const data = await response.json();
           if (data && data.length > 0) {
@@ -543,7 +544,7 @@ export default function ModelAuditorView({
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('http://localhost:5000/api/audits/audit-recommendation', {
+        const response = await fetch(`${API_BASE_URL}/audits/audit-recommendation`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

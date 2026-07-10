@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useDeferredValue, useRef } from 'react';
+import { API_BASE_URL } from '../config';
 import { Trophy, TrendingUp, Database, Zap, Sparkles, Image, Video, Check, ChevronDown } from 'lucide-react';
 import {
   OpenAI,
@@ -497,7 +498,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
 
   // Fetch raw analysis data from the backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/audits/analysis/raw-data')
+    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch raw market data');
         return res.json();
