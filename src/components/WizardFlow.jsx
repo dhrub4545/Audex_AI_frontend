@@ -557,10 +557,34 @@ export default function WizardFlow({
     fetchModels();
   }, []);
 
+  const [limitWarning, setLimitWarning] = useState(null);
+
+  const maxAllowedTools = useMemo(() => {
+    if (!user) return 2;
+    if (user.plan === 'enterprise' || (user.credits && user.credits.proMax > 0)) return Infinity;
+    if (user.plan === 'pro' || (user.credits && user.credits.pro > 0)) return 15;
+    return 2;
+  }, [user]);
+
+  const getLimitWarningMessage = (maxLimit) => {
+    if (maxLimit === 2) {
+      return 'Maximum 2 tools allowed per audit analysis on the Free plan. Upgrade your subscription to audit more tools.';
+    } else if (maxLimit === 15) {
+      return 'Maximum 15 tools allowed per audit analysis on the Pro plan. Upgrade to Enterprise for unlimited tools.';
+    }
+    return 'Maximum tools limit reached for your current plan.';
+  };
+
   const toggleToolSelection = (toolId) => {
     if (selectedToolIds.includes(toolId)) {
       setSelectedToolIds(selectedToolIds.filter(id => id !== toolId));
+      setLimitWarning(null);
     } else {
+      if (selectedToolIds.length >= maxAllowedTools) {
+        setLimitWarning(getLimitWarningMessage(maxAllowedTools));
+        return;
+      }
+      setLimitWarning(null);
       setSelectedToolIds([...selectedToolIds, toolId]);
       if (!toolConfigs[toolId] || toolConfigs[toolId].length === 0) {
         const tool = tools.find(t => t.id === toolId);
@@ -580,6 +604,12 @@ export default function WizardFlow({
     if (!modelId) return;
     const model = dbModels.find(m => m.id === modelId);
     if (!model) return;
+
+    if (!selectedToolIds.includes(modelId) && selectedToolIds.length >= maxAllowedTools) {
+      setLimitWarning(getLimitWarningMessage(maxAllowedTools));
+      return;
+    }
+    setLimitWarning(null);
 
     // 1. Add tool to tools list if it doesn't exist
     if (!tools.some(t => t.id === modelId)) {
@@ -617,6 +647,7 @@ export default function WizardFlow({
   };
 
   const handleRemoveApiModel = (modelId) => {
+    setLimitWarning(null);
     setSelectedToolIds(selectedToolIds.filter(id => id !== modelId));
     setToolConfigs(prev => {
       const copy = { ...prev };
@@ -660,6 +691,11 @@ export default function WizardFlow({
 
   const handleAddCustomTool = (e) => {
     if (e.key === 'Enter' && searchQuery.trim() !== '') {
+      if (selectedToolIds.length >= maxAllowedTools) {
+        setLimitWarning(getLimitWarningMessage(maxAllowedTools));
+        return;
+      }
+      setLimitWarning(null);
       const customName = searchQuery.trim();
       if (tools.some(t => t.name.toLowerCase() === customName.toLowerCase())) {
         return;
@@ -918,8 +954,71 @@ export default function WizardFlow({
         <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '18px' }}>Which AI tools does your team use?</h2>
         <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '20px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
 
+        {limitWarning && (
+          <div style={{
+            maxWidth: '680px',
+            margin: '0 auto 18px auto',
+            padding: '12px 18px',
+            backgroundColor: '#FEF2F2',
+            border: '1.5px solid #FCA5A5',
+            borderRadius: '14px',
+            color: '#991B1B',
+            fontSize: '13.5px',
+            fontWeight: '600',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '12px',
+            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.12)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+              <span style={{ fontSize: '16px' }}>⚠️</span>
+              <span>{limitWarning}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+              <button 
+                type="button" 
+                onClick={() => {
+                  onNavigateToView('landing');
+                  setTimeout(() => {
+                    const el = document.getElementById('pricing');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 120);
+                }}
+                style={{ 
+                  backgroundColor: '#DC2626', 
+                  color: '#FFFFFF', 
+                  border: 'none', 
+                  padding: '7px 15px', 
+                  borderRadius: '8px', 
+                  fontWeight: '750', 
+                  fontSize: '12.5px',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px'
+                }}
+                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#B91C1C'}
+                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
+              >
+                <span>⚡</span> Upgrade Subscription
+              </button>
+              <button 
+                type="button" 
+                onClick={() => setLimitWarning(null)}
+                style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', padding: '0 4px' }}
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
+
         <div className="split-workspace">
-          
           {/* Left Panel: Subscription Tools */}
           <div className="workspace-panel">
             <h3 className="panel-title">Subscription AI Tools</h3>
@@ -1106,7 +1205,7 @@ export default function WizardFlow({
         {selectedToolIds.length > 0 ? (
           <div className="bottom-cta-banner">
             <span className="bottom-cta-text">
-              <span>✔</span> {selectedToolIds.length} tools selected
+              <span>✔</span> {selectedToolIds.length} / 2 tools selected
             </span>
             <button 
               onClick={() => onNavigateToView('step2')} 
@@ -1366,11 +1465,7 @@ export default function WizardFlow({
 
   // STEP 3 RENDER
   const renderStep3 = () => {
-    const credits = user ? (user.credits || { starter: 0, pro: 0, proMax: 0 }) : { starter: 1 };
-    const hasPremiumCredits = (credits.pro || 0) > 0 || (credits.proMax || 0) > 0;
-    const hasAnyCredits = (credits.starter || 0) > 0 || hasPremiumCredits;
-    const numTools = selectedToolIds.length;
-    const isBlocked = user && hasAnyCredits && numTools > 4 && !hasPremiumCredits;
+    const isBlocked = false;
 
     return (
       <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
@@ -1412,41 +1507,60 @@ export default function WizardFlow({
               </p>
             </div>
           ) : apiError ? (
-            <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px' }}>
-              ⚠️ <strong>Error connecting to backend API:</strong> {apiError} <br />
-              Please make sure backend server is running on localhost:5000, or try again.
+            <div style={{
+              backgroundColor: '#FEF2F2',
+              border: '1.5px solid #FCA5A5',
+              color: '#991B1B',
+              padding: '16px 20px',
+              borderRadius: '14px',
+              marginBottom: '24px',
+              fontSize: '14px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: '16px',
+              boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '18px' }}>⚠️</span>
+                <div>
+                  <strong>Audit Analysis Limit:</strong> {apiError}
+                </div>
+              </div>
+              {(apiError.toLowerCase().includes('limit') || apiError.toLowerCase().includes('upgrade') || apiError.toLowerCase().includes('maximum')) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onNavigateToView('landing');
+                    setTimeout(() => {
+                      const el = document.getElementById('pricing');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }, 120);
+                  }}
+                  style={{
+                    backgroundColor: '#DC2626',
+                    color: '#FFFFFF',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: '750',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    flexShrink: 0
+                  }}
+                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#B91C1C'}
+                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
+                >
+                  ⚡ Upgrade Subscription
+                </button>
+              )}
             </div>
           ) : null}
-
-          {user && !hasAnyCredits && (
-            <div style={{ backgroundColor: '#FFF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px' }}>
-              ⚠️ <strong>Out of Credits:</strong> You do not have any remaining audit credits in your account balance.
-              <div style={{ marginTop: '12px' }}>
-                <button 
-                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) { if (window.lenis) { window.lenis.scrollTo(el); } else { el.scrollIntoView({ behavior: 'smooth' }); } } }, 150); }} 
-                  className="btn btn-black" 
-                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}
-                >
-                  🛒 Purchase Credits / Subscribe
-                </button>
-              </div>
-            </div>
-          )}
-
-          {user && hasAnyCredits && numTools > 4 && !hasPremiumCredits && (
-            <div style={{ backgroundColor: '#FFF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', padding: '16px', borderRadius: '8px', marginBottom: '24px', fontSize: '14px' }}>
-              ⚠️ <strong>Premium Credits Required:</strong> You have selected {numTools} tools. Starter credits only allow auditing up to 4 tools. Please purchase a Pro or Pro Max subscription, or deselect some tools in Step 1.
-              <div style={{ marginTop: '12px' }}>
-                <button 
-                  onClick={() => { onNavigateToView('landing'); setTimeout(() => { const el = document.getElementById('pricing'); if (el) { if (window.lenis) { window.lenis.scrollTo(el); } else { el.scrollIntoView({ behavior: 'smooth' }); } } }, 150); }} 
-                  className="btn btn-black" 
-                  style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '4px' }}
-                >
-                  🛒 Upgrade Plan
-                </button>
-              </div>
-            </div>
-          )}
 
           <div className="wizard-card" style={{ padding: '32px' }}>
             <div className="form-group">

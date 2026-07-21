@@ -7,12 +7,11 @@ import WizardFlow from './components/WizardFlow';
 import ResultsView from './components/ResultsView';
 import HistoryView from './components/HistoryView';
 import { SignInView, SignUpView } from './components/AuthViews';
-import { LoadingIndicator, PurchaseSuccessModal } from './components/CommonComponents';
+import { LoadingIndicator, PurchaseSuccessModal, CheckoutModal } from './components/CommonComponents';
 import ModelAuditorView from './components/ModelAuditorView';
 import MarketIntelView from './components/MarketIntelView';
 import ComparisonView from './components/ComparisonView';
 import ActionPlanView from './components/ActionPlanView';
-import FreeResultsView from './components/FreeResultsView';
 import { API_BASE_URL } from './config';
 
 const INITIAL_TOOLS = [
@@ -93,11 +92,17 @@ export default function App() {
     const githubError = params.get('github_error');
 
     if (googleToken && googleUserId) {
+      const googleUserPlan = params.get('google_user_plan') || 'free';
+      const googleUserUnlockedAuditsRaw = params.get('google_user_unlocked_audits') || '';
+      const googleUserUnlockedAudits = googleUserUnlockedAuditsRaw ? googleUserUnlockedAuditsRaw.split(',') : [];
+
       const parsedUser = {
         id: googleUserId,
         name: decodeURIComponent(googleUserName || 'Google User'),
         email: decodeURIComponent(googleUserEmail || ''),
-        credits: { starter: 1, pro: 0, proMax: 0 }
+        credits: { starter: 0, pro: 0, proMax: 0 },
+        plan: googleUserPlan,
+        unlockedAudits: googleUserUnlockedAudits
       };
 
       // Store in localStorage
@@ -122,11 +127,17 @@ export default function App() {
       const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.replaceState({ path: cleanUrl }, '', cleanUrl);
     } else if (githubToken && githubUserId) {
+      const githubUserPlan = params.get('github_user_plan') || 'free';
+      const githubUserUnlockedAuditsRaw = params.get('github_user_unlocked_audits') || '';
+      const githubUserUnlockedAudits = githubUserUnlockedAuditsRaw ? githubUserUnlockedAuditsRaw.split(',') : [];
+
       const parsedUser = {
         id: githubUserId,
         name: decodeURIComponent(githubUserName || 'GitHub User'),
         email: decodeURIComponent(githubUserEmail || ''),
-        credits: { starter: 1, pro: 0, proMax: 0 }
+        credits: { starter: 0, pro: 0, proMax: 0 },
+        plan: githubUserPlan,
+        unlockedAudits: githubUserUnlockedAudits
       };
 
       // Store in localStorage
@@ -157,11 +168,10 @@ export default function App() {
   const [tools, setTools] = useState(INITIAL_TOOLS);
   
   // Wizard choices
-  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude', 'Gemini']);
+  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude']);
   const [toolConfigs, setToolConfigs] = useState({
     'GitHub Copilot': [{ id: 'g1', plan: 'Copilot Pro', seats: 5, purpose: 'Coding' }],
-    'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }],
-    'Gemini': [{ id: 'gem1', plan: 'Free', seats: 1, purpose: 'Research' }]
+    'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }]
   });
   const [teamSize, setTeamSize] = useState(3);
   const [useCase, setUseCase] = useState('Coding');
@@ -176,6 +186,12 @@ export default function App() {
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
   const [purchasedPlanName, setPurchasedPlanName] = useState('');
   const [purchasedCreditsCount, setPurchasedCreditsCount] = useState(0);
+
+  // Checkout Modal states
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutType, setCheckoutType] = useState('pro');
+  const [checkoutPrice, setCheckoutPrice] = useState(29);
+  const [checkoutAuditId, setCheckoutAuditId] = useState(null);
 
   // Authentication state
   const [token, setToken] = useState(() => localStorage.getItem('audex_token') || null);
@@ -276,36 +292,67 @@ export default function App() {
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);
 
-  const handlePurchase = async (planName, creditType, amount) => {
+  const handlePurchase = async (planOrType, price = 29, auditId = null) => {
     if (!user) {
-      setAuthMessage(`Please sign in to purchase the ${planName} package.`);
+      setAuthMessage(`Please sign in or create an account to upgrade.`);
       setCurrentView('signin');
       return;
     }
     setApiError(null);
     try {
-      const response = await fetch(`${BACKEND_URL}/auth/purchase`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ creditType, amount })
-      });
-      if (!response.ok) {
-        throw new Error('Purchase request failed on the server.');
-      }
-      const data = await response.json();
-      
-      // Update local state and localStorage
-      const updatedUser = { ...user, credits: data.credits };
-      setUser(updatedUser);
-      localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+      if (planOrType === 'unlock') {
+        const response = await fetch(`${BACKEND_URL}/auth/unlock-audit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ auditId })
+        });
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to unlock report.');
+        }
+        const data = await response.json();
+        
+        const updatedUser = { ...user, plan: data.plan, unlockedAudits: data.unlockedAudits };
+        setUser(updatedUser);
+        localStorage.setItem('audex_user', JSON.stringify(updatedUser));
 
-      // Show success modal
-      setPurchasedPlanName(planName);
-      setPurchasedCreditsCount(amount);
-      setShowPurchaseSuccess(true);
+        setPurchasedPlanName('unlock');
+        setPurchasedCreditsCount(19);
+        setShowPurchaseSuccess(true);
+
+        await loadPastAuditDetail(auditId, 'results');
+      } else {
+        const response = await fetch(`${BACKEND_URL}/auth/subscribe`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ plan: planOrType })
+        });
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.error || 'Failed to subscribe.');
+        }
+        const data = await response.json();
+        
+        const updatedUser = { ...user, plan: data.plan, unlockedAudits: data.unlockedAudits };
+        setUser(updatedUser);
+        localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+
+        setPurchasedPlanName(planOrType);
+        setPurchasedCreditsCount(planOrType === 'enterprise' ? 99 : 29);
+        setShowPurchaseSuccess(true);
+        
+        if (currentView === 'free_results' && auditResult?._id) {
+          await loadPastAuditDetail(auditResult._id, 'results');
+        } else {
+          setCurrentView('landing');
+        }
+      }
     } catch (err) {
       console.error(err);
       alert(err.message);
@@ -314,8 +361,9 @@ export default function App() {
 
   const renderCoinDropdown = () => {
     if (!user) return null;
-    const credits = user.credits || { starter: 0, pro: 0, proMax: 0 };
-    const totalCredits = (credits.starter || 0) + (credits.pro || 0) + (credits.proMax || 0);
+    const planName = user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan');
+    const badgeColor = user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B');
+    const bgColor = user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9');
 
     return (
       <div className="coin-dropdown-container" style={{ position: 'relative', display: 'inline-block', marginRight: '16px' }}>
@@ -323,106 +371,25 @@ export default function App() {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          backgroundColor: '#FFFBEB',
-          border: '1px solid #FDE68A',
-          color: '#B45309',
+          backgroundColor: bgColor,
+          border: `1px solid ${badgeColor}`,
+          color: badgeColor,
           padding: '8px 16px',
           borderRadius: '9999px',
-          fontWeight: '600',
-          fontSize: '13.5px',
+          fontWeight: '700',
+          fontSize: '13px',
           cursor: 'pointer',
-          transition: 'all 0.2s ease'
+          textTransform: 'uppercase',
+          letterSpacing: '0.03em'
         }}>
-          <span className="coin-icon" style={{ fontSize: '16px', animation: 'pulse 2s infinite' }}>🪙</span>
-          <span>{totalCredits} Credits</span>
+          <span>✦ {planName}</span>
         </button>
-        <div className="coin-dropdown-menu" style={{
-          display: 'none',
-          position: 'absolute',
-          top: '100%',
-          right: 0,
-          marginTop: '8px',
-          width: '260px',
-          backgroundColor: '#FFFFFF',
-          border: '1px solid var(--color-border)',
-          borderRadius: '12px',
-          boxShadow: 'var(--shadow-xl)',
-          padding: '16px',
-          zIndex: 1000,
-          textAlign: 'left'
-        }}>
-          <div style={{ fontWeight: '700', fontSize: '14px', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '8px', color: 'var(--color-text-primary)' }}>
-            Credit Balance Breakdown
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Starter Credits:</span>
-              <strong style={{ color: 'var(--color-text-primary)' }}>{credits.starter}</strong>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-              (Limits auditing to max 4 models)
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Pro Credits:</span>
-              <strong style={{ color: 'var(--color-text-primary)' }}>{credits.pro}</strong>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-              (Access to all models)
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Pro Max Credits:</span>
-              <strong style={{ color: 'var(--color-text-primary)' }}>{credits.proMax}</strong>
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-              (Access to all models + Consultant)
-            </div>
-          </div>
-          <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '12px 0' }}></div>
-          <a href="#pricing" onClick={(e) => {
-            e.preventDefault();
-            setCurrentView('landing');
-            setTimeout(() => {
-              const el = document.getElementById('pricing');
-              if (el) {
-                if (window.lenis) {
-                  window.lenis.scrollTo(el);
-                } else {
-                  el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }
-            }, 100);
-          }} style={{
-            display: 'block',
-            textAlign: 'center',
-            backgroundColor: '#0F172A',
-            color: '#FFFFFF',
-            textDecoration: 'none',
-            fontSize: '12px',
-            padding: '8px',
-            borderRadius: '6px',
-            fontWeight: '600'
-          }}>
-            🛒 Add Credits / Upgrade
-          </a>
-        </div>
       </div>
     );
   };
 
   // Run audit backend API post
   const triggerAudit = async () => {
-    // If not logged in OR out of credits, run client-side free audit instead of hitting backend
-    const credits = user?.credits || { starter: 0, pro: 0, proMax: 0 };
-    const totalCredits = (credits.starter || 0) + (credits.pro || 0) + (credits.proMax || 0);
-
-    if (!token || totalCredits <= 0) {
-      setCurrentView('loading');
-      setTimeout(() => {
-        setCurrentView('free_results');
-      }, 1000);
-      return;
-    }
-
     setCurrentView('loading');
     setApiError(null);
 
@@ -474,11 +441,8 @@ export default function App() {
       });
 
       if (!response.ok) {
-        if (response.status === 402) {
-          const errData = await response.json();
-          throw new Error(errData.error || 'You do not have enough credits to run this report.');
-        }
-        throw new Error('Failed to run audit analysis on the server.');
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to run audit analysis on the server.');
       }
 
       const data = await response.json();
@@ -745,28 +709,18 @@ export default function App() {
       case 'loading':
         return <LoadingIndicator />;
 
-      case 'free_results':
-        return (
-          <FreeResultsView 
-            selectedToolIds={selectedToolIds}
-            toolConfigs={toolConfigs}
-            tools={tools}
-            onNavigateToView={(view) => setCurrentView(view)}
-            user={user}
-            onNavigateToSignIn={() => setCurrentView('signin')}
-          />
-        );
-
       case 'results':
         return (
           <ResultsView 
             auditResult={auditResult}
             selectedOptions={selectedOptions}
+            setSelectedOptions={setSelectedOptions}
             onNavigateToView={(view) => setCurrentView(view)}
             user={user}
             renderCoinDropdown={renderCoinDropdown}
             tokenAdjustments={tokenAdjustments}
             setTokenAdjustments={setTokenAdjustments}
+            onPurchase={handlePurchase}
           />
         );
 
@@ -814,30 +768,12 @@ export default function App() {
         );
 
       case 'saved_plan':
-        return (
-          <ResultsView 
-            auditResult={auditResult}
-            selectedOptions={selectedOptions}
-            onNavigateToView={(view) => {
-              if (view === 'history') {
-                fetchPastAudits();
-              }
-              setCurrentView(view);
-            }}
-            user={user}
-            renderCoinDropdown={renderCoinDropdown}
-            initialView="plan"
-            fromHistory={true}
-            tokenAdjustments={tokenAdjustments}
-            setTokenAdjustments={setTokenAdjustments}
-          />
-        );
-
       case 'saved_report':
         return (
           <ResultsView 
             auditResult={auditResult}
             selectedOptions={selectedOptions}
+            setSelectedOptions={setSelectedOptions}
             onNavigateToView={(view) => {
               if (view === 'history') {
                 fetchPastAudits();
@@ -850,6 +786,7 @@ export default function App() {
             fromHistory={true}
             tokenAdjustments={tokenAdjustments}
             setTokenAdjustments={setTokenAdjustments}
+            onPurchase={handlePurchase}
           />
         );
 

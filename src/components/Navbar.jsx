@@ -79,9 +79,16 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
         </a>
         <style>{`
+          .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 16px !important;
+          }
           .nav-links .nav-link {
             position: relative;
             padding-bottom: 6px;
+            font-size: 13px !important;
+            white-space: nowrap !important;
           }
           .nav-links .nav-link.active {
             color: var(--color-green-primary) !important;
@@ -221,102 +228,49 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           </button>
         </nav>
         <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-          {user && (
-            <div className="coin-dropdown-container" style={{ position: 'relative', display: 'inline-block', marginRight: '16px' }}>
-              <button className="coin-btn" style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                backgroundColor: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                color: '#B45309',
-                padding: '8px 16px',
-                borderRadius: '9999px',
-                fontWeight: '600',
-                fontSize: '13.5px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}>
-                <Coins className="coin-icon" size={16} style={{ animation: 'pulse 2s infinite' }} />
-                <span>{totalCredits} Credits</span>
-              </button>
-              <div className="coin-dropdown-menu" style={{
-                display: 'none',
-                position: 'absolute',
-                top: '100%',
-                right: 0,
-                marginTop: '8px',
-                width: '260px',
-                backgroundColor: '#FFFFFF',
-                border: '1px solid var(--color-border)',
-                borderRadius: '12px',
-                boxShadow: 'var(--shadow-xl)',
-                padding: '16px',
-                zIndex: 1000,
-                textAlign: 'left'
-              }}>
-                <div style={{ fontWeight: '700', fontSize: '14px', borderBottom: '1px solid var(--color-border)', paddingBottom: '8px', marginBottom: '8px', color: 'var(--color-text-primary)' }}>
-                  Credit Balance Breakdown
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>Starter Credits:</span>
-                    <strong style={{ color: 'var(--color-text-primary)' }}>{credits.starter}</strong>
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-                    (Limits auditing to max 4 models)
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>Pro Credits:</span>
-                    <strong style={{ color: 'var(--color-text-primary)' }}>{credits.pro}</strong>
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-                    (Access to all models)
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px' }}>
-                    <span style={{ color: 'var(--color-text-secondary)' }}>Pro Max Credits:</span>
-                    <strong style={{ color: 'var(--color-text-primary)' }}>{credits.proMax}</strong>
-                  </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '-6px' }}>
-                    (Access to all models + Consultant)
-                  </div>
-                </div>
-                <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '12px 0' }}></div>
-                <a href="#pricing" onClick={handlePricingScroll} style={{
-                  display: 'flex',
+          {user && (() => {
+            const planName = user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan');
+            const badgeColor = user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B');
+            const bgColor = user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9');
+
+            return (
+              <div style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <span style={{
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  backgroundColor: '#0F172A',
-                  color: '#FFFFFF',
-                  textDecoration: 'none',
-                  fontSize: '12px',
-                  padding: '8px',
-                  borderRadius: '6px',
-                  fontWeight: '600'
+                  backgroundColor: bgColor,
+                  border: `1px solid ${badgeColor}`,
+                  color: badgeColor,
+                  padding: '5px 10px',
+                  borderRadius: '9999px',
+                  fontWeight: '700',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  userSelect: 'none'
                 }}>
-                  <ShoppingCart size={14} /> Add Credits / Upgrade
-                </a>
+                  ✦ {planName}
+                </span>
               </div>
-            </div>
-          )}
+            );
+          })()}
           {user ? (
             <>
-              <button onClick={onLogout} className="btn btn-outline" style={{ marginRight: 0 }}>Sign out</button>
-              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>
                 Start Free Audit <ArrowRight size={14} style={{ marginLeft: '4px' }} />
               </button>
               <div className="user-menu-container">
                 <button 
                   onClick={toggleUserMenu} 
                   className="user-menu-trigger"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 12px' }}
                 >
-                  <User size={16} />
+                  <User size={15} />
                   <span>Hi, {user.name}</span>
                 </button>
                 <div className={`user-menu-dropdown ${isUserMenuOpen ? 'open' : ''}`}>
                   <div className="user-menu-header">
-                    <User size={16} />
+                    <User size={15} />
                     <span>Hi, {user.name}</span>
                   </div>
                   <div className="user-menu-divider"></div>
@@ -342,8 +296,8 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             </>
           ) : (
             <>
-              <button onClick={onNavigateToSignIn} className="btn btn-outline" style={{ marginRight: 0 }}>Sign in</button>
-              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <button onClick={onNavigateToSignIn} className="btn btn-outline" style={{ marginRight: 0, fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>Sign in</button>
+              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>
                 Start Free Audit <ArrowRight size={14} style={{ marginLeft: '4px' }} />
               </button>
             </>

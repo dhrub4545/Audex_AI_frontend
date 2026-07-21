@@ -494,7 +494,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
 export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {}, isSample }) {
   const [intelData, setIntelData] = useState(null);
   const isStarter = auditResult?.tierUsed === 'starter' && !(user?.credits?.pro > 0 || user?.credits?.proMax > 0);
-  const [showDetailedReport, setShowDetailedReport] = useState((initialView === 'detailed') && !isStarter);
+  const [showDetailedReport, setShowDetailedReport] = useState(true);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
@@ -1219,8 +1219,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     if (fromHistory) {
                       onNavigateToView('history');
                     } else {
-                      setShowDetailedReport(false);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      onNavigateToView('step4');
                     }
                   }}
                   style={{
@@ -1238,7 +1237,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     transition: 'all 0.2s'
                   }}
                 >
-                  ← {fromHistory ? 'Back to Reports History' : 'Back to Summary'}
+                  ← {fromHistory ? 'Back to Reports History' : 'Back to Action Plan Selection'}
                 </button>
                 <button
                   onClick={() => window.print()}
@@ -1653,6 +1652,123 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 </div>
               );
             })()}
+
+            {/* ── Optimization Action Plan Checklist Section ── */}
+            <div style={{
+              backgroundColor: '#FFFFFF',
+              border: '1px solid var(--color-border)',
+              borderRadius: '16px',
+              padding: '28px',
+              marginTop: '24px',
+              marginBottom: '32px',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', borderBottom: '1px solid #F1F5F9', paddingBottom: '16px' }}>
+                <span style={{ fontSize: '24px' }}>📋</span>
+                <div>
+                  <h3 style={{ fontSize: '18px', fontWeight: '850', color: '#0F172A', margin: 0 }}>
+                    Optimization Action Plan Checklist
+                  </h3>
+                  <p style={{ fontSize: '12.5px', color: '#64748B', margin: '2px 0 0 0' }}>
+                    Follow these step-by-step actions to execute your configured cost savings.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '16px' }}>
+                {recs.map((rec, idx) => {
+                  const choice = finalSelectedOptions[idx] || 'api';
+                  const opt = choice === 'api' ? rec.apiOption : rec.subscriptionOption;
+                  if (!opt) return null;
+
+                  const match = rec.issue ? rec.issue.match(/Paying \$([\d,.]+)/) : null;
+                  const itemCurrentCost = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
+
+                  const details = parseRecDetails(rec);
+                  const dynamicSavingsVal = (() => {
+                    if (choice === 'api' && rec.apiOption) {
+                      const limits = rec.apiOption.limits || '';
+                      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                        ? rec.apiOption.inputCostPerM 
+                        : (() => {
+                            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                            return match ? parseFloat(match[1]) : 5.00;
+                          })();
+                      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                        ? rec.apiOption.outputCostPerM 
+                        : (() => {
+                            const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                            return match ? parseFloat(match[1]) : 15.00;
+                          })();
+
+                      const adj = tokenAdjustments[idx] || { 
+                        inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000, 
+                        outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000 
+                      };
+                      const inputCost = adj.inputMillions * inputCostPerM;
+                      const outputCost = adj.outputMillions * outputCostPerM;
+                      const dynamicApiCost = inputCost + outputCost;
+                      return itemCurrentCost - dynamicApiCost;
+                    }
+                    return opt ? opt.savings : 0;
+                  })();
+
+                  const logo = getProviderLogo(rec.tool);
+
+                  return (
+                    <div key={idx} style={{
+                      display: 'flex',
+                      gap: '16px',
+                      padding: '16px',
+                      borderRadius: '12px',
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #E2E8F0',
+                      borderLeft: choice === 'api' ? '4px solid #3B82F6' : '4px solid #10B981',
+                      alignItems: 'flex-start'
+                    }}>
+                      <input 
+                        type="checkbox" 
+                        style={{ width: '18px', height: '18px', accentColor: '#10B981', cursor: 'pointer', marginTop: '3px' }}
+                      />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {logo && <img src={logo} alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />}
+                            <strong style={{ fontSize: '14px', color: '#1E293B' }}>{rec.tool}</strong>
+                            <span style={{
+                              fontSize: '10px',
+                              fontWeight: '800',
+                              textTransform: 'uppercase',
+                              color: choice === 'api' ? '#2563EB' : '#047857',
+                              backgroundColor: choice === 'api' ? '#EFF6FF' : '#ECFDF5',
+                              padding: '2px 6px',
+                              borderRadius: '4px'
+                            }}>
+                              {choice === 'api' ? 'API ROUTING' : 'SUBSCRIPTION'}
+                            </span>
+                          </div>
+                          
+                          <div style={{ fontSize: '13px', fontWeight: '800', color: dynamicSavingsVal >= 0 ? '#10B981' : '#EF4444' }}>
+                            {dynamicSavingsVal >= 0 ? `+$${dynamicSavingsVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo savings` : `-$${Math.abs(dynamicSavingsVal).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}/mo cost`}
+                          </div>
+                        </div>
+
+                        <p style={{ fontSize: '13px', color: '#334155', fontWeight: '600', margin: '8px 0 4px 0', lineHeight: '1.4' }}>
+                          {opt.action}
+                        </p>
+
+                        {opt.limits && (
+                          <div style={{ fontSize: '11.5px', color: '#64748B', fontStyle: 'italic', marginTop: '4px' }}>
+                            ℹ️ {opt.limits}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
 
             {/* ── 3b. Model Specific Comparison & Benchmarks ── */}
             {intelData && intelData.llms && recs.map((rec, origIdx) => ({ rec, origIdx })).filter(item => {
@@ -2532,13 +2648,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 </button>
               ) : (
                 <button
-                  onClick={() => {
-                    setShowDetailedReport(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
+                  onClick={() => onNavigateToView('step4')}
                   style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
                 >
-                  ← Back to Summary
+                  ← Back to Action Plan Selection
                 </button>
               )}
               <button

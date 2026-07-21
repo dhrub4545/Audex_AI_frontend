@@ -12,7 +12,9 @@ import {
   RefreshCw,
   Target,
   Sparkles,
-  Trash2
+  Trash2,
+  Lock,
+  ShieldCheck
 } from 'lucide-react';
 
 export default function HistoryView({
@@ -99,14 +101,25 @@ export default function HistoryView({
                 <div key={audit._id} className="history-card" style={{ cursor: 'default', display: 'flex', flexDirection: 'column', height: '100%' }}>
                   <div className="history-card-header">
                     <div>
-                      <span className="history-card-date" style={{ fontWeight: '600' }}>
-                        {new Date(audit.createdAt).toLocaleDateString(undefined, {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                      <span className="history-card-date" style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        {audit.isUnlocked === false ? (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
+                            <Lock size={10} /> Locked
+                          </span>
+                        ) : (
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#ECFDF5', color: '#10B981', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
+                            <ShieldCheck size={10} /> Unlocked
+                          </span>
+                        )}
+                        <span>
+                          {new Date(audit.createdAt).toLocaleDateString(undefined, {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
                       </span>
                     </div>
                     <span className="history-card-savings" style={{ 

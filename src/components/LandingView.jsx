@@ -2174,46 +2174,51 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               letterSpacing: '0.08em',
               display: 'inline-block'
             }}>Pricing Plans</span>
-            <h2 className="section-title">Simple, Transparent Credit-Based Pricing</h2>
-            <p>No monthly commitments. Buy audit credits as needed, or choose a flat-rate subscription for ongoing checks.</p>
+            <h2 className="section-title">Redesigned Optimization Tiers</h2>
+            <p>Audit small setups for free, unlock single reports, or subscribe for full enterprise optimization.</p>
           </div>
 
           <div className="steps-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
-            {/* Starter Plan */}
+            {/* Free Plan */}
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
-                <span className="step-number" style={{ top: '24px', right: '24px' }}>Starter Sub</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Starter</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For individuals and light optimization.</div>
+                <span className="step-number" style={{ top: '24px', right: '24px' }}>Free Tier</span>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Free</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For individuals with basic setups.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$19.99</span>
+                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$0</span>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 10 credits included per month
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Audit up to 2 tools
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Up to 4 active provider models
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Fully unlocked reports
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Optimization Action Plan (Upto Step 5)
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Option A vs B comparison
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Basic AI insights &amp; support
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px', color: 'var(--color-text-muted)' }}>
+                    ✕ No saving to user history
                   </div>
                 </div>
               </div>
 
-              <button
-                onClick={() => onPurchase('Starter Subscription', 'starter', 10)}
+              <a
+                href="#wizard"
+                onClick={(e) => {
+                  e.preventDefault();
+                  const el = document.getElementById('wizard');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                }}
                 className="btn btn-outline"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', textAlign: 'center', textDecoration: 'none', display: 'block', boxSizing: 'border-box' }}
               >
-                Subscribe (10 Credits)
-              </button>
+                Start Free Audit
+              </a>
             </div>
 
             {/* Pro Plan */}
@@ -2222,74 +2227,77 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 Most Popular
               </div>
               <div>
-                <span className="step-number" style={{ top: '24px', right: '24px' }}>Scaling Sub</span>
+                <span className="step-number" style={{ top: '24px', right: '24px' }}>Professional</span>
                 <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Pro</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For teams scaling and maximizing savings.</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For scaling teams and growing saving targets.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$49.99</span>
+                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$29</span>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 20 credits included per month
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Audit up to 15 tools
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> All providers and models indexed
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Detailed report &amp; migration checklists
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Action Plan + Detailed Analysis Report
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Saves last 10 audits to history
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Priority support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> PDF exports and downloads
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                    * Or unlock individual reports for $19 one-time.
                   </div>
                 </div>
               </div>
 
               <button
-                onClick={() => onPurchase('Pro Subscription', 'pro', 20)}
+                onClick={() => onPurchase('pro', 29)}
                 className="btn btn-green"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
-                Subscribe (20 Credits)
+                Upgrade to Pro ($29/mo)
               </button>
             </div>
 
-            {/* Pro Max Plan */}
+            {/* Enterprise Plan */}
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
-                <span className="step-number" style={{ top: '24px', right: '24px' }}>All-Inclusive</span>
-                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Consultant Plan</div>
-                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For IT procurement teams and external consultants.</div>
+                <span className="step-number" style={{ top: '24px', right: '24px' }}>Enterprise</span>
+                <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Enterprise</div>
+                <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For large teams requiring continuous auditing.</div>
 
                 <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$20.00</span>
+                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$99</span>
                   <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 20 spend audits included per month
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Unlimited tools audited
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> All providers and models indexed
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Continuous monitoring dashboard
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> 1-on-1 implementation support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> API integrations enabled
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
-                    <Check size={16} color="#22C55E" strokeWidth={3} /> Dedicated Slack support
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Team user seat controls
                   </div>
                 </div>
               </div>
 
               <button
-                onClick={() => onPurchase('Pro Max', 'proMax', 20)}
+                onClick={() => onPurchase('enterprise', 99)}
                 className="btn btn-black"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
-                Upgrade to Pro Max
+                Upgrade to Enterprise ($99/mo)
               </button>
             </div>
           </div>
@@ -2364,7 +2372,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               { q: "How are recommendations generated?", a: "We run deterministic cost rules against your inputs, matching them with current provider pricing tables and open capability benchmarks." },
               { q: "Can I export my report?", a: "Yes. All spend reports can be downloaded instantly as print-ready PDF files with action checklists." },
               { q: "Is my data stored?", a: "We store reports on encrypted databases. Your input CSVs are deleted immediately after the audit runs and are never sold or used for model training." },
-              { q: "What happens after the audit?", a: "You receive a step-by-step seat migration checklist. Starter credits are one-time payments with no recurring commitments or subscriptions." }
+              { q: "What happens after the audit?", a: "You receive a step-by-step seat migration checklist. Basic audits (up to 2 tools) are free. Larger audits require a Pro subscription or a one-time unlock fee." }
             ].map((faq, idx) => {
               const isOpen = activeFaqIndex === idx;
               return (
