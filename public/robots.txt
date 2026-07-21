@@ -1,0 +1,8 @@
+# Audex AI - AI Subscription Auditing & Spend Optimization Platform
+# Crawl instructions for Googlebot, Bingbot, and search indexers
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://audex-ai-frontend.vercel.app/sitemap.xml
