@@ -1,7 +1,7 @@
 {
   "short_name": "Audex AI",
-  "name": "Audex AI — AI Subscription Auditing & LLM Spend Optimization",
-  "description": "Audit your team's AI tool subscriptions and API spend. Benchmark 570+ LLMs, eliminate redundant seats, and cut AI costs by up to 50%.",
+  "name": "Audex AI — Enterprise AI Spend Audit & LLM Cost Optimizer",
+  "description": "Audex AI audits enterprise AI tool subscriptions and API spend. Benchmark 570+ LLMs, eliminate duplicate licenses, and optimize workload costs.",
   "icons": [
     {
       "src": "/favicon-48x48.png",
