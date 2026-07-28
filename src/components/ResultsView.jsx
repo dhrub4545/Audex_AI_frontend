@@ -1115,14 +1115,26 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '40px' }}>
                 {fromHistory ? (
                   <button
-                    onClick={() => onNavigateToView('history')}
+                    onClick={() => {
+                      if (isSample) {
+                        alert('This is a sample report');
+                        return;
+                      }
+                      onNavigateToView('history');
+                    }}
                     style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <ArrowLeft size={14} /> Back to Reports History
                   </button>
                 ) : (
                   <button
-                    onClick={() => onNavigateToView('step4')}
+                    onClick={() => {
+                      if (isSample) {
+                        alert('This is a sample report');
+                        return;
+                      }
+                      onNavigateToView('step4');
+                    }}
                     style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <ArrowLeft size={14} /> Back to Action Plan Selection
@@ -1168,6 +1180,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <button
                     onClick={() => {
+                      if (isSample) {
+                        alert('This is a sample report');
+                        return;
+                      }
                       if (fromHistory) {
                         onNavigateToView('history');
                       } else {
@@ -1192,7 +1208,13 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     ← {fromHistory ? 'Back to Reports History' : 'Back to Action Plan Selection'}
                   </button>
                   <button
-                    onClick={() => window.print()}
+                    onClick={() => {
+                      if (isSample) {
+                        alert('This is a sample report');
+                        return;
+                      }
+                      window.print();
+                    }}
                     style={{
                       backgroundColor: '#0F172A',
                       color: '#FFFFFF',
