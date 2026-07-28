@@ -1,3 +1,4 @@
+// Audex AI Frontend Config - Deployed 2026-07-28
 let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // Strip accidental VITE_API_URL= prefix if typed into environment variable value
