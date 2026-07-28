@@ -621,24 +621,28 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
 
     if (intelData && intelData.categories && targetCat && intelData.categories[targetCat]) {
       const categoryModels = intelData.categories[targetCat];
+      const llmMap = new Map((intelData.llms || []).map(m => [m.slug, m]));
+
       let models = categoryModels.map(catModel => {
-        const inputCost = catModel.pricing?.price_1m_input_tokens || 0;
-        const outputCost = catModel.pricing?.price_1m_output_tokens || 0;
-        const blendedPrice = catModel.pricing?.price_1m_blended_3_to_1 || (inputCost * 0.75 + outputCost * 0.25);
+        const fullLlm = llmMap.get(catModel.slug) || {};
+        const inputCost = catModel.pricing?.price_1m_input_tokens || fullLlm.inputCost || 0;
+        const outputCost = catModel.pricing?.price_1m_output_tokens || fullLlm.outputCost || 0;
+        const blendedPrice = fullLlm.blendedPrice || (inputCost * 0.75 + outputCost * 0.25);
 
         return {
+          ...fullLlm,
           ...catModel,
-          name: catModel.name || catModel.model_name || catModel.slug,
-          creator: catModel.organization || catModel.model_creator?.name || 'Unknown',
-          rating: catModel.rating || catModel.arena_elo || 0,
+          name: catModel.name || fullLlm.name || catModel.slug,
+          creator: catModel.organization || fullLlm.creator || 'Unknown',
+          rating: catModel.rating || fullLlm.intelligence_index || 0,
           rank: catModel.rank,
-          intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || null,
-          coding_index: catModel.evaluations?.artificial_analysis_coding_index || null,
-          math_index: catModel.evaluations?.artificial_analysis_math_index || null,
-          gpqa: catModel.evaluations?.gpqa || null,
-          hle: catModel.evaluations?.hle || null,
-          throughput: catModel.median_output_tokens_per_second || null,
-          ttft: catModel.median_time_to_first_token_seconds || null,
+          intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || fullLlm.intelligence_index || null,
+          coding_index: catModel.evaluations?.artificial_analysis_coding_index || fullLlm.coding_index || null,
+          math_index: catModel.evaluations?.artificial_analysis_math_index || fullLlm.math_index || null,
+          gpqa: catModel.evaluations?.gpqa || fullLlm.gpqa || null,
+          hle: catModel.evaluations?.hle || fullLlm.hle || null,
+          throughput: catModel.median_output_tokens_per_second || fullLlm.throughput || null,
+          ttft: catModel.median_time_to_first_token_seconds || fullLlm.ttft || null,
           blendedPrice: blendedPrice
         };
       });
