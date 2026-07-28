@@ -6,7 +6,7 @@
   
   <!-- Homepage & Core AI Audit Engine -->
   <url>
-    <loc>https://audex-ai-frontend.vercel.app/</loc>
+    <loc>https://audexai.in/</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
@@ -14,7 +14,7 @@
 
   <!-- AI Model Auditor & Benchmarking -->
   <url>
-    <loc>https://audex-ai-frontend.vercel.app/?view=model-auditor</loc>
+    <loc>https://audexai.in/?view=model-auditor</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
@@ -22,7 +22,7 @@
 
   <!-- Market Intelligence & Benchmark Leaderboard -->
   <url>
-    <loc>https://audex-ai-frontend.vercel.app/?view=market-intel</loc>
+    <loc>https://audexai.in/?view=market-intel</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
@@ -30,7 +30,7 @@
 
   <!-- Audit Wizard & Calculator -->
   <url>
-    <loc>https://audex-ai-frontend.vercel.app/?view=step1</loc>
+    <loc>https://audexai.in/?view=step1</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
@@ -38,7 +38,7 @@
 
   <!-- Sample Audit Report -->
   <url>
-    <loc>https://audex-ai-frontend.vercel.app/?view=sample</loc>
+    <loc>https://audexai.in/?view=sample</loc>
     <lastmod>2026-07-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.75</priority>

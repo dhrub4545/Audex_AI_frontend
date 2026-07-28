@@ -2,11 +2,23 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
-    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0F172A" />
+
+    <!-- Google Site Name & Branding signals -->
+    <meta name="application-name" content="Audex AI" />
+    <meta name="apple-mobile-web-app-title" content="Audex AI" />
+
+    <!-- Favicons for Google Search & Browsers -->
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
 
     <!-- Primary Meta Tags for Google Search -->
     <title>Audex AI — #1 AI Spend Audit, Subscription & LLM Cost Optimizer</title>
@@ -35,22 +47,22 @@
     <meta name="twitter:description" content="Stop overpaying for AI tools. Audit subscription seats, compare live model performance, and migrate to low-cost API endpoints." />
     <meta name="twitter:image" content="https://audex-ai-frontend.vercel.app/og-image.png" />
 
-    <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets -->
+    <!-- Google Site Name Structured Data (WebSite JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Audex AI",
+      "alternateName": ["AudexAI", "Audex", "audex-ai-frontend"],
+      "url": "https://audex-ai-frontend.vercel.app/"
+    }
+    </script>
+
+    <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets & Organization -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
-        {
-          "@type": "WebSite",
-          "@id": "https://audex-ai-frontend.vercel.app/#website",
-          "url": "https://audex-ai-frontend.vercel.app/",
-          "name": "Audex AI",
-          "description": "AI Subscription Auditing & Spend Optimization Platform",
-          "publisher": {
-            "@id": "https://audex-ai-frontend.vercel.app/#organization"
-          },
-          "inLanguage": "en-US"
-        },
         {
           "@type": "Organization",
           "@id": "https://audex-ai-frontend.vercel.app/#organization",
@@ -58,7 +70,7 @@
           "url": "https://audex-ai-frontend.vercel.app/",
           "logo": {
             "@type": "ImageObject",
-            "url": "https://audex-ai-frontend.vercel.app/favicon.png"
+            "url": "https://audex-ai-frontend.vercel.app/icon-512.png"
           }
         },
         {

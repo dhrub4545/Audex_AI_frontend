@@ -5,4 +5,4 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://audex-ai-frontend.vercel.app/sitemap.xml
+Sitemap: https://audexai.in/sitemap.xml
