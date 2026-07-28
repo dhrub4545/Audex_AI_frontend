@@ -190,11 +190,17 @@ function CustomSelect({ value, onChange, options, placeholder }) {
 
   const selectedOption = options.find(opt => opt.value === value);
 
+  const getInitialHighlightIndex = () => {
+    const selectedIdx = options.findIndex(opt => opt.value === value);
+    if (selectedIdx >= 0) return selectedIdx;
+    const firstNonHeader = options.findIndex(opt => !opt.isHeader);
+    return firstNonHeader >= 0 ? firstNonHeader : 0;
+  };
+
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
     if (!isOpen) {
-      const selectedIndex = options.findIndex(opt => opt.value === value);
-      setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+      setHighlightedIndex(getInitialHighlightIndex());
     }
   };
 
@@ -207,27 +213,33 @@ function CustomSelect({ value, onChange, options, placeholder }) {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (isOpen) {
-        if (highlightedIndex >= 0 && highlightedIndex < options.length) {
+        if (highlightedIndex >= 0 && highlightedIndex < options.length && !options[highlightedIndex].isHeader) {
           handleSelect(options[highlightedIndex].value);
         }
       } else {
         setIsOpen(true);
-        const selectedIndex = options.findIndex(opt => opt.value === value);
-        setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+        setHighlightedIndex(getInitialHighlightIndex());
       }
     } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       if (!isOpen) {
         setIsOpen(true);
-        const selectedIndex = options.findIndex(opt => opt.value === value);
-        setHighlightedIndex(selectedIndex >= 0 ? selectedIndex : 0);
+        setHighlightedIndex(getInitialHighlightIndex());
       } else {
-        setHighlightedIndex(prev => (prev + 1) % options.length);
+        let nextIdx = (highlightedIndex + 1) % options.length;
+        while (options[nextIdx] && options[nextIdx].isHeader) {
+          nextIdx = (nextIdx + 1) % options.length;
+        }
+        setHighlightedIndex(nextIdx);
       }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (isOpen) {
-        setHighlightedIndex(prev => (prev - 1 + options.length) % options.length);
+        let prevIdx = (highlightedIndex - 1 + options.length) % options.length;
+        while (options[prevIdx] && options[prevIdx].isHeader) {
+          prevIdx = (prevIdx - 1 + options.length) % options.length;
+        }
+        setHighlightedIndex(prevIdx);
       }
     } else if (e.key === 'Escape') {
       setIsOpen(false);
@@ -292,6 +304,7 @@ function CustomSelect({ value, onChange, options, placeholder }) {
           className="custom-select-menu"
           ref={listRef}
           role="listbox"
+          data-lenis-prevent
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',
@@ -315,6 +328,28 @@ function CustomSelect({ value, onChange, options, placeholder }) {
           }}
         >
           {options.map((opt, idx) => {
+            if (opt.isHeader) {
+              return (
+                <li
+                  key={`header-${idx}`}
+                  style={{
+                    padding: '8px 14px',
+                    fontSize: '11px',
+                    fontWeight: '800',
+                    color: '#94A3B8',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    pointerEvents: 'none',
+                    userSelect: 'none',
+                    marginTop: idx > 0 ? '6px' : '0',
+                    marginBottom: '2px',
+                    borderBottom: '1px solid #F1F5F9'
+                  }}
+                >
+                  {opt.label}
+                </li>
+              );
+            }
             const isSelected = opt.value === value;
             const isHighlighted = idx === highlightedIndex;
             return (
@@ -774,58 +809,45 @@ export default function ModelAuditorView({
                   <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: 'var(--color-text-primary)', marginBottom: '8px' }}>
                     Primary Workload Use-Case
                   </label>
-                  <select
-                    className="modern-select"
+                  <CustomSelect
                     value={targetUseCase}
-                    onChange={(e) => setTargetUseCase(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '10px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid var(--color-border)',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      backgroundColor: '#FFFFFF',
-                      cursor: 'pointer',
-                      color: 'var(--color-text-primary)'
-                    }}
-                  >
-                    <optgroup label="── Core Capabilities ──">
-                      <option value="Coding">Coding</option>
-                      <option value="Math">Math</option>
-                      <option value="Writing">Creative Writing</option>
-                      <option value="Research">Research</option>
-                      <option value="Expert">Expert Tasks</option>
-                      <option value="Instruction-following">Instruction Following</option>
-                      <option value="Multi-turn">Multi-turn Chat</option>
-                      <option value="Longer-query">Longer Queries</option>
-                      <option value="Hard-prompts">Hard Prompts</option>
-                      <option value="Hard-prompts-english">Hard Prompts (English)</option>
-                      <option value="Mixed">Mixed / Overall</option>
-                    </optgroup>
-                    <optgroup label="── Industry Verticals ──">
-                      <option value="Software">Software &amp; IT Services</option>
-                      <option value="Business">Business &amp; Finance</option>
-                      <option value="Healthcare">Medicine &amp; Healthcare</option>
-                      <option value="Legal">Legal &amp; Government</option>
-                      <option value="Science">Life &amp; Social Science</option>
-                      <option value="Math-industry">Mathematical Industry</option>
-                      <option value="Media">Entertainment &amp; Media</option>
-                      <option value="Literature">Literature &amp; Language</option>
-                    </optgroup>
-                    <optgroup label="── Languages ──">
-                      <option value="English">English</option>
-                      <option value="Chinese">Chinese</option>
-                      <option value="French">French</option>
-                      <option value="German">German</option>
-                      <option value="Japanese">Japanese</option>
-                      <option value="Korean">Korean</option>
-                      <option value="Polish">Polish</option>
-                      <option value="Russian">Russian</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="Non-english">Non-English</option>
-                    </optgroup>
-                  </select>
+                    onChange={(val) => setTargetUseCase(val)}
+                    options={[
+                      { isHeader: true, label: '── Core Capabilities ──' },
+                      { value: 'Coding', label: 'Coding' },
+                      { value: 'Math', label: 'Math' },
+                      { value: 'Writing', label: 'Creative Writing' },
+                      { value: 'Research', label: 'Research' },
+                      { value: 'Expert', label: 'Expert Tasks' },
+                      { value: 'Instruction-following', label: 'Instruction Following' },
+                      { value: 'Multi-turn', label: 'Multi-turn Chat' },
+                      { value: 'Longer-query', label: 'Longer Queries' },
+                      { value: 'Hard-prompts', label: 'Hard Prompts' },
+                      { value: 'Hard-prompts-english', label: 'Hard Prompts (English)' },
+                      { value: 'Mixed', label: 'Mixed / Overall' },
+                      { isHeader: true, label: '── Industry Verticals ──' },
+                      { value: 'Software', label: 'Software & IT Services' },
+                      { value: 'Business', label: 'Business & Finance' },
+                      { value: 'Healthcare', label: 'Medicine & Healthcare' },
+                      { value: 'Legal', label: 'Legal & Government' },
+                      { value: 'Science', label: 'Life & Social Science' },
+                      { value: 'Math-industry', label: 'Mathematical Industry' },
+                      { value: 'Media', label: 'Entertainment & Media' },
+                      { value: 'Literature', label: 'Literature & Language' },
+                      { isHeader: true, label: '── Languages ──' },
+                      { value: 'English', label: 'English' },
+                      { value: 'Chinese', label: 'Chinese' },
+                      { value: 'French', label: 'French' },
+                      { value: 'German', label: 'German' },
+                      { value: 'Japanese', label: 'Japanese' },
+                      { value: 'Korean', label: 'Korean' },
+                      { value: 'Polish', label: 'Polish' },
+                      { value: 'Russian', label: 'Russian' },
+                      { value: 'Spanish', label: 'Spanish' },
+                      { value: 'Non-english', label: 'Non-English' }
+                    ]}
+                    placeholder="Select Use Case"
+                  />
                 </div>
 
                 {/* Optimization Strategy Section */}

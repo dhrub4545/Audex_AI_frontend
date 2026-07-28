@@ -345,6 +345,7 @@ function CustomSelect({ value, onChange, options, placeholder }) {
           className="custom-select-menu"
           ref={listRef}
           role="listbox"
+          data-lenis-prevent
           style={{
             position: 'absolute',
             top: 'calc(100% + 8px)',
@@ -910,70 +911,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           </div>
         ) : (
           <>
-            {/* Spotlight Grid */}
-            <div className="spotlight-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '40px' }}>
-
-              <div className="spotlight-card" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s ease', cursor: 'default' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Zap size={20} style={{ color: '#0284c7' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#E0F2FE', color: '#0369A1', padding: '3px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Speed</span>
-                </div>
-                <div className="spotlight-label" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Speed Champion</div>
-                <div className="spotlight-value" style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                  {spotlightStats.speedChampion ? `${spotlightStats.speedChampion.throughput} t/s` : 'N/A'}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getDeveloperColor(spotlightStats.speedChampion?.creator) }}></span>
-                  {spotlightStats.speedChampion ? spotlightStats.speedChampion.name : 'N/A'}
-                </div>
-              </div>
-
-              <div className="spotlight-card" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s ease', cursor: 'default' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Sparkles size={20} style={{ color: '#059669' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#ECFDF5', color: '#047857', padding: '3px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Value</span>
-                </div>
-                <div className="spotlight-label" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Best Frontier Value</div>
-                <div className="spotlight-value" style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                  {spotlightStats.bestValue ? `$${spotlightStats.bestValue.blendedPrice.toFixed(2)}/M` : 'N/A'}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getDeveloperColor(spotlightStats.bestValue?.creator) }}></span>
-                  {spotlightStats.bestValue ? spotlightStats.bestValue.name : 'N/A'}
-                </div>
-              </div>
-
-              <div className="spotlight-card" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s ease', cursor: 'default' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Image size={20} style={{ color: '#dc2626' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#FEE2E2', color: '#B91C1C', padding: '3px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Image</span>
-                </div>
-                <div className="spotlight-label" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Top Image Model</div>
-                <div className="spotlight-value" style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                  {spotlightStats.topImage ? `ELO ${spotlightStats.topImage.elo}` : 'N/A'}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getDeveloperColor(spotlightStats.topImage?.creator) }}></span>
-                  {spotlightStats.topImage ? spotlightStats.topImage.name : 'N/A'}
-                </div>
-              </div>
-
-              <div className="spotlight-card" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: 'var(--shadow-sm)', transition: 'transform 0.2s ease', cursor: 'default' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Video size={20} style={{ color: '#7c3aed' }} />
-                  <span style={{ fontSize: '10px', fontWeight: '800', backgroundColor: '#FAF5FF', color: '#6B21A8', padding: '3px 8px', borderRadius: '9999px', textTransform: 'uppercase' }}>Video</span>
-                </div>
-                <div className="spotlight-label" style={{ fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em' }}>Top Video Model</div>
-                <div className="spotlight-value" style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                  {spotlightStats.topVideo ? `ELO ${spotlightStats.topVideo.elo}` : 'N/A'}
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-secondary)', marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getDeveloperColor(spotlightStats.topVideo?.creator) }}></span>
-                  {spotlightStats.topVideo ? spotlightStats.topVideo.name : 'N/A'}
-                </div>
-              </div>
-
-            </div>
+            
 
             {/* Filter controls panel (Search, Providers) */}
             <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '32px', alignItems: 'start', marginBottom: '40px' }}>
@@ -1014,7 +952,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                 {/* Providers Checklist */}
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '12px' }}>AI Providers</label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
+                  <div data-lenis-prevent style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                     {creatorsList.map(creator => (
                       <label
                         key={creator}
