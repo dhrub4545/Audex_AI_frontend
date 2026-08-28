@@ -4,43 +4,52 @@
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   
-  <!-- Homepage & Core AI Audit Engine -->
+  <!-- Homepage & Core AI Audit Platform -->
   <url>
     <loc>https://audexai.in/</loc>
-    <lastmod>2026-07-21</lastmod>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.00</priority>
   </url>
 
-  <!-- AI Model Auditor & Benchmarking -->
+  <!-- AI Model Auditor & Benchmark Comparison Engine -->
   <url>
     <loc>https://audexai.in/?view=model-auditor</loc>
-    <lastmod>2026-07-21</lastmod>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Enterprise Market Intelligence & Leaderboard -->
+  <url>
+    <loc>https://audexai.in/?view=market-intel</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
 
-  <!-- Market Intelligence & Benchmark Leaderboard -->
+  <!-- AI Subscription Audit Wizard & Spend Calculator -->
   <url>
-    <loc>https://audexai.in/?view=market-intel</loc>
-    <lastmod>2026-07-21</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://audexai.in/?view=step1</loc>
+    <lastmod>2026-08-28</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Audit Wizard & Calculator -->
+  <!-- Sample Enterprise AI Audit Report -->
   <url>
-    <loc>https://audexai.in/?view=step1</loc>
-    <lastmod>2026-07-21</lastmod>
+    <loc>https://audexai.in/?view=sample</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
 
-  <!-- Sample Audit Report -->
+  <!-- Pricing & Subscription Plans -->
   <url>
-    <loc>https://audexai.in/?view=sample</loc>
-    <lastmod>2026-07-21</lastmod>
+    <loc>https://audexai.in/?view=pricing</loc>
+    <lastmod>2026-08-28</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.80</priority>
   </url>
 </urlset>
+

@@ -1,8 +1,10 @@
-# Audex AI - AI Subscription Auditing & Spend Optimization Platform
+# Audex AI - Enterprise AI Subscription Auditing & LLM Spend Optimizer
 # Crawl instructions for Googlebot, Bingbot, and search indexers
 
 User-agent: *
 Allow: /
 
-# Sitemap
+# Canonical Host & Sitemap
+Host: https://audexai.in
 Sitemap: https://audexai.in/sitemap.xml
+

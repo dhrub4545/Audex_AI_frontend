@@ -74,7 +74,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
   return (
     <header className="navbar">
       <div className="container">
-        <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToLanding(); }} className="brand">
+        <a href="/" onClick={(e) => { e.preventDefault(); onNavigateToLanding(); }} className="brand" title="Audex AI Home">
           <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
           <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
         </a>
@@ -89,6 +89,8 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             padding-bottom: 6px;
             font-size: 13px !important;
             white-space: nowrap !important;
+            text-decoration: none;
+            color: var(--color-text-secondary);
           }
           .nav-links .nav-link.active {
             color: var(--color-green-primary) !important;
@@ -188,6 +190,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             border-radius: 6px;
             font-weight: 500;
             transition: all 150ms ease;
+            text-decoration: none;
           }
           .user-menu-item:hover {
             background-color: var(--color-bg-accent);
@@ -201,7 +204,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             color: #DC2626;
           }
         `}</style>
-        <nav className="nav-links">
+        <nav className="nav-links" aria-label="Audex AI Main Navigation">
           <a href="#how-it-works" onClick={(e) => {
             e.preventDefault();
             onNavigateToLanding();
@@ -215,17 +218,17 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
                 }
               }
             }, 100);
-          }} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`}>How it works</a>
-          <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`}>Pricing</a>
-          <button onClick={onNavigateToMarketIntel} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          }} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">How it works</a>
+          <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`} title="Audex AI Pricing & Plans">Pricing</a>
+          <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
             Market Intel
-          </button>
-          <button onClick={onNavigateToHistory} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+          </a>
+          <a href="/?view=history" onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
             Reports History
-          </button>
-          <button onClick={onNavigateToModelAuditor} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          </a>
+          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }} title="Benchmark 570+ Models in Live AI Model Auditor">
             Model Auditor <Zap size={14} stroke="currentColor" strokeWidth={2} />
-          </button>
+          </a>
         </nav>
         <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
           {user && (() => {

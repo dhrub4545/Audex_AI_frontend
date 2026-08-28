@@ -36,9 +36,68 @@ const INITIAL_TOOLS = [
 
 const BACKEND_URL = API_BASE_URL;
 
+const getViewFromUrl = () => {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get('view');
+    if (!v) {
+      if (window.location.hash === '#pricing') return 'pricing_scroll';
+      return 'landing';
+    }
+    const normalized = v.toLowerCase().replace(/[-_]/g, '');
+    if (normalized === 'modelauditor') return 'model_auditor';
+    if (normalized === 'marketintel') return 'market_intel';
+    if (normalized === 'step1' || normalized === 'wizard' || normalized === 'audit') return 'step1';
+    if (normalized === 'step2') return 'step2';
+    if (normalized === 'step3') return 'step3';
+    if (normalized === 'sample' || normalized === 'samplereport') return 'sample_report';
+    if (normalized === 'history') return 'history';
+    if (normalized === 'signin' || normalized === 'login') return 'signin';
+    if (normalized === 'signup' || normalized === 'register') return 'signup';
+    if (normalized === 'pricing') return 'pricing_scroll';
+    return 'landing';
+  } catch (e) {
+    return 'landing';
+  }
+};
+
+const getViewUrlParam = (view) => {
+  switch (view) {
+    case 'model_auditor': return 'model-auditor';
+    case 'market_intel': return 'market-intel';
+    case 'step1': return 'step1';
+    case 'step2': return 'step2';
+    case 'step3': return 'step3';
+    case 'sample_report': return 'sample';
+    case 'history': return 'history';
+    case 'signin': return 'signin';
+    case 'signup': return 'signup';
+    default: return '';
+  }
+};
+
+const getViewTitle = (view) => {
+  switch (view) {
+    case 'model_auditor': return 'Audex AI — Live AI Model Auditor & Benchmark Comparison';
+    case 'market_intel': return 'Audex AI — Enterprise AI Market Intelligence & Leaderboard';
+    case 'step1': return 'Audex AI — AI Subscription Audit Wizard & Spend Calculator';
+    case 'step2': return 'Audex AI — Configure AI Tool Allocations';
+    case 'step3': return 'Audex AI — Set AI Optimization Goals';
+    case 'results': return 'Audex AI — Enterprise AI Spend Audit Results';
+    case 'sample_report': return 'Audex AI — Sample Enterprise AI Audit Report';
+    case 'history': return 'Audex AI — Audit Reports History';
+    case 'signin': return 'Audex AI — Sign In';
+    case 'signup': return 'Audex AI — Create Free Account';
+    default: return 'Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer';
+  }
+};
+
 export default function App() {
-  // Navigation: 'landing', 'step1', 'step2', 'step3', 'loading', 'results', 'history', 'signin', 'signup'
-  const [currentView, setCurrentView] = useState('landing');
+  // Navigation: 'landing', 'step1', 'step2', 'step3', 'loading', 'results', 'history', 'signin', 'signup', 'model_auditor', 'market_intel', 'sample_report'
+  const [currentView, setCurrentView] = useState(() => {
+    const initial = getViewFromUrl();
+    return initial === 'pricing_scroll' ? 'landing' : initial;
+  });
 
   useEffect(() => {
     const fetchSubscriptionTiers = async () => {
@@ -601,6 +660,71 @@ export default function App() {
     }
   };
 
+  // URL routing synchronization & document title
+  useEffect(() => {
+    const viewParam = getViewUrlParam(currentView);
+    const url = new URL(window.location.href);
+    
+    // Don't overwrite OAuth callback tokens during auth redirect handling
+    const hasAuthParams = url.searchParams.has('google_token') || url.searchParams.has('github_token');
+    if (!hasAuthParams) {
+      if (viewParam) {
+        url.searchParams.set('view', viewParam);
+      } else {
+        url.searchParams.delete('view');
+      }
+      
+      const newQuery = url.searchParams.toString();
+      const newUrl = url.pathname + (newQuery ? `?${newQuery}` : '') + url.hash;
+      const currentQuery = window.location.search.replace(/^\?/, '');
+      if (currentQuery !== newQuery) {
+        window.history.pushState({ view: currentView }, '', newUrl);
+      }
+    }
+    
+    // Set dynamic document title for Google Search & tabs
+    document.title = getViewTitle(currentView);
+  }, [currentView]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const targetView = getViewFromUrl();
+      if (targetView === 'pricing_scroll') {
+        setCurrentView('landing');
+        setTimeout(() => {
+          const el = document.getElementById('pricing');
+          if (el) {
+            if (window.lenis) window.lenis.scrollTo(el);
+            else el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 150);
+      } else {
+        setCurrentView(targetView);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Initial load auto-actions (e.g. loading sample report if direct link was opened)
+  useEffect(() => {
+    const initialView = getViewFromUrl();
+    if (initialView === 'sample_report' && !auditResult) {
+      handleViewSample();
+    } else if (initialView === 'pricing_scroll') {
+      setTimeout(() => {
+        const el = document.getElementById('pricing');
+        if (el) {
+          if (window.lenis) window.lenis.scrollTo(el);
+          else el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 300);
+    }
+  }, []);
+
+
   const handleAuthSubmit = async (payload, mode) => {
     setAuthLoading(true);
     setAuthError(null);
@@ -675,6 +799,8 @@ export default function App() {
               onNavigateToStep1={() => setCurrentView('step1')}
               onNavigateToLanding={() => setCurrentView('landing')}
               onViewSample={handleViewSample}
+              onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+              onNavigateToMarketIntel={() => setCurrentView('market_intel')}
             />
           </div>
         );

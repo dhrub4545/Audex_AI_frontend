@@ -3,7 +3,7 @@ import logoImg from '../assets/audex-ai-logo.png';
 import { ShieldCheck, Lock, ArrowRight, CheckCircle, Rocket } from 'lucide-react';
 import { OpenAI, Claude, Gemini, Meta, DeepSeek, Mistral, GithubCopilot, Cursor, Perplexity, Google } from '@lobehub/icons';
 
-export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewSample }) {
+export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewSample, onNavigateToModelAuditor, onNavigateToMarketIntel }) {
   const handleScrollToSection = (e, sectionId) => {
     e.preventDefault();
     onNavigateToLanding();
@@ -128,12 +128,12 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
         <div className="footer-grid">
           {/* Col 1: Brand */}
           <div className="footer-brand">
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToLanding(); }} className="brand" style={{ marginBottom: '16px', display: 'inline-flex' }}>
+            <a href="/" onClick={(e) => { e.preventDefault(); onNavigateToLanding(); }} className="brand" style={{ marginBottom: '16px', display: 'inline-flex' }} title="Audex AI Homepage">
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
             </a>
             <p className="footer-description" style={{ marginBottom: '24px' }}>
-              Enterprise AI Spend Intelligence for engineering and finance teams.
+              Enterprise AI Spend Intelligence and Model Optimization Platform for engineering and finance teams.
             </p>
             <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-muted)' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600' }}><ShieldCheck size={14} /> Privacy First</div>
@@ -145,12 +145,36 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
           <div className="footer-links-col">
             <span className="footer-links-title">Platform</span>
             <ul className="footer-links">
-              <li><button onClick={onNavigateToStep1} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0 }}>Model Auditor</button></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Market Intelligence route pending.'); }} className="footer-link">Market Intelligence</a></li>
-              <li><a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link">Pricing</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link">Sample Report</a></li>
-              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">How it Works</a></li>
-              <li><button onClick={onNavigateToStep1} className="footer-link" style={{ background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', padding: 0, color: 'var(--color-green-primary)', fontWeight: '600' }}>Start Free Audit</button></li>
+              <li>
+                <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor?.(); }} className="footer-link" title="Benchmark 570+ Models in Live AI Model Auditor">
+                  Model Auditor
+                </a>
+              </li>
+              <li>
+                <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel?.(); }} className="footer-link" title="Enterprise AI Market Intelligence Leaderboard">
+                  Market Intelligence
+                </a>
+              </li>
+              <li>
+                <a href="/?view=pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link" title="Audex AI Pricing & Plans">
+                  Pricing
+                </a>
+              </li>
+              <li>
+                <a href="/?view=sample" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link" title="View Sample Enterprise AI Audit Report">
+                  Sample Report
+                </a>
+              </li>
+              <li>
+                <a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link" title="How Audex AI Optimization Works">
+                  How it Works
+                </a>
+              </li>
+              <li>
+                <a href="/?view=step1" onClick={(e) => { e.preventDefault(); onNavigateToStep1(); }} className="footer-link" style={{ color: 'var(--color-green-primary)', fontWeight: '600' }} title="Start 60-Second AI Spend Audit">
+                  Start Free Audit
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -158,12 +182,10 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
           <div className="footer-links-col">
             <span className="footer-links-title">Trust & Legal</span>
             <ul className="footer-links">
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Privacy Policy is placeholder only.'); }} className="footer-link">Privacy Policy</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Terms of Service are placeholder only.'); }} className="footer-link">Terms of Service</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('AI Ethics details are placeholder only.'); }} className="footer-link">AI Ethics</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Security is placeholder only.'); }} className="footer-link">Security</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Compliance is placeholder only.'); }} className="footer-link">Compliance</a></li>
-              <li><a href="#" onClick={(e) => { e.preventDefault(); alert('Support is placeholder only.'); }} className="footer-link">Contact Support</a></li>
+              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Privacy & Security</a></li>
+              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Security Posture</a></li>
+              <li><a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link">Enterprise Compliance</a></li>
+              <li><a href="mailto:support@audexai.in" className="footer-link">Contact Support</a></li>
             </ul>
           </div>
         </div>
@@ -174,9 +196,9 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
             &copy; {new Date().getFullYear()} Audex AI. All rights reserved.
           </p>
           <div style={{ display: 'flex', gap: '24px', fontSize: '13px' }}>
-            <span style={{ color: 'var(--color-text-muted)' }}>Version 1.0.0</span>
-            <a href="#" onClick={(e) => { e.preventDefault(); alert('Privacy Policy is placeholder only.'); }} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Privacy</a>
-            <a href="#" onClick={(e) => { e.preventDefault(); alert('Terms of Service are placeholder only.'); }} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Terms</a>
+            <span style={{ color: 'var(--color-text-muted)' }}>Audex AI v1.2</span>
+            <a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Privacy</a>
+            <a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Terms</a>
           </div>
         </div>
       </div>

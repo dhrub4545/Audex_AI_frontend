@@ -8,89 +8,227 @@
     <!-- Google Site Name & Branding signals -->
     <meta name="application-name" content="Audex AI" />
     <meta name="apple-mobile-web-app-title" content="Audex AI" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-    <!-- Favicons for Google Search & Browsers -->
-    <link rel="icon" href="/favicon.ico" sizes="any" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <!-- Favicons for Google Search & Browsers (Google requires multiples of 48px: 48x48, 192x192, 512x512) -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48 32x32 16x16" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Primary Meta Tags for Google Search -->
-    <title>Audex AI</title>
-    <meta name="title" content="Audex AI" />
-    <meta name="description" content="Audex AI audits enterprise AI tool subscriptions and API spend. Benchmark 570+ LLMs, eliminate duplicate licenses, and optimize workload costs." />
-    <meta name="keywords" content="Audex AI, Audex, AI spend audit, enterprise AI subscription optimizer, LLM benchmark comparison, AI cost optimization, API spend calculator, LLM routing" />
+    <!-- Primary Meta Tags for Google Search ranking -->
+    <title>Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer</title>
+    <meta name="title" content="Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer" />
+    <meta name="description" content="Audex AI is the enterprise AI tool subscription auditing and LLM cost optimization platform. Benchmark 570+ models, eliminate duplicate licenses, and optimize AI workload spend." />
+    <meta name="keywords" content="Audex AI, Audex, AudexAI, AI subscription audit, enterprise AI spend, LLM cost optimizer, AI tool audit, LLM benchmark comparison, model router, AI license optimization, API spend calculator, shadow AI audit" />
     <meta name="author" content="Audex AI" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="https://audexai.in/" />
     <meta name="google-site-verification" content="googlef9a6c14d357cfc03" />
     <meta name="google-site-verification" content="google96b3757a6b065a8c" />
 
-    <!-- Open Graph / Facebook -->
+    <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://audexai.in/" />
-    <meta property="og:title" content="Audex AI" />
-    <meta property="og:description" content="Automated enterprise AI tool auditing and LLM cost optimization engine. Benchmark 570+ models, eliminate unused seats, and cut AI spend." />
+    <meta property="og:title" content="Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer" />
+    <meta property="og:description" content="Audex AI audits enterprise AI tool subscriptions and API spend. Benchmark 570+ LLMs, eliminate duplicate licenses, and optimize workload costs." />
     <meta property="og:image" content="https://audexai.in/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Audex AI Enterprise AI Spend Intelligence Platform" />
     <meta property="og:site_name" content="Audex AI" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:url" content="https://audexai.in/" />
-    <meta name="twitter:title" content="Audex AI" />
+    <meta name="twitter:title" content="Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer" />
     <meta name="twitter:description" content="Audit subscription seats, compare live model performance, and optimize AI workload costs across your enterprise." />
     <meta name="twitter:image" content="https://audexai.in/og-image.png" />
+    <meta name="twitter:image:alt" content="Audex AI Platform" />
 
-    <!-- Google Site Name Structured Data (WebSite JSON-LD) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Audex AI",
-      "alternateName": ["Audex", "AudexAI"],
-      "url": "https://audexai.in/"
-    }
-    </script>
-
-    <!-- Schema.org JSON-LD Structured Data for Google Rich Snippets & Organization -->
+    <!-- Schema.org JSON-LD Structured Data for Google Brand Entity, Sitelinks & Rich Snippets -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "Organization",
-          "@id": "https://audexai.in/#organization",
-          "name": "Audex AI",
+          "@type": "WebSite",
+          "@id": "https://audexai.in/#website",
           "url": "https://audexai.in/",
-          "logo": {
-            "@type": "ImageObject",
-            "url": "https://audexai.in/icon-512.png"
+          "name": "Audex AI",
+          "alternateName": ["Audex", "AudexAI", "audexai.in", "Audex AI Spend Auditor"],
+          "description": "Enterprise AI tool subscription audit and LLM cost optimization platform.",
+          "publisher": {
+            "@id": "https://audexai.in/#organization"
+          },
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://audexai.in/?view=market-intel&search={search_term_string}"
+            },
+            "query-input": "required name=search_term_string"
           }
         },
         {
+          "@type": "Organization",
+          "@id": "https://audexai.in/#organization",
+          "name": "Audex AI",
+          "legalName": "Audex AI Inc.",
+          "url": "https://audexai.in/",
+          "logo": {
+            "@type": "ImageObject",
+            "@id": "https://audexai.in/#logo",
+            "url": "https://audexai.in/icon-512.png",
+            "contentUrl": "https://audexai.in/icon-512.png",
+            "width": 512,
+            "height": 512,
+            "caption": "Audex AI Logo"
+          },
+          "image": "https://audexai.in/icon-512.png",
+          "description": "Audex AI provides automated enterprise AI tool auditing, LLM model benchmark comparison, and subscription license optimization.",
+          "sameAs": [
+            "https://twitter.com/AudexAI",
+            "https://github.com/AudexAI",
+            "https://linkedin.com/company/audex-ai"
+          ]
+        },
+        {
+          "@type": "ItemList",
+          "@id": "https://audexai.in/#sitelinks",
+          "name": "Audex AI Core Features & Sitelinks",
+          "description": "Primary tools and features provided by Audex AI for enterprise AI optimization",
+          "itemListElement": [
+            {
+              "@type": "SiteNavigationElement",
+              "position": 1,
+              "name": "AI Model Auditor",
+              "description": "Benchmark 570+ LLMs across coding, reasoning, and vision. Calculate real API token pricing vs subscription seats.",
+              "url": "https://audexai.in/?view=model-auditor"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 2,
+              "name": "Market Intelligence",
+              "description": "Enterprise AI benchmark leaderboard, provider pricing comparisons, and real-time model cost trends.",
+              "url": "https://audexai.in/?view=market-intel"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 3,
+              "name": "AI Spend Audit Wizard",
+              "description": "Configure tool seats, identify redundant AI subscriptions, and calculate instant cost cuts in 60 seconds.",
+              "url": "https://audexai.in/?view=step1"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 4,
+              "name": "Sample Audit Report",
+              "description": "Explore full enterprise AI audit report breakdown, tool overlap matrix, and token migration roadmaps.",
+              "url": "https://audexai.in/?view=sample"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 5,
+              "name": "Pricing & Plans",
+              "description": "Flexible pricing tiers for startups and enterprises to audit AI spend, benchmark models, and eliminate software waste.",
+              "url": "https://audexai.in/?view=pricing"
+            },
+            {
+              "@type": "SiteNavigationElement",
+              "position": 6,
+              "name": "How It Works",
+              "description": "Step-by-step workflow to audit subscriptions, map LLM workloads, and implement automated AI cost reduction.",
+              "url": "https://audexai.in/#how-it-works"
+            }
+          ]
+        },
+        {
           "@type": "SoftwareApplication",
+          "@id": "https://audexai.in/#app",
           "name": "Audex AI Spend Auditor",
-          "operatingSystem": "All",
-          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "All (Web-based)",
+          "applicationCategory": "BusinessApplication, FinanceApplication, DeveloperApplication",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "128",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
           "offers": {
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "USD"
           },
           "description": "Automated enterprise AI spend auditing, LLM model benchmark comparison, and subscription license optimization engine."
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://audexai.in/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Audex AI?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Audex AI is an enterprise AI tool subscription auditing and LLM cost optimization platform that analyzes software seats, benchmarks 570+ AI models, and eliminates duplicate tool spend."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How much can enterprise teams save with Audex AI?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Engineering and finance teams typically reduce redundant AI subscription costs by 40% to 65% through consolidated license tiering and smart token-based API routing."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need to connect production API keys to run an audit?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No. Audex AI operates with zero access to your production API keys or proprietary codebase. You simply input current seat counts and workload parameters."
+              }
+            }
+          ]
         }
       ]
     }
     </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Semantic Static Fallback for Search Engine Crawlers (Googlebot, Bingbot) -->
+      <header style="padding: 20px; text-align: center; border-bottom: 1px solid #1e293b; background-color: #0f172a; color: #f8fafc;">
+        <nav aria-label="Audex AI Main Navigation">
+          <a href="https://audexai.in/" style="color: #10b981; font-weight: 700; font-size: 20px; text-decoration: none; margin-right: 24px;">Audex AI</a>
+          <a href="https://audexai.in/?view=model-auditor" style="color: #cbd5e1; margin-right: 16px; text-decoration: none;">Model Auditor</a>
+          <a href="https://audexai.in/?view=market-intel" style="color: #cbd5e1; margin-right: 16px; text-decoration: none;">Market Intelligence</a>
+          <a href="https://audexai.in/?view=step1" style="color: #cbd5e1; margin-right: 16px; text-decoration: none;">Audit Wizard</a>
+          <a href="https://audexai.in/?view=sample" style="color: #cbd5e1; margin-right: 16px; text-decoration: none;">Sample Report</a>
+          <a href="https://audexai.in/?view=pricing" style="color: #cbd5e1; text-decoration: none;">Pricing</a>
+        </nav>
+      </header>
+      <main style="padding: 40px 20px; max-width: 900px; margin: 0 auto; color: #f8fafc;">
+        <h1 style="font-size: 32px; font-weight: 800; color: #ffffff;">Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer</h1>
+        <p style="font-size: 18px; color: #94a3b8; line-height: 1.6;">
+          Audex AI helps engineering and finance leaders audit enterprise AI tool subscriptions, benchmark 570+ LLMs across performance and price, eliminate duplicate licenses, and optimize AI workload spending.
+        </p>
+        <div style="margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap;">
+          <a href="https://audexai.in/?view=step1" style="display: inline-block; padding: 12px 24px; background-color: #10b981; color: #ffffff; border-radius: 8px; font-weight: 700; text-decoration: none;">Start Free AI Audit</a>
+          <a href="https://audexai.in/?view=model-auditor" style="display: inline-block; padding: 12px 24px; background-color: #1e293b; color: #ffffff; border-radius: 8px; font-weight: 600; text-decoration: none;">Live Model Auditor</a>
+          <a href="https://audexai.in/?view=market-intel" style="display: inline-block; padding: 12px 24px; background-color: #1e293b; color: #ffffff; border-radius: 8px; font-weight: 600; text-decoration: none;">Market Intelligence</a>
+          <a href="https://audexai.in/?view=sample" style="display: inline-block; padding: 12px 24px; background-color: #1e293b; color: #ffffff; border-radius: 8px; font-weight: 600; text-decoration: none;">View Sample Report</a>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
