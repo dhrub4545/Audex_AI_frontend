@@ -27,7 +27,9 @@ import {
   Sparkles,
   ChevronDown,
   BarChart3,
-  Gem
+  Gem,
+  Layers,
+  Bot
 } from 'lucide-react';
 
 const PURPOSE_GROUPS = [
@@ -540,6 +542,7 @@ export default function WizardFlow({
   const [subSearchQuery, setSubSearchQuery] = useState('');
   const [apiSearchQuery, setApiSearchQuery] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
+  const [step1ViewMode, setStep1ViewMode] = useState('both'); // 'both', 'sub', 'api'
   const [dbModels, setDbModels] = useState([
     { id: 'openai/gpt-5-6-sol', name: 'OpenAI: GPT-5.6 Sol', developer: 'OpenAI' },
     { id: 'anthropic/claude-opus-5', name: 'Anthropic: Claude Opus 5', developer: 'Anthropic' },
@@ -787,6 +790,14 @@ export default function WizardFlow({
     }
   }, [dbModels, apiSearchQuery]);
 
+  const subSelectedCount = useMemo(() => {
+    return selectedToolIds.filter(id => tools.some(t => t.id === id && t.type === 'subscription')).length;
+  }, [selectedToolIds, tools]);
+
+  const apiSelectedCount = useMemo(() => {
+    return selectedToolIds.filter(id => !tools.some(t => t.id === id && t.type === 'subscription')).length;
+  }, [selectedToolIds, tools]);
+
   // STEP 1 RENDER
   const renderStep1 = () => (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
@@ -798,37 +809,94 @@ export default function WizardFlow({
           margin: 0 auto;
           box-sizing: border-box;
         }
+        .step1-view-switcher {
+          display: none;
+          background: #F1F5F9;
+          padding: 4px;
+          border-radius: 12px;
+          margin-bottom: 16px;
+          gap: 4px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .step1-view-btn {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          padding: 8px 10px;
+          border: none;
+          background: transparent;
+          border-radius: 8px;
+          font-size: 12px;
+          font-weight: 700;
+          color: #64748B;
+          cursor: pointer;
+          transition: all 150ms ease;
+          white-space: nowrap;
+        }
+        .step1-view-btn.active {
+          background: #FFFFFF;
+          color: #0F172A;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+        }
+        .panel-header-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 14px;
+        }
+        .panel-selected-pill {
+          font-size: 11px;
+          font-weight: 800;
+          padding: 2px 8px;
+          border-radius: 12px;
+          background-color: #ECFDF5;
+          color: #059669;
+          border: 1px solid #A7F3D0;
+        }
+        .panel-selected-pill.api {
+          background-color: #EFF6FF;
+          color: #2563EB;
+          border: 1px solid #BFDBFE;
+        }
         .split-workspace {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 24px;
           margin-bottom: 18px;
+          align-items: stretch;
         }
         .workspace-panel {
           background-color: #FFFFFF;
           border: 1px solid #E5E7EB;
           border-radius: 18px;
-          padding: 24px;
+          padding: 22px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
           display: flex;
           flex-direction: column;
-          height: 620px;
+          height: clamp(520px, calc(100vh - 300px), 640px);
           box-sizing: border-box;
+          transition: all 200ms ease;
         }
         .panel-title {
-          font-size: 18px;
-          font-weight: 700;
+          font-size: 17px;
+          font-weight: 750;
           color: #1F2937;
-          margin-top: 0;
-          margin-bottom: 16px;
+          margin: 0;
+          display: flex;
+          align-items: center;
+          gap: 8px;
         }
         .panel-search-wrapper {
           position: relative;
-          margin-bottom: 16px;
+          margin-bottom: 14px;
         }
         
-        /* Custom Tool Scroll Container */
-        .subscription-scroll-container {
+        /* Scroll Containers */
+        .subscription-scroll-container,
+        .api-scroll-container {
           flex: 1;
           min-height: 0;
           overflow-y: auto;
@@ -855,33 +923,55 @@ export default function WizardFlow({
         .tool-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
+          gap: 10px;
           margin-bottom: 0;
         }
         .tool-card {
-          padding: 12px;
-          gap: 12px;
+          padding: 10px 12px;
+          gap: 10px;
+          border-radius: 12px;
+          border: 1.5px solid #F3F4F6;
+          background-color: #FAFAFA;
+          cursor: pointer;
+          transition: all 180ms ease;
+          display: flex;
+          align-items: center;
+        }
+        .tool-card:hover {
+          background-color: #FFFFFF;
+          border-color: #10B981;
+          transform: translateY(-1px);
+        }
+        .tool-card.selected {
+          background-color: #ECFDF5;
+          border-color: #10B981;
+        }
+        .tool-card-name {
+          font-size: 13.5px;
+          font-weight: 700;
+          color: #1F2937;
+        }
+        .tool-card-desc {
+          font-size: 11px;
+          color: #6B7280;
+          margin-top: 1px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         /* Direct API List */
-        .api-scroll-container {
-          flex: 1;
-          min-height: 0;
-          overflow-y: auto;
-          padding-right: 4px;
-        }
-        
         .api-model-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 12px 14px;
+          padding: 10px 12px;
           border: 1.5px solid #F3F4F6;
           background-color: #FAFAFA;
           border-radius: 12px;
           cursor: pointer;
           transition: all 180ms ease;
-          margin-bottom: 8px;
+          margin-bottom: 6px;
           box-sizing: border-box;
         }
         .api-model-row:hover {
@@ -896,7 +986,7 @@ export default function WizardFlow({
         .api-row-left {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 10px;
           min-width: 0;
           flex: 1;
         }
@@ -906,7 +996,7 @@ export default function WizardFlow({
           min-width: 0;
         }
         .api-model-name {
-          font-size: 13.5px;
+          font-size: 13px;
           font-weight: 700;
           color: #1F2937;
           overflow: hidden;
@@ -914,7 +1004,7 @@ export default function WizardFlow({
           white-space: nowrap;
         }
         .api-provider-name {
-          font-size: 11px;
+          font-size: 10.5px;
           color: #6B7280;
           margin-top: 1px;
         }
@@ -940,28 +1030,43 @@ export default function WizardFlow({
         }
         
         @media (max-width: 900px) {
+          .step1-view-switcher {
+            display: flex !important;
+          }
           .split-workspace {
             grid-template-columns: 1fr !important;
-            gap: 20px !important;
+            gap: 16px !important;
           }
           .workspace-panel {
             height: auto !important;
             max-height: none !important;
-            padding: 18px 16px !important;
+            padding: 16px 14px !important;
           }
-          .subscription-scroll-container,
-          .api-scroll-container {
-            max-height: 380px !important;
-            min-height: 220px !important;
+          .workspace-panel.hide-on-mobile {
+            display: none !important;
+          }
+          .subscription-scroll-container.mode-both,
+          .api-scroll-container.mode-both {
+            max-height: 250px !important;
+            min-height: 160px !important;
+          }
+          .subscription-scroll-container.mode-single,
+          .api-scroll-container.mode-single {
+            max-height: 440px !important;
+            min-height: 260px !important;
           }
           .wizard-body-wide {
-            padding: 24px 14px !important;
+            padding: 20px 14px !important;
+          }
+          .tool-grid {
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important;
+            gap: 8px !important;
+          }
+          .tool-card {
+            padding: 9px 10px !important;
           }
         }
         @media (max-width: 640px) {
-          .tool-grid {
-            grid-template-columns: 1fr !important;
-          }
           .bottom-cta-banner {
             flex-direction: column !important;
             text-align: center !important;
@@ -983,6 +1088,16 @@ export default function WizardFlow({
           }
           .wizard-step-line {
             width: 12px !important;
+          }
+        }
+        @media (max-width: 440px) {
+          .tool-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .step1-view-btn {
+            font-size: 11px !important;
+            padding: 6px 6px !important;
+            gap: 3px !important;
           }
         }
       `}</style>
@@ -1096,10 +1211,42 @@ export default function WizardFlow({
           </div>
         )}
 
+        {/* Mobile View Switcher (<= 900px) */}
+        <div className="step1-view-switcher">
+          <button
+            type="button"
+            className={`step1-view-btn ${step1ViewMode === 'both' ? 'active' : ''}`}
+            onClick={() => setStep1ViewMode('both')}
+          >
+            <Layers size={13} /> View Both ({selectedToolIds.length})
+          </button>
+          <button
+            type="button"
+            className={`step1-view-btn ${step1ViewMode === 'sub' ? 'active' : ''}`}
+            onClick={() => setStep1ViewMode('sub')}
+          >
+            <Sparkles size={13} /> Subscriptions ({subSelectedCount})
+          </button>
+          <button
+            type="button"
+            className={`step1-view-btn ${step1ViewMode === 'api' ? 'active' : ''}`}
+            onClick={() => setStep1ViewMode('api')}
+          >
+            <Code2 size={13} /> Direct API ({apiSelectedCount})
+          </button>
+        </div>
+
         <div className="split-workspace">
           {/* Left Panel: Subscription Tools */}
-          <div className="workspace-panel">
-            <h3 className="panel-title">Subscription AI Tools</h3>
+          <div className={`workspace-panel ${step1ViewMode === 'api' ? 'hide-on-mobile' : ''}`}>
+            <div className="panel-header-row">
+              <h3 className="panel-title">
+                <Sparkles size={17} style={{ color: 'var(--color-green-primary)' }} /> Subscription AI Tools
+              </h3>
+              {subSelectedCount > 0 && (
+                <span className="panel-selected-pill">{subSelectedCount} selected</span>
+              )}
+            </div>
             
             <div className="panel-search-wrapper">
               <input 
@@ -1113,7 +1260,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className="subscription-scroll-container" data-lenis-prevent>
+            <div className={`subscription-scroll-container ${step1ViewMode === 'both' ? 'mode-both' : 'mode-single'}`} data-lenis-prevent>
               {subscriptionTools.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
@@ -1133,7 +1280,7 @@ export default function WizardFlow({
                         <div className="tool-card-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                           <ProviderLogo provider={tool.id} size={22} />
                         </div>
-                        <div className="tool-card-info">
+                        <div className="tool-card-info" style={{ minWidth: 0, flex: 1 }}>
                           <span className="tool-card-name">{tool.name}</span>
                           <span className="tool-card-desc">{tool.desc}</span>
                         </div>
@@ -1146,15 +1293,15 @@ export default function WizardFlow({
             </div>
 
             {/* Compact Custom Tool section */}
-            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #E5E7EB', boxSizing: 'border-box' }}>
+            <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #E5E7EB', boxSizing: 'border-box' }}>
               {!isAddingCustom ? (
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '600', color: '#475569' }}>Can't find your tool?</span>
+                  <span style={{ fontSize: '12.5px', fontWeight: '600', color: '#475569' }}>Can't find your tool?</span>
                   <button 
                     type="button"
                     onClick={() => setIsAddingCustom(true)}
                     className="btn btn-outline"
-                    style={{ padding: '6px 12px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer' }}
+                    style={{ padding: '5px 10px', fontSize: '11.5px', borderRadius: '8px', cursor: 'pointer' }}
                   >
                     + Add Custom Tool
                   </button>
@@ -1174,7 +1321,7 @@ export default function WizardFlow({
                   <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
                     <input 
                       type="text" 
-                      placeholder="e.g. Midjourney, Notion AI, Custom Script..."
+                      placeholder="e.g. Midjourney, Notion AI..."
                       className="search-input"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -1186,8 +1333,8 @@ export default function WizardFlow({
                       }}
                       style={{
                         flex: 1,
-                        height: '40px',
-                        padding: '8px 12px 8px 36px',
+                        height: '38px',
+                        padding: '6px 12px 6px 36px',
                         border: '1.5px solid #E5E7EB',
                         borderRadius: '10px',
                         fontSize: '13px',
@@ -1204,7 +1351,7 @@ export default function WizardFlow({
                       }} 
                       className="btn btn-black"
                       disabled={!searchQuery.trim()}
-                      style={{ borderRadius: '10px', padding: '0 16px', height: '40px', display: 'flex', alignItems: 'center', fontSize: '13px' }}
+                      style={{ borderRadius: '10px', padding: '0 14px', height: '38px', display: 'flex', alignItems: 'center', fontSize: '12.5px' }}
                     >
                       Add
                     </button>
@@ -1215,8 +1362,15 @@ export default function WizardFlow({
           </div>
 
           {/* Right Panel: Direct API Models */}
-          <div className="workspace-panel">
-            <h3 className="panel-title">Direct API Models</h3>
+          <div className={`workspace-panel ${step1ViewMode === 'sub' ? 'hide-on-mobile' : ''}`}>
+            <div className="panel-header-row">
+              <h3 className="panel-title">
+                <Code2 size={17} style={{ color: '#3B82F6' }} /> Direct API Models
+              </h3>
+              {apiSelectedCount > 0 && (
+                <span className="panel-selected-pill api">{apiSelectedCount} selected</span>
+              )}
+            </div>
 
             <div className="panel-search-wrapper">
               <input 
@@ -1230,7 +1384,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className="api-scroll-container" data-lenis-prevent>
+            <div className={`api-scroll-container ${step1ViewMode === 'both' ? 'mode-both' : 'mode-single'}`} data-lenis-prevent>
               {filteredDbModels.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
@@ -1264,7 +1418,8 @@ export default function WizardFlow({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        transition: 'all 180ms ease'
+                        transition: 'all 180ms ease',
+                        flexShrink: 0
                       }}>
                         {isSelected && (
                           <span style={{ color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
