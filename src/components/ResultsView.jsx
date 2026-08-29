@@ -536,23 +536,20 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
         <div style={{
           background: 'linear-gradient(90deg, #0F172A 0%, #1E293B 100%)',
           color: '#FFFFFF',
-          padding: '14px 24px',
+          padding: '10px 16px',
           textAlign: 'center',
-          fontSize: '14px',
+          fontSize: '13px',
           fontWeight: '600',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '16px',
-          boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
-          position: 'sticky',
-          top: 0,
-          zIndex: 1000,
+          gap: '12px',
+          flexWrap: 'wrap',
           borderBottom: '1px solid #334155'
         }}>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={16} style={{ color: '#10B981' }} />
-            You are viewing a live <strong>Sample Audit Report</strong>. Ready to optimize your own team's AI spend?
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+            <Sparkles size={15} style={{ color: '#10B981', flexShrink: 0 }} />
+            You are viewing a live <strong>Sample Audit Report</strong>.
           </span>
           <button
             onClick={() => onNavigateToView('step1')}
@@ -560,16 +557,16 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               backgroundColor: '#10B981',
               color: '#FFFFFF',
               border: 'none',
-              padding: '6px 16px',
+              padding: '5px 14px',
               borderRadius: '20px',
-              fontSize: '12px',
+              fontSize: '11.5px',
               fontWeight: '800',
               cursor: 'pointer',
               boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
               transition: 'transform 0.15s ease',
               outline: 'none'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.04)'}
             onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
             Start Free Audit
@@ -577,16 +574,16 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
         </div>
       )}
       {/* ── Navbar ── */}
-      <header className="navbar">
-        <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions">
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {renderCoinDropdown && renderCoinDropdown()}
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline">Back to Home</button>
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black">Run Another Audit</button>
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>Back to Home</button>
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>New Audit</button>
           </div>
         </div>
       </header>

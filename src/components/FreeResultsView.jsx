@@ -213,15 +213,15 @@ export default function FreeResultsView({
   return (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Navbar */}
-      <header className="navbar">
-        <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions">
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline">Back to Home</button>
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black">Run Another Audit</button>
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>Back to Home</button>
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>New Audit</button>
           </div>
         </div>
       </header>

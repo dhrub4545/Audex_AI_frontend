@@ -950,22 +950,23 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
       `}</style>
 
       {/* Sleek Sub-Header Navbar */}
-      <header className="navbar" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button
               onClick={() => onNavigateToView('landing')}
               style={{
                 background: 'none',
-                border: 'none',
+                border: '1px solid var(--color-border)',
                 cursor: 'pointer',
-                fontSize: '18px',
+                fontSize: '12.5px',
+                fontWeight: '700',
                 color: 'var(--color-text-secondary)',
-                padding: '8px 12px',
+                padding: '6px 12px',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '6px',
+                gap: '5px',
                 transition: 'all 0.15s ease',
                 backgroundColor: 'var(--color-bg-accent)'
               }}
@@ -979,9 +980,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>Market Intel</span></span>
             </div>
           </div>
-          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {renderCoinDropdown ? renderCoinDropdown() : null}
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black">
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>
               Start Free Audit
             </button>
           </div>

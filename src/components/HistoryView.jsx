@@ -52,19 +52,19 @@ export default function HistoryView({
         }
       `}} />
       {/* Header */}
-      <header className="navbar">
-        <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions">
+          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {renderCoinDropdown && renderCoinDropdown()}
-            {user && <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginRight: '8px' }}>Hi, {user.name}</span>}
-            <button onClick={onLogout} className="btn btn-outline" style={{ marginRight: '8px' }}>
+            {user && <span className="history-user-greeting" style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>Hi, {user.name}</span>}
+            <button onClick={onLogout} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>
               Sign out
             </button>
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black">
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>
               New Audit
             </button>
           </div>
