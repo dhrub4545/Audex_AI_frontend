@@ -1570,17 +1570,25 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
           }
 
           @media (max-width: 768px) {
+            .how-it-works-pipeline {
+              padding: 40px 0 !important;
+            }
+            .pipeline-wrapper {
+              margin-top: 32px !important;
+            }
             .pipeline-row {
               display: flex;
               flex-direction: column;
-              gap: 20px;
+              gap: 18px;
             }
             .pipeline-card {
               width: 100%;
-              transform: translateX(-16px);
+              transform: translateY(16px);
+              padding: 20px 18px;
+              box-sizing: border-box;
             }
             .animate .pipeline-card {
-              transform: translateX(0);
+              transform: translateY(0);
             }
             .pipeline-card:nth-child(4), .pipeline-card:nth-child(5) {
               grid-column: auto;

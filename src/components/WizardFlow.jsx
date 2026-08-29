@@ -946,21 +946,43 @@ export default function WizardFlow({
           }
           .workspace-panel {
             height: auto !important;
-            max-height: 520px !important;
+            max-height: none !important;
+            padding: 18px 16px !important;
+          }
+          .subscription-scroll-container,
+          .api-scroll-container {
+            max-height: 380px !important;
+            min-height: 220px !important;
           }
           .wizard-body-wide {
-            padding: 24px 16px !important;
+            padding: 24px 14px !important;
           }
         }
-        @media (max-width: 540px) {
+        @media (max-width: 640px) {
           .tool-grid {
             grid-template-columns: 1fr !important;
           }
+          .bottom-cta-banner {
+            flex-direction: column !important;
+            text-align: center !important;
+            gap: 14px !important;
+            padding: 16px 14px !important;
+            align-items: stretch !important;
+          }
+          .bottom-cta-banner button {
+            width: 100% !important;
+            justify-content: center !important;
+          }
           .wizard-steps-indicator {
-            gap: 4px !important;
+            gap: 3px !important;
+          }
+          .wizard-step-dot {
+            width: 18px !important;
+            height: 18px !important;
+            font-size: 9px !important;
           }
           .wizard-step-line {
-            width: 16px !important;
+            width: 12px !important;
           }
         }
       `}</style>
@@ -1314,6 +1336,57 @@ export default function WizardFlow({
   // STEP 2 RENDER
   const renderStep2 = () => (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
+      <style>{`
+        .wizard-tool-config-card {
+          border: 1px solid #E2E8F0;
+          border-radius: 14px;
+          padding: 24px;
+          background-color: #FFFFFF;
+        }
+        .wizard-tool-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          border-bottom: 1px solid #F1F5F9;
+          padding-bottom: 12px;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .allocation-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 16px;
+          align-items: flex-end;
+          background-color: #F8FAFC;
+          padding: 16px;
+          border-radius: 10px;
+        }
+        @media (max-width: 640px) {
+          .wizard-tool-config-card {
+            padding: 16px 12px !important;
+          }
+          .wizard-tool-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 10px !important;
+          }
+          .wizard-tool-header button {
+            align-self: flex-start !important;
+          }
+          .allocation-row {
+            padding: 14px 10px !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 14px !important;
+          }
+          .sub-input-col {
+            flex: 1 1 100% !important;
+            width: 100% !important;
+            min-width: 100% !important;
+          }
+        }
+      `}</style>
       <header className="wizard-header">
         <div className="container">
           <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
@@ -1338,15 +1411,15 @@ export default function WizardFlow({
         <h2 className="wizard-title">Configure your allocations</h2>
         <p className="wizard-desc">Set plans, workloads, and primary team roles for each active tool or API access.</p>
 
-        <div className="wizard-card" style={{ padding: '32px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div className="wizard-card">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             {selectedToolIds.map(toolId => {
               const tool = tools.find(t => t.id === toolId) || { name: toolId, plans: ['Free', 'Pro', 'Business'], icon: '⚙', type: 'subscription' };
               const configs = toolConfigs[toolId] || [];
 
               return (
-                <div key={toolId} style={{ border: '1px solid #E2E8F0', borderRadius: '12px', padding: '24px', backgroundColor: '#FFFFFF' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
+                <div key={toolId} className="wizard-tool-config-card">
+                  <div className="wizard-tool-header">
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div 
                         style={{
@@ -1364,7 +1437,7 @@ export default function WizardFlow({
                         <ProviderLogo provider={tool.id} size={22} />
                       </div>
                       <div>
-                        <strong style={{ fontSize: '18px', color: '#1E293B' }}>{tool.name}</strong>
+                        <strong style={{ fontSize: '17px', color: '#1E293B' }}>{tool.name}</strong>
                         <span style={{ marginLeft: '8px', fontSize: '11px', padding: '2px 8px', borderRadius: '999px', backgroundColor: tool.type === 'subscription' ? '#EEF2FF' : '#ECFDF5', color: tool.type === 'subscription' ? '#4F46E5' : '#059669', fontWeight: 600 }}>
                           {tool.type === 'subscription' ? 'Subscription' : 'Direct API'}
                         </span>
@@ -1624,7 +1697,7 @@ export default function WizardFlow({
             </div>
           ) : null}
 
-          <div className="wizard-card" style={{ padding: '32px' }}>
+          <div className="wizard-card">
             <div className="form-group">
               <label className="form-label" style={{ marginBottom: '16px' }}>Optimization Strategy</label>
               
@@ -1671,12 +1744,16 @@ export default function WizardFlow({
                 }
                 @media (max-width: 900px) {
                   .strategy-cards-grid {
-                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+                    grid-template-columns: 1fr !important;
+                    gap: 16px !important;
                   }
                 }
-                @media (max-width: 600px) {
-                  .strategy-cards-grid {
-                    grid-template-columns: 1fr !important;
+                @media (max-width: 640px) {
+                  .wizard-body-extra-wide {
+                    padding: 24px 14px !important;
+                  }
+                  .strategy-card {
+                    padding: 16px 14px !important;
                   }
                 }
               `}</style>
