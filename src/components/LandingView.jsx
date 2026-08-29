@@ -2110,7 +2110,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             <style>{`
               @media (min-width: 1024px) {
                 .preview-two-col-layout {
-                  grid-template-columns: 35% 65% !important;
+                  grid-template-columns: 1fr 1.4fr !important;
                 }
               }
             `}</style>
@@ -2159,14 +2159,14 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             </div>
 
             {/* Right Column: Premium Report Mockup */}
-            <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '18px 20px', boxShadow: 'var(--shadow-lg)' }}>
+            <div style={{ backgroundColor: '#FFFFFF', border: '1.5px solid var(--color-border)', borderRadius: '20px', padding: '22px 24px', boxShadow: '0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02)', width: '100%', boxSizing: 'border-box' }}>
               {/* Report Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px', marginBottom: '12px', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--color-border)', paddingBottom: '14px', marginBottom: '14px', alignItems: 'center' }}>
                 <div>
-                  <span style={{ fontSize: '9px', fontWeight: '700', letterSpacing: '0.05em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Audex Cost Audit & Savings Report</span>
-                  <h3 style={{ fontSize: '18px', fontWeight: '800', margin: '2px 0 0 0', fontFamily: 'var(--font-title)' }}>Acme Corp Audit</h3>
+                  <span style={{ fontSize: '9.5px', fontWeight: '750', letterSpacing: '0.05em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Audex Cost Audit & Savings Report</span>
+                  <h3 style={{ fontSize: '19px', fontWeight: '800', margin: '2px 0 0 0', fontFamily: 'var(--font-title)', color: '#0F172A' }}>Acme Corp Audit</h3>
                 </div>
-                <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
                   <div>
                     <div style={{ fontSize: '9px', color: 'var(--color-text-muted)', fontWeight: '750', textTransform: 'uppercase' }}>EST. ANNUAL SAVINGS</div>
                     <div style={{ fontSize: '16px', fontWeight: '800', color: '#10B981', fontFamily: 'var(--font-title)' }}>$18,400 / yr</div>
@@ -2179,7 +2179,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </div>
 
               {/* Audit Findings */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '16px' }}>
                 {[
                   {
                     title: 'Over-provisioned ChatGPT seats',
@@ -2187,7 +2187,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                     savings: '-$360/mo',
                     status: 'Action Required',
                     statusColor: '#EF4444',
-                    statusBg: 'rgba(239, 68, 68, 0.05)',
+                    statusBg: 'rgba(239, 68, 68, 0.06)',
                     provider: 'openai'
                   },
                   {
@@ -2196,7 +2196,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                     savings: '-$420/mo',
                     status: 'Action Required',
                     statusColor: '#EF4444',
-                    statusBg: 'rgba(239, 68, 68, 0.05)',
+                    statusBg: 'rgba(239, 68, 68, 0.06)',
                     provider: 'cursor'
                   },
                   {
@@ -2205,7 +2205,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                     savings: '-$180/mo',
                     status: 'Overlapping Stack',
                     statusColor: '#8B5CF6',
-                    statusBg: 'rgba(139, 92, 246, 0.05)',
+                    statusBg: 'rgba(139, 92, 246, 0.06)',
                     provider: 'anthropic'
                   },
                   {
@@ -2213,35 +2213,35 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                     desc: 'Identified 37 developer seats with obsolete configuration routes and duplicate API key accesses.',
                     savings: '-$1,110/mo',
                     status: 'Potential Optimization',
-                    statusColor: '#F59E0B',
-                    statusBg: 'rgba(245, 158, 11, 0.05)',
+                    statusColor: '#D97706',
+                    statusBg: 'rgba(245, 158, 11, 0.08)',
                     provider: 'github'
                   }
                 ].map((item, idx) => (
-                  <div key={idx} style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '24px', height: '24px', borderRadius: '6px', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', flexShrink: 0, transform: 'scale(0.85)' }}>
+                  <div key={idx} style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#F8FAFC', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', flex: '1 1 220px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', borderRadius: '8px', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', flexShrink: 0, marginTop: '2px' }}>
                         {getProviderIcon(item.provider)}
                       </div>
-                      <div style={{ minWidth: 0 }}>
-                        <h4 style={{ fontWeight: '700', fontSize: '12px', color: 'var(--color-text-primary)', margin: '0 0 1px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.title}</h4>
-                        <p style={{ fontSize: '10.5px', color: 'var(--color-text-secondary)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.desc}</p>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h4 style={{ fontWeight: '750', fontSize: '12.5px', color: 'var(--color-text-primary)', margin: '0 0 2px 0', lineHeight: '1.3' }}>{item.title}</h4>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-secondary)', margin: 0, lineHeight: '1.45' }}>{item.desc}</p>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
-                      <span style={{ fontSize: '9px', fontWeight: '750', padding: '1.5px 5px', borderRadius: '4px', color: item.statusColor, backgroundColor: item.statusBg, textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: 'auto' }}>
+                      <span style={{ fontSize: '9px', fontWeight: '800', padding: '2px 7px', borderRadius: '4px', color: item.statusColor, backgroundColor: item.statusBg, textTransform: 'uppercase', letterSpacing: '0.03em', whiteSpace: 'nowrap' }}>
                         {item.status}
                       </span>
-                      <span style={{ fontWeight: '800', color: '#EF4444', fontSize: '12px' }}>{item.savings}</span>
+                      <span style={{ fontWeight: '800', color: '#EF4444', fontSize: '12.5px', whiteSpace: 'nowrap' }}>{item.savings}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               {/* Migration Action Checklist */}
-              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '12px', marginBottom: '12px' }}>
-                <h4 style={{ fontSize: '10.5px', fontWeight: '750', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em', marginBottom: '8px' }}>Migration Action Checklist</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '6px' }}>
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '14px', marginBottom: '12px' }}>
+                <h4 style={{ fontSize: '10.5px', fontWeight: '750', textTransform: 'uppercase', color: 'var(--color-text-muted)', letterSpacing: '0.05em', marginBottom: '10px' }}>Migration Action Checklist</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '8px' }}>
                   {[
                     'Remove unused licenses',
                     'Consolidate overlapping providers',
@@ -2250,8 +2250,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                     'Downgrade idle premium tiers',
                     'Configure cost allocation tags'
                   ].map((text, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--color-text-primary)' }}>
-                      <Check size={12} color="#22C55E" strokeWidth={3} />
+                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', color: 'var(--color-text-primary)' }}>
+                      <Check size={13} color="#22C55E" strokeWidth={3} />
                       <span>{text}</span>
                     </div>
                   ))}
@@ -2260,7 +2260,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
 
               {/* Bottom Summary trust strip */}
               <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '10px', textAlign: 'center' }}>
-                <p style={{ fontSize: '9.5px', color: 'var(--color-text-muted)', margin: 0, lineHeight: '1.4' }}>
+                <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', margin: 0, lineHeight: '1.4' }}>
                   Report generated using deterministic optimization rules, public pricing indexes, and capability scores.
                 </p>
               </div>
