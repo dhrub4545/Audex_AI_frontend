@@ -292,58 +292,66 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
           </div>
 
           {/* Savings preview card */}
-          <div className="hero-card-wrapper" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="hero-card-wrapper">
             <style>{`
               @media (min-width: 992px) {
                 .hero-content {
-                  transform: translateY(-50px);
+                  transform: translateY(-40px);
                 }
                 .hero-card-wrapper {
-                  transform: translateY(-30px);
-                }
-              }
-              .hero-turtle {
-                position: absolute;
-                top: 50%;
-                right: 63%;
-                transform: translateY(-50%);
-                height: auto;
-                width: 400px;
-                z-index: -1;
-                pointer-events: none;
-              }
-              @media (max-width: 1024px) {
-                .hero-turtle {
-                  right: 35%;
-                  height: 90%;
-                  width: auto;
-                }
-              }
-              @media (max-width: 768px) {
-                .hero-turtle {
-                  display: none;
+                  transform: translateY(-20px);
                 }
               }
               .hero-card-wrapper {
+                position: relative;
                 width: 100%;
                 max-width: 100%;
                 display: flex;
                 justify-content: center;
+                align-items: center;
                 box-sizing: border-box;
               }
+              .hero-turtle {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                height: auto;
+                width: 480px;
+                max-width: 110%;
+                opacity: 0.18;
+                filter: drop-shadow(0 20px 40px rgba(16, 185, 129, 0.25));
+                z-index: 1;
+                pointer-events: none;
+                transition: opacity 0.3s ease, transform 0.3s ease;
+              }
+              @media (max-width: 991px) {
+                .hero-turtle {
+                  display: none;
+                }
+              }
               .savings-preview-card {
-                background-color: white;
+                position: relative;
+                z-index: 2;
+                background-color: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
                 border-radius: 22px;
                 border: 1.5px solid var(--color-border);
-                box-shadow: 0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02);
-                padding: 24px 28px;
+                box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.6);
+                padding: 26px 30px;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
                 width: 100%;
-                max-width: 520px;
+                max-width: 530px;
                 margin: 0 auto;
                 box-sizing: border-box;
+                transition: box-shadow 0.25s ease, transform 0.25s ease;
+              }
+              .savings-preview-card:hover {
+                box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.3);
+                transform: translateY(-2px);
               }
               @media (max-width: 640px) {
                 .savings-preview-card {
