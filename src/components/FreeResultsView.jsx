@@ -321,7 +321,7 @@ export default function FreeResultsView({
           }}>
             <div style={{ position: 'absolute', top: '-10%', right: '-5%', width: '300px', height: '300px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(0,0,0,0) 70%)', pointerEvents: 'none' }}></div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '32px', alignItems: 'center' }}>
+            <div className="free-hero-grid">
               <div>
                 <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#10B981', fontWeight: '800', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
                   <TrendingDown size={14} /> Total Audex Optimization Blueprint
@@ -395,7 +395,7 @@ export default function FreeResultsView({
                     </div>
 
                     {/* Comparison Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '28px' }}>
+                    <div className="free-options-grid">
                       
                       {/* Column 1: Subscription Option */}
                       <div style={{
@@ -528,10 +528,7 @@ export default function FreeResultsView({
           </div>
 
           {/* Marketing Senior High-Converting Value Lock Panel */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 0.8fr',
-            gap: '32px',
+          <div className="free-marketing-grid" style={{
             backgroundColor: '#FFFFFF',
             border: '1px solid #E2E8F0',
             borderRadius: '24px',
@@ -546,7 +543,7 @@ export default function FreeResultsView({
               <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
                 Don't leave massive cost savings on the table. Audex AI Premium provides the precise technical roadmap to implement these budget optimizations without compromising model performance.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="free-features-grid">
                 {[
                   { bold: 'Exact Plan & Model IDs:', detail: 'Know exactly which subscriptions and direct API routes to switch to.' },
                   { bold: 'Developer Migration Scripts:', detail: 'Get pre-built curl configs, proxy wrappers, and automated route fallbacks.' },

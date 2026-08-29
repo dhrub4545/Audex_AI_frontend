@@ -1424,7 +1424,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                         })()}
 
                         {/* Details Grid (Metadata, Pricing, Performance) */}
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
 
                           {/* Column 1: Metadata */}
                           <div className="intel-glass-panel" style={{ gap: '6px', padding: '12px' }}>

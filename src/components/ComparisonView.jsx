@@ -479,7 +479,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           </div>
 
           {/* Graphic Section with Legend & SVG */}
-          <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '20px', alignItems: 'stretch' }}>
+          <div className="comparison-spend-grid">
             {/* Legend Column */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
 
@@ -899,7 +899,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '32px', marginTop: '36px' }}>
+          <div className="comparison-bottom-grid">
 
             {/* Analysis breakdown */}
             <div className="wizard-card" style={{ padding: '28px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>

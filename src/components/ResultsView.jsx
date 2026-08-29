@@ -2237,7 +2237,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         </p>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '32px', alignItems: 'center' }}>
+                      <div className="radar-split-grid">
                         {/* Legend */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                           {!isSameModel ? (

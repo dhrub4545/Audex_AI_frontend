@@ -2289,7 +2289,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             <p>Audit small setups for free, unlock single reports, or subscribe for full enterprise optimization.</p>
           </div>
 
-          <div className="steps-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: '32px' }}>
+          <div className="pricing-grid">
             {/* Free Plan */}
             <div className="step-card" style={{ backgroundColor: '#FFFFFF', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>

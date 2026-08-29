@@ -2665,4 +2665,128 @@ html.lenis body {
   .btn {
     min-height: 38px;
   }
-}
+}
+
+/* Pricing Grid Responsive System */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  align-items: stretch;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+/* Free Results View Grids */
+.free-hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .free-hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+}
+
+.free-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .free-options-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
+.free-marketing-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 32px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .free-marketing-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+    padding: 24px 18px !important;
+  }
+}
+
+.free-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .free-features-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* Comparison View Grids */
+.comparison-spend-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 20px;
+  align-items: stretch;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .comparison-spend-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+}
+
+.comparison-bottom-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 32px;
+  margin-top: 36px;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .comparison-bottom-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    margin-top: 24px !important;
+  }
+}
+
+/* Radar & Benchmarks Split Grid */
+.radar-split-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  align-items: center;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .radar-split-grid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+}
+
