@@ -325,8 +325,9 @@ p {
 @media (max-width: 992px) {
   .hero-grid {
     grid-template-columns: 1fr;
-    gap: 48px;
+    gap: 40px;
     text-align: center;
+    justify-items: center;
   }
 }
 

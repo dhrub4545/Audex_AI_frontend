@@ -252,7 +252,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
     <main className="main-content">
       <section className="hero">
         <div className="container hero-grid">
-          <div className="hero-content" style={{ transform: 'translateY(-70px)' }}>
+          <div className="hero-content">
             <div>
               <span className="badge badge-green" style={{ marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                 <ShieldCheck size={16} strokeWidth={2.2} /> Algorithmic AI Spend Auditing · Free to Start
@@ -292,8 +292,16 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
           </div>
 
           {/* Savings preview card */}
-          <div className="hero-card-wrapper" style={{ position: 'relative', zIndex: 1, transform: "translateY(-50px)" }}>
+          <div className="hero-card-wrapper" style={{ position: 'relative', zIndex: 1 }}>
             <style>{`
+              @media (min-width: 992px) {
+                .hero-content {
+                  transform: translateY(-50px);
+                }
+                .hero-card-wrapper {
+                  transform: translateY(-30px);
+                }
+              }
               .hero-turtle {
                 position: absolute;
                 top: 50%;
@@ -316,18 +324,32 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                   display: none;
                 }
               }
+              .hero-card-wrapper {
+                width: 100%;
+                max-width: 100%;
+                display: flex;
+                justify-content: center;
+                box-sizing: border-box;
+              }
               .savings-preview-card {
                 background-color: white;
-                border-radius: 20px;
-                border: 1px solid var(--color-border);
-                box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.02);
-                padding: 24px 32px;
+                border-radius: 22px;
+                border: 1.5px solid var(--color-border);
+                box-shadow: 0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02);
+                padding: 24px 28px;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
-                width: calc(100% + 40px);
-                margin-right: -40px;
+                width: 100%;
+                max-width: 520px;
+                margin: 0 auto;
                 box-sizing: border-box;
+              }
+              @media (max-width: 640px) {
+                .savings-preview-card {
+                  padding: 20px 16px !important;
+                  border-radius: 18px !important;
+                }
               }
               .savings-row {
                 display: flex;
@@ -346,7 +368,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               }
             `}</style>
             <img src={turtleOutline} className="hero-turtle" alt="" aria-hidden="true" />
-            <div className="savings-preview-card" style={{ padding: '24px 28px', borderRadius: '22px', border: '1.5px solid var(--color-border)', backgroundColor: '#FFFFFF', boxShadow: '0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02)' }}>
+            <div className="savings-preview-card">
               {/* Header: Unlocked Badge + Date + Monthly Savings */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
