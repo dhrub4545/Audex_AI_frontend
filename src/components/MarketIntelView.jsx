@@ -301,7 +301,7 @@ function CustomSelect({ value, onChange, options, placeholder }) {
   }, [highlightedIndex, isOpen]);
 
   return (
-    <div className="custom-select-container" ref={containerRef} style={{ position: 'relative', width: '280px' }}>
+    <div className="custom-select-container" ref={containerRef} style={{ position: 'relative', width: '100%', maxWidth: '280px' }}>
       <button
         type="button"
         className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
@@ -438,6 +438,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCreators, setSelectedCreators] = useState(new Set());
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Explorer settings - exclusively Frontier Text LLMs
@@ -920,6 +921,29 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   return (
     <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
       <style>{`
+        .intel-main-container {
+          padding: 40px 24px;
+          max-width: 1280px;
+          margin: 0 auto;
+          box-sizing: border-box;
+          width: 100%;
+        }
+        .market-intel-title {
+          font-size: 38px;
+          line-height: 1.15;
+        }
+        .intel-tabs-container {
+          display: flex;
+          border-bottom: 2px solid var(--color-border);
+          gap: 28px;
+          margin-bottom: 24px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+        }
+        .intel-tabs-container::-webkit-scrollbar {
+          display: none;
+        }
         .intel-glass-panel {
           background: rgba(255, 255, 255, 0.45);
           backdrop-filter: blur(16px);
@@ -946,6 +970,61 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           transform: translateY(-1px);
           border-color: rgba(148, 163, 184, 0.35);
           box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+        .intel-explorer-card {
+          padding: 28px 32px;
+        }
+        .mobile-filter-toggle-btn {
+          display: none;
+          width: 100%;
+          margin-bottom: 16px;
+        }
+        @media (max-width: 1024px) {
+          .mobile-filter-toggle-btn {
+            display: block;
+          }
+          .intel-sidebar-panel {
+            display: none;
+          }
+          .intel-sidebar-panel.is-open {
+            display: block;
+            margin-bottom: 20px;
+          }
+        }
+        @media (max-width: 640px) {
+          .intel-main-container {
+            padding: 24px 14px !important;
+          }
+          .intel-explorer-card {
+            padding: 16px 12px !important;
+          }
+          .market-intel-title {
+            font-size: 26px !important;
+          }
+          .intel-tabs-container {
+            gap: 12px !important;
+            margin-bottom: 18px !important;
+          }
+          .intel-tabs-container button {
+            font-size: 13.5px !important;
+            padding: 10px 4px !important;
+            white-space: nowrap !important;
+            flex-shrink: 0 !important;
+          }
+          .intel-rank-tooltip-card {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            bottom: 12px !important;
+            top: auto !important;
+            transform: translateY(0) !important;
+            width: auto !important;
+            max-width: 100% !important;
+            max-height: 80vh !important;
+            pointer-events: auto !important;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28) !important;
+            border-radius: 20px !important;
+          }
         }
       `}</style>
 
@@ -990,17 +1069,17 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
       </header>
 
       {/* Main Container */}
-      <main className="container" style={{ padding: '40px 24px', maxWidth: '1280px' }}>
+      <main className="container intel-main-container">
 
         {/* Title Block */}
-        <div style={{ marginBottom: '32px' }}>
-          <span className="badge badge-green" style={{ marginBottom: '12px', display: 'inline-block' }}>
+        <div style={{ marginBottom: '28px' }}>
+          <span className="badge badge-green" style={{ marginBottom: '10px', display: 'inline-block' }}>
             Live Artificial Analysis Stream
           </span>
-          <h1 style={{ fontSize: '38px', fontWeight: '850', color: '#0F172A', letterSpacing: '-0.03em', marginBottom: '8px' }}>
+          <h1 className="market-intel-title" style={{ fontWeight: '850', color: '#0F172A', letterSpacing: '-0.03em', marginBottom: '8px' }}>
             LLM & AI Leaderboard
           </h1>
-          <p style={{ fontSize: '16px', color: 'var(--color-text-secondary)', maxWidth: '780px' }}>
+          <p style={{ fontSize: '15px', color: 'var(--color-text-secondary)', maxWidth: '780px', margin: 0, lineHeight: 1.5 }}>
             Compare LLM frontier capabilities, speed performance, and real deployment costs based on raw api responses. Zero fallbacks, zero synthetic estimates.
           </p>
         </div>
@@ -1017,15 +1096,45 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           </div>
         ) : (
           <>
-            
 
             {/* Filter controls panel (Search, Providers) */}
             <div className="market-intel-layout" style={{ marginBottom: '40px' }}>
 
+              {/* Mobile Filter Toggle Accordion Button */}
+              <div className="mobile-filter-toggle-btn">
+                <button
+                  type="button"
+                  onClick={() => setShowMobileFilters(!showMobileFilters)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 16px',
+                    borderRadius: '12px',
+                    border: '1.5px solid var(--color-border)',
+                    backgroundColor: '#FFFFFF',
+                    color: '#0F172A',
+                    fontSize: '13.5px',
+                    fontWeight: '750',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Sliders size={16} color="var(--color-green-primary)" />
+                    Filter Providers {selectedCreators.size > 0 ? `(${selectedCreators.size} active)` : ''}
+                  </span>
+                  <span style={{ fontSize: '12px', color: 'var(--color-green-primary)', fontWeight: '800' }}>
+                    {showMobileFilters ? 'Hide Filters ▲' : 'Show Filters ▼'}
+                  </span>
+                </button>
+              </div>
+
               {/* Sidebar Filters */}
-              <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
+              <div className={`intel-sidebar-panel ${showMobileFilters ? 'is-open' : ''}`} style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '20px 22px', boxShadow: 'var(--shadow-sm)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0F172A' }}>Filters</h3>
+                  <h3 style={{ fontSize: '14px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0F172A', margin: 0 }}>Filters</h3>
                   {(searchQuery || selectedCreators.size > 0) && (
                     <button
                       onClick={clearFilters}
@@ -1037,7 +1146,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                 </div>
 
                 {/* Text Search */}
-                <div style={{ marginBottom: '24px' }}>
+                <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Search Model or Creator</label>
                   <input
                     type="text"
@@ -1046,18 +1155,19 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                     placeholder="e.g. o1, Anthropic..."
                     style={{
                       width: '100%',
-                      padding: '10px 14px',
+                      padding: '9px 12px',
                       border: '1px solid var(--color-border)',
                       borderRadius: '8px',
-                      fontSize: '13.5px',
-                      fontFamily: 'var(--font-body)'
+                      fontSize: '13px',
+                      fontFamily: 'var(--font-body)',
+                      boxSizing: 'border-box'
                     }}
                   />
                 </div>
 
                 {/* Providers Checklist */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '12px' }}>AI Providers</label>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '10px' }}>AI Providers</label>
                   <div data-lenis-prevent style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto', paddingRight: '4px' }}>
                     {creatorsList.map(creator => (
                       <label
@@ -1092,18 +1202,18 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
               </div>
 
               {/* Main Workspace (Tabs & Content) */}
-              <div>
+              <div style={{ minWidth: 0 }}>
 
                 {/* Main View Tab Selector */}
-                <div style={{ display: 'flex', borderBottom: '2px solid var(--color-border)', gap: '32px', marginBottom: '24px' }}>
+                <div className="intel-tabs-container">
                   <button
                     onClick={() => setActiveTab('rankings')}
                     style={{
                       background: 'none',
                       border: 'none',
                       borderBottom: activeTab === 'rankings' ? '3px solid var(--color-green-primary)' : '3px solid transparent',
-                      padding: '12px 8px',
-                      fontSize: '16px',
+                      padding: '12px 6px',
+                      fontSize: '15px',
                       fontWeight: '800',
                       color: activeTab === 'rankings' ? '#0F172A' : 'var(--color-text-muted)',
                       cursor: 'pointer',
@@ -1111,7 +1221,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       marginBottom: '-2px',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '6px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
                   >
                     <Trophy size={16} /> Leaderboard Rankings
@@ -1122,8 +1234,8 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       background: 'none',
                       border: 'none',
                       borderBottom: activeTab === 'scatter' ? '3px solid var(--color-green-primary)' : '3px solid transparent',
-                      padding: '12px 8px',
-                      fontSize: '16px',
+                      padding: '12px 6px',
+                      fontSize: '15px',
                       fontWeight: '800',
                       color: activeTab === 'scatter' ? '#0F172A' : 'var(--color-text-muted)',
                       cursor: 'pointer',
@@ -1131,7 +1243,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       marginBottom: '-2px',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '6px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
                   >
                     <TrendingUp size={16} /> Speed vs Cost Scatter Plot
@@ -1142,8 +1256,8 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       background: 'none',
                       border: 'none',
                       borderBottom: activeTab === 'explorer' ? '3px solid var(--color-green-primary)' : '3px solid transparent',
-                      padding: '12px 8px',
-                      fontSize: '16px',
+                      padding: '12px 6px',
+                      fontSize: '15px',
                       fontWeight: '800',
                       color: activeTab === 'explorer' ? '#0F172A' : 'var(--color-text-muted)',
                       cursor: 'pointer',
@@ -1151,7 +1265,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       marginBottom: '-2px',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      gap: '6px',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0
                     }}
                   >
                     <Database size={16} /> Database Table Explorer
@@ -1165,8 +1281,8 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                   <div className="intel-chart-card">
 
                     {/* Inner Index Tabs and Category Select Dropdown */}
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         {[
                           { id: 'quality', label: 'Overall Quality' },
                           { id: 'coding', label: 'Coding Index' },
@@ -1181,12 +1297,12 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                               setActiveCategory(null);
                             }}
                             style={{
-                              padding: '8px 16px',
+                              padding: '7px 14px',
                               borderRadius: '9999px',
                               border: '1px solid var(--color-border)',
                               backgroundColor: (!activeCategory && rankingIndex === opt.id) ? '#0F172A' : '#F1F5F9',
                               color: (!activeCategory && rankingIndex === opt.id) ? '#FFFFFF' : 'var(--color-text-primary)',
-                              fontSize: '13px',
+                              fontSize: '12.5px',
                               fontWeight: '700',
                               cursor: 'pointer',
                               transition: 'all 0.15s ease'
@@ -1198,9 +1314,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       </div>
 
                       {intelData?.categories && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ fontSize: '13.5px', fontWeight: '750', color: 'var(--color-text-secondary)' }}>
-                            Category Leaderboard:
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', width: '100%', maxWidth: '320px' }}>
+                          <span style={{ fontSize: '12.5px', fontWeight: '750', color: 'var(--color-text-secondary)' }}>
+                            Category:
                           </span>
                           <CustomSelect
                             value={activeCategory || ''}
@@ -1218,14 +1334,14 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px' }}>
-                      <h4 style={{ fontSize: '16px', fontWeight: '800' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #E2E8F0', paddingBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                      <h4 style={{ fontSize: '15.5px', fontWeight: '800', margin: 0 }}>
                         {activeCategory
                           ? `${formatCategoryName(activeCategory)} Leaderboard`
                           : `${rankingIndex.charAt(0).toUpperCase() + rankingIndex.slice(1)} Index Leaderboard`
                         }
                       </h4>
-                      <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                      <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
                         Top {visibleRankings.length} of {rankingsData.length} models
                       </span>
                     </div>
@@ -1241,6 +1357,16 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             className={`intel-rank-row ${hoveredModel?.slug === model.slug ? 'is-hovered' : ''}`}
                             style={{
                               gridTemplateColumns: '30px 1fr'
+                            }}
+                            onClick={(e) => {
+                              if (activeTooltipModel?.slug === model.slug && isTooltipVisible) {
+                                setIsTooltipVisible(false);
+                              } else {
+                                setHoveredModel(model);
+                                setActiveTooltipModel(model);
+                                setIsTooltipVisible(true);
+                                handleRowMouseMove(e);
+                              }
                             }}
                             onMouseEnter={(e) => {
                               if (tooltipTimeoutRef.current) {
@@ -1288,7 +1414,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                         );
                       })}
                     </div>
-                    {/* Details tooltip block at hover position */}
+                    {/* Details tooltip block at hover position / mobile bottom sheet */}
                     {activeTooltipModel && (
                       <div
                         ref={tooltipRef}
@@ -1300,18 +1426,18 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                           transform: `translate3d(${tooltipPos.left}px, ${tooltipPos.top + (isTooltipVisible ? 0 : 6)}px, 0) scale(${isTooltipVisible ? 1 : 0.98})`,
                           opacity: isTooltipVisible ? 1 : 0,
                           visibility: isTooltipVisible ? 'visible' : 'hidden',
-                          pointerEvents: 'none',
+                          pointerEvents: isTooltipVisible ? 'auto' : 'none',
                           width: 'min(420px, calc(100vw - 32px))',
                           maxHeight: 'min(520px, calc(100vh - 96px))',
                           overflowY: 'auto',
                           zIndex: 9999,
                           padding: '18px 20px',
-                          background: 'rgba(255, 255, 255, 0.94)',
+                          background: 'rgba(255, 255, 255, 0.96)',
                           backdropFilter: 'blur(24px) saturate(180%)',
                           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
                           borderRadius: '20px',
                           color: '#0F172A',
-                          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+                          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.9)',
                           border: '1px solid rgba(226, 232, 240, 0.9)',
                           display: 'flex',
                           flexDirection: 'column',
@@ -1321,11 +1447,11 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                         }}
                       >
                         {/* Title & Header */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(15, 23, 42, 0.08)', paddingBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(15, 23, 42, 0.08)', paddingBottom: '10px', gap: '8px' }}>
                           <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', gap: '2px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                               <ProviderLogo provider={activeTooltipModel.creator} size={24} />
-                              <h4 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'var(--font-title)' }}>
+                              <h4 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: '#0F172A', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontFamily: 'var(--font-title)' }}>
                                 {activeTooltipModel.name.replace(/^.*?:\s*/, '')}
                               </h4>
                             </div>
@@ -1334,8 +1460,8 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             </span>
                           </div>
 
-                          {/* Rank Badge */}
-                          <div style={{ display: 'flex', gap: '6px' }}>
+                          {/* Rank Badge & Close button */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
                             <span style={{
                               padding: '4px 10px',
                               borderRadius: '9999px',
@@ -1348,6 +1474,31 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             }}>
                               Rank #{activeTooltipModel.rank}
                             </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsTooltipVisible(false);
+                              }}
+                              style={{
+                                background: '#F1F5F9',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '26px',
+                                height: '26px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                color: '#64748B',
+                                padding: 0,
+                                fontSize: '13px',
+                                fontWeight: '800'
+                              }}
+                              title="Close"
+                            >
+                              ✕
+                            </button>
                           </div>
                         </div>
 
@@ -1518,7 +1669,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                   <div className="intel-chart-card">
 
                     {/* Setup Toggles & Controls Bar */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px', backgroundColor: '#F8FAFC', padding: '16px 20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '20px', backgroundColor: '#F8FAFC', padding: '16px 18px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
                       
                       {/* Y-Axis Selector */}
                       <div>
@@ -2037,12 +2188,12 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
 
                 {/* 3. Explorer Tab (Frontier Text LLMs Table) */}
                 {activeTab === 'explorer' && (
-                  <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '28px 32px', boxShadow: 'var(--shadow-sm)' }}>
+                  <div className="intel-explorer-card" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', boxShadow: 'var(--shadow-sm)' }}>
 
                     {/* Header Bar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                       <div>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <h3 style={{ margin: 0, fontSize: '17px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Database size={18} style={{ color: 'var(--color-green-primary)' }} /> Frontier Text LLMs Explorer
                         </h3>
                         <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: '#64748B' }}>
@@ -2077,7 +2228,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                     </div>
 
                     {/* Table Render */}
-                    <div style={{ overflowX: 'auto' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
                       <table className="intel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
                         <thead>
                           <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#475569', backgroundColor: '#F8FAFC' }}>
