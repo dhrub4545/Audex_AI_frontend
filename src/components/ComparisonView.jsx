@@ -757,10 +757,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             marginTop: '20px',
             border: '1px solid var(--color-border)',
             borderRadius: '12px',
-            overflow: 'hidden',
+            overflowX: 'auto',
+            WebkitOverflowScrolling: 'touch',
             backgroundColor: '#F8FAFC'
           }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'center' }}>
+            <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'center' }}>
               <thead>
                 <tr style={{ backgroundColor: '#F1F5F9', borderBottom: '1px solid var(--color-border)' }}>
                   <th style={{ padding: '10px 12px', fontWeight: '800', color: '#64748B', textAlign: 'left', width: '220px' }}>Model</th>

@@ -668,6 +668,26 @@ export default function ModelAuditorView({
   return (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
       <style>{`
+        .auditor-main-container {
+          padding: 48px 0;
+        }
+        .auditor-title {
+          font-size: 36px;
+          font-weight: 800;
+          letter-spacing: -0.02em;
+          margin-bottom: 8px;
+          line-height: 1.2;
+        }
+        .auditor-sidebar-card {
+          padding: 24px;
+          position: sticky;
+          top: 96px;
+          border: 1px solid var(--color-border);
+          background: rgba(255, 255, 255, 0.72);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-radius: 16px;
+        }
         .strategy-card {
           background: rgba(255, 255, 255, 0.72);
           backdrop-filter: blur(12px);
@@ -692,8 +712,21 @@ export default function ModelAuditorView({
           border-width: 1.5px;
           box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
         }
+        .auditor-baseline-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          background: rgba(255, 255, 255, 0.72);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
+          border: 1px solid rgba(255, 255, 255, 0.75);
+          padding: 24px;
+          border-radius: 18px;
+          margin-bottom: 24px;
+          box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 12px 40px rgba(15, 23, 42, 0.06);
+        }
         .intel-rank-row {
-          display: grid;
+          display: flex;
           background: rgba(255, 255, 255, 0.72) !important;
           backdrop-filter: blur(12px) !important;
           -webkit-backdrop-filter: blur(12px) !important;
@@ -711,6 +744,48 @@ export default function ModelAuditorView({
           border-color: var(--color-green-primary) !important;
           background-color: rgba(236, 253, 245, 0.5) !important;
           box-shadow: 0 0 12px rgba(16, 185, 129, 0.15) !important;
+        }
+        .auditor-rec-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          gap: 16px;
+          cursor: pointer;
+        }
+        .auditor-rec-left {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          min-width: 0;
+          flex: 1;
+        }
+        .auditor-rec-right {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex-shrink: 0;
+        }
+        .auditor-deep-compare-card {
+          margin-top: 32px;
+          border: 1px solid var(--color-border);
+          border-radius: 16px;
+          padding: 28px;
+          background-color: #F8FAFC;
+        }
+        .auditor-deep-compare-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          gap: 12px;
+        }
+        .auditor-table-wrapper {
+          border: 1px solid var(--color-border);
+          border-radius: 10px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          background-color: #FFFFFF;
         }
         /* Custom Select styling */
         select.modern-select {
@@ -748,6 +823,73 @@ export default function ModelAuditorView({
         input[type="range"].modern-slider::-webkit-slider-thumb:hover {
           transform: scale(1.15);
         }
+        @media (max-width: 1024px) {
+          .auditor-sidebar-card {
+            position: static !important;
+            margin-bottom: 24px !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .auditor-main-container {
+            padding: 24px 0 !important;
+          }
+          .auditor-title {
+            font-size: 24px !important;
+          }
+          .auditor-sidebar-card {
+            padding: 16px 14px !important;
+          }
+          .strategy-card {
+            padding: 12px 10px !important;
+          }
+          .auditor-baseline-bar {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            padding: 18px 14px !important;
+            gap: 16px !important;
+          }
+          .auditor-rec-row {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 14px 12px !important;
+            gap: 12px !important;
+          }
+          .auditor-rec-right {
+            justify-content: space-between !important;
+            width: 100% !important;
+            border-top: 1px solid rgba(226, 232, 240, 0.6);
+            padding-top: 10px;
+          }
+          .auditor-deep-compare-card {
+            padding: 16px 12px !important;
+          }
+          .auditor-deep-compare-header {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+          }
+          .auditor-deep-compare-header > div {
+            width: 100% !important;
+            display: flex !important;
+            gap: 8px !important;
+          }
+          .auditor-deep-compare-header button {
+            flex: 1 !important;
+            justify-content: center !important;
+          }
+          .auditor-tooltip-card {
+            position: fixed !important;
+            left: 12px !important;
+            right: 12px !important;
+            bottom: 12px !important;
+            top: auto !important;
+            width: auto !important;
+            max-width: 100% !important;
+            max-height: 80vh !important;
+            pointer-events: auto !important;
+            box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28) !important;
+            border-radius: 20px !important;
+          }
+        }
       `}</style>
 
       {/* Header */}
@@ -775,17 +917,17 @@ export default function ModelAuditorView({
       </header>
 
       {/* Main Container */}
-      <main className="main-content" style={{ padding: '48px 0' }}>
+      <main className="main-content auditor-main-container">
         <div className="container" style={{ maxWidth: '1280px' }}>
 
-          <div style={{ marginBottom: '40px', textAlign: 'center' }}>
-            <span className="badge badge-green" style={{ marginBottom: '12px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ marginBottom: '32px', textAlign: 'center' }}>
+            <span className="badge badge-green" style={{ marginBottom: '10px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
               <Brain size={12} /> Capability & Market Pricing Intelligence
             </span>
-            <h1 style={{ fontSize: '36px', fontWeight: '800', letterSpacing: '-0.02em', marginBottom: '8px' }}>
+            <h1 className="auditor-title">
               LLM Router & Capability Optimizer
             </h1>
-            <p style={{ fontSize: '15px', color: 'var(--color-text-secondary)', maxWidth: '640px', margin: '0 auto' }}>
+            <p style={{ fontSize: '15px', color: 'var(--color-text-secondary)', maxWidth: '640px', margin: '0 auto', lineHeight: 1.5 }}>
               Benchmark your workloads against the live Artificial Analysis capability and pricing indexes to locate 10x cheaper and faster model alternatives.
             </p>
           </div>
@@ -794,8 +936,8 @@ export default function ModelAuditorView({
 
             {/* Left Column: Workload Configuration */}
             <div>
-              <div className="wizard-card" style={{ padding: '24px', position: 'sticky', top: '96px', border: '1px solid var(--color-border)', background: 'rgba(255, 255, 255, 0.72)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div className="wizard-card auditor-sidebar-card">
+                <h3 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Settings size={18} style={{ color: 'var(--color-green-primary)' }} /> Workload Profile
                 </h3>
 
@@ -1015,7 +1157,7 @@ export default function ModelAuditorView({
             </div>
 
             {/* Right Column: Recommendations & Calculations */}
-            <div>
+            <div style={{ minWidth: 0 }}>
               {error && (
                 error.includes('Database is empty') ||
                 error.includes('403') ||
@@ -1041,19 +1183,7 @@ export default function ModelAuditorView({
 
               {/* Baseline stats bar */}
               {results && results.currentBaseline && (
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  background: 'rgba(255, 255, 255, 0.72)',
-                  backdropFilter: 'blur(18px)',
-                  WebkitBackdropFilter: 'blur(18px)',
-                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                  padding: '24px',
-                  borderRadius: '18px',
-                  marginBottom: '24px',
-                  boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 12px 40px rgba(15, 23, 42, 0.06)'
-                }}>
+                <div className="auditor-baseline-bar">
                   <div>
                     <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', fontWeight: 700 }}>Current Baseline Cost</span>
                     <div style={{ fontSize: '32px', fontWeight: '800', fontFamily: 'var(--font-title)', color: '#1E293B', lineHeight: '1.1', marginTop: '4px' }}>
@@ -1070,12 +1200,13 @@ export default function ModelAuditorView({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
+                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
+                      flexShrink: 0
                     }}>
                       <ProviderLogo provider={getNormalizedProvider(results.currentBaseline.modelId)} size={24} />
                     </div>
-                    <div style={{ textAlign: 'left' }}>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B' }}>{results.currentBaseline.name}</div>
+                    <div style={{ textAlign: 'left', minWidth: 0 }}>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{results.currentBaseline.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
                         Index capability: <strong style={{ color: '#047857' }}>{results.currentBaseline.performance_score}</strong>/100 · <strong style={{ color: '#1E293B' }}>{results.currentBaseline.tokens_per_second}</strong> t/s
                       </div>
@@ -1092,9 +1223,9 @@ export default function ModelAuditorView({
                 </div>
               ) : results && results.recommendations && results.recommendations.length > 0 ? (
                 <div>
-                  <h2 style={{ fontSize: '20px', fontWeight: '800', marginBottom: '16px' }}>Top Alternative Model Recommendations</h2>
+                  <h2 style={{ fontSize: '19px', fontWeight: '800', marginBottom: '16px' }}>Top Alternative Model Recommendations</h2>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', opacity: loading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}>
                     {results.recommendations.map((rec, idx) => {
                       const isSelected = selectedRecommendation?.modelId === rec.modelId;
                       const isMoreExpensive = rec.projected_monthly_savings < 0;
@@ -1112,67 +1243,68 @@ export default function ModelAuditorView({
                             setHoveredModel(null);
                             setHoveredElement(null);
                           }}
-                          className={`intel-rank-row ${isSelected ? 'selected' : ''}`}
-                          style={{
-                            gridTemplateColumns: '30px 1fr auto auto',
-                            padding: '16px 20px',
-                            gap: '16px',
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
+                          className={`intel-rank-row auditor-rec-row ${isSelected ? 'selected' : ''}`}
                         >
-                          <span className={`intel-rank-number ${idx < 3 ? 'is-top-three' : ''}`}>{idx + 1}</span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0 }}>
-                            <div style={{
-                              width: '34px',
-                              height: '34px',
-                              borderRadius: '10px',
-                              backgroundColor: '#FFFFFF',
-                              border: '1px solid rgba(226, 232, 240, 0.8)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
-                              flexShrink: 0
-                            }}>
-                              <ProviderLogo provider={getNormalizedProvider(rec.developer || rec.modelId)} size={20} />
+                          <div className="auditor-rec-left">
+                            <span className={`intel-rank-number ${idx < 3 ? 'is-top-three' : ''}`}>{idx + 1}</span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 0, flex: 1 }}>
+                              <div style={{
+                                width: '34px',
+                                height: '34px',
+                                borderRadius: '10px',
+                                backgroundColor: '#FFFFFF',
+                                border: '1px solid rgba(226, 232, 240, 0.8)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                                flexShrink: 0
+                              }}>
+                                <ProviderLogo provider={getNormalizedProvider(rec.developer || rec.modelId)} size={20} />
+                              </div>
+                              <span className="intel-rank-name" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+                                <strong style={{ color: '#1E293B', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {rec.name.replace(/^.*?:\s*/, '')}
+                                </strong>
+                                <small style={{ color: '#64748B', fontSize: '11.5px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {rec.developer} · {rec.modelId.split('/')[1]}
+                                </small>
+                              </span>
                             </div>
-                            <span className="intel-rank-name" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                              <strong style={{ color: '#1E293B', fontSize: '14.5px' }}>{rec.name.replace(/^.*?:\s*/, '')}</strong>
-                              <small style={{ color: '#64748B', fontSize: '12px', marginTop: '2px' }}>{rec.developer} · {rec.modelId.split('/')[1]}</small>
-                            </span>
                           </div>
 
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleCompareClick(rec);
-                            }}
-                            className="btn btn-outline"
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '11px',
-                              borderRadius: '6px',
-                              border: '1px solid var(--color-green-primary)',
-                              color: 'var(--color-green-text)',
-                              backgroundColor: '#FFFFFF',
-                              cursor: 'pointer',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            <Scale size={12} /> Compare
-                          </button>
+                          <div className="auditor-rec-right">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCompareClick(rec);
+                              }}
+                              className="btn btn-outline"
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '11.5px',
+                                borderRadius: '6px',
+                                border: '1px solid var(--color-green-primary)',
+                                color: 'var(--color-green-text)',
+                                backgroundColor: '#FFFFFF',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              <Scale size={12} /> Compare
+                            </button>
 
-                          <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '6px' }}>
-                            <span className={`badge ${isMoreExpensive ? 'badge-orange' : 'badge-green'}`} style={{ padding: '6px 12px', fontSize: '12.5px', fontWeight: '750' }}>
-                              {isMoreExpensive ? 'Adds ' : 'Saves '}${Math.abs(rec.projected_monthly_savings).toLocaleString()}/mo
-                            </span>
-                            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                              Cost: ${rec.monthly_cost.toFixed(2)}/mo
-                            </span>
+                            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                              <span className={`badge ${isMoreExpensive ? 'badge-orange' : 'badge-green'}`} style={{ padding: '5px 10px', fontSize: '12px', fontWeight: '750' }}>
+                                {isMoreExpensive ? 'Adds ' : 'Saves '}${Math.abs(rec.projected_monthly_savings).toLocaleString()}/mo
+                              </span>
+                              <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                                Cost: ${rec.monthly_cost.toFixed(2)}/mo
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -1181,10 +1313,10 @@ export default function ModelAuditorView({
 
                   {/* Dynamic deep comparison panel */}
                   {selectedRecommendation && (
-                    <div className="wizard-card" style={{ marginTop: '32px', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '28px', backgroundColor: '#F8FAFC' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                        <h4 style={{ fontSize: '16px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#1E293B' }}>
-                          <Search size={16} style={{ color: 'var(--color-green-primary)' }} /> Comparison details: {results?.currentBaseline?.name} vs {selectedRecommendation.name}
+                    <div className="wizard-card auditor-deep-compare-card">
+                      <div className="auditor-deep-compare-header">
+                        <h4 style={{ fontSize: '15.5px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px', color: '#1E293B', margin: 0 }}>
+                          <Search size={16} style={{ color: 'var(--color-green-primary)', flexShrink: 0 }} /> Comparison: {results?.currentBaseline?.name} vs {selectedRecommendation.name}
                         </h4>
                         <div style={{ display: 'flex', gap: '10px' }}>
                           <button
@@ -1216,7 +1348,7 @@ export default function ModelAuditorView({
                         </div>
                       </div>
 
-                      <div className="grid-auto-fit-sm" style={{ textAlign: 'center', marginBottom: '24px' }}>
+                      <div className="grid-auto-fit-sm" style={{ textAlign: 'center', marginBottom: '24px', gap: '12px' }}>
 
                         <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
                           <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700 }}>Annual Saving</div>
@@ -1243,7 +1375,7 @@ export default function ModelAuditorView({
 
                       </div>
 
-                      <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#FFFFFF' }}>
+                      <div className="auditor-table-wrapper">
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
                           <thead>
                             <tr style={{ backgroundColor: 'var(--color-bg-accent)', borderBottom: '1px solid var(--color-border)' }}>
@@ -1352,6 +1484,7 @@ export default function ModelAuditorView({
         return (
           <div
             ref={tooltipRef}
+            className="auditor-tooltip-card"
             style={{
               position: 'fixed',
               left: `${left}px`,
@@ -1360,14 +1493,13 @@ export default function ModelAuditorView({
               maxHeight: 'min(520px, calc(100vh - 96px))',
               overflowY: 'auto',
               zIndex: 9999,
-              pointerEvents: 'none',
               padding: '18px 20px',
-              backgroundColor: 'rgba(255, 255, 255, 0.94)',
+              backgroundColor: 'rgba(255, 255, 255, 0.96)',
               backdropFilter: 'blur(24px) saturate(180%)',
               WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               borderRadius: '20px',
               color: '#0F172A',
-              boxShadow: '0 24px 60px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+              boxShadow: '0 24px 60px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.9)',
               border: '1px solid rgba(226, 232, 240, 0.9)',
               display: 'flex',
               flexDirection: 'column',
@@ -1376,7 +1508,7 @@ export default function ModelAuditorView({
               boxSizing: 'border-box'
             }}>
             {/* Title & Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', paddingBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', paddingBottom: '12px', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
                 <div style={{
                   width: '32px',
@@ -1401,10 +1533,36 @@ export default function ModelAuditorView({
                   </span>
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
                 <span style={{ padding: '2px 8px', borderRadius: '12px', backgroundColor: 'rgba(236, 253, 245, 0.8)', color: '#047857', fontSize: '10.5px', fontWeight: '800', border: '1px solid rgba(187, 247, 208, 0.6)' }}>
                   Rank #{hoveredModel.rank}
                 </span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHoveredModel(null);
+                    setHoveredElement(null);
+                  }}
+                  style={{
+                    background: '#F1F5F9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '24px',
+                    height: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748B',
+                    padding: 0,
+                    fontSize: '12px',
+                    fontWeight: '800'
+                  }}
+                  title="Close"
+                >
+                  ✕
+                </button>
               </div>
             </div>
 
