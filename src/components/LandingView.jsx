@@ -291,7 +291,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             </div>
           </div>
 
-          {/* Savings preview card */}
+          {/* Savings preview card with invisible turtle stage */}
           <div className="hero-card-wrapper">
             <style>{`
               @media (min-width: 992px) {
@@ -316,28 +316,58 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 align-items: center;
                 box-sizing: border-box;
               }
-              .hero-turtle {
+
+              /* Dedicated Invisible Container for Turtle Mascot */
+              .turtle-invisible-container {
                 position: absolute;
                 top: 50%;
-                right: 56%;
+                right: 50%;
                 transform: translateY(-50%);
-                height: auto;
                 width: 440px;
-                max-width: 95%;
-                opacity: 1;
-                filter: drop-shadow(-10px 16px 30px rgba(16, 185, 129, 0.22));
-                z-index: 1;
+                height: 440px;
                 pointer-events: none;
-                transition: all 0.3s ease;
+                z-index: 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
               }
-              @media (max-width: 1200px) and (min-width: 992px) {
-                .hero-turtle {
-                  right: 48%;
-                  width: 380px;
+
+              .turtle-invisible-container .turtle-graphic {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                filter: drop-shadow(-10px 18px 32px rgba(16, 185, 129, 0.25));
+                opacity: 1;
+                pointer-events: none;
+              }
+
+              @media (min-width: 1400px) {
+                .turtle-invisible-container {
+                  right: 54%;
+                  width: 480px;
+                  height: 480px;
                 }
               }
+
+              @media (min-width: 1200px) and (max-width: 1399px) {
+                .turtle-invisible-container {
+                  right: 52%;
+                  width: 440px;
+                  height: 440px;
+                }
+              }
+
+              @media (min-width: 992px) and (max-width: 1199px) {
+                .turtle-invisible-container {
+                  right: 44%;
+                  width: 380px;
+                  height: 380px;
+                }
+              }
+
               @media (max-width: 991px) {
-                .hero-turtle {
+                .turtle-invisible-container {
                   display: none !important;
                 }
                 .hero-card-wrapper {
@@ -393,7 +423,12 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 transform: translateY(-1px);
               }
             `}</style>
-            <img src={turtleOutline} className="hero-turtle" alt="" aria-hidden="true" />
+            
+            {/* Invisible Responsive Container for the Turtle */}
+            <div className="turtle-invisible-container" aria-hidden="true">
+              <img src={turtleOutline} className="turtle-graphic" alt="" />
+            </div>
+
             <div className="savings-preview-card">
               {/* Header: Unlocked Badge + Date + Monthly Savings */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
