@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { API_BASE_URL } from '../config';
+import { getCachedModelsList } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
 import { 
@@ -461,34 +462,40 @@ function PurposeSelect({ value, onChange }) {
   );
 }
 
-const sortModelsForDisplay = (models) => {
-  const FEATURED_MODELS = [
-    "GPT-5.5",
-    "GPT-5.5 (high)",
-    "GPT-5.5 Pro",
-    "Claude Fable 5",
-    "Claude Opus 4.8",
-    "Claude Opus 4.7",
-    "Gemini 3.1 Pro Preview",
-    "Gemini 3.5 Flash",
-    "Grok 4",
-    "DeepSeek R1",
-    "Qwen 3",
-    "Llama 4"
-  ];
+const FEATURED_FLAGSHIPS = [
+  'gpt-5.6',
+  'claude opus 5',
+  'gemini 3.7 flash',
+  'grok 4.6',
+  'deepseek v4 pro',
+  'claude fable 5',
+  'gpt-5.5 pro',
+  'gemini 3.5 flash',
+  'claude 3.7 sonnet',
+  'claude 3.5 sonnet',
+  'gpt-5.4',
+  'gpt-5.2 codex',
+  'grok 4',
+  'deepseek r1',
+  'qwen3.5 omni plus',
+  'qwen2.5 coder 32b',
+  'mistral medium 3.5',
+  'muse spark'
+];
 
+const sortModelsForDisplay = (models) => {
   const cleanNameMap = new Map();
   models.forEach(m => {
-    const clean = (m.name || m.id || '').replace(/^[^:]+:\s*/, '').toLowerCase().trim();
-    cleanNameMap.set(m.id, clean);
+    const clean = (m.rawName || m.name || m.id || '').replace(/^[^:]+:\s*/, '').toLowerCase().trim();
+    cleanNameMap.set(m.id || m.slug, clean);
   });
 
   return [...models].sort((a, b) => {
-    const cleanA = cleanNameMap.get(a.id);
-    const cleanB = cleanNameMap.get(b.id);
+    const cleanA = cleanNameMap.get(a.id || a.slug) || '';
+    const cleanB = cleanNameMap.get(b.id || b.slug) || '';
 
-    const idxA = FEATURED_MODELS.findIndex(fm => cleanA.includes(fm.toLowerCase()) || fm.toLowerCase().includes(cleanA));
-    const idxB = FEATURED_MODELS.findIndex(fm => cleanB.includes(fm.toLowerCase()) || fm.toLowerCase().includes(cleanB));
+    const idxA = FEATURED_FLAGSHIPS.findIndex(fm => cleanA.startsWith(fm) || cleanA === fm || cleanA.includes(fm));
+    const idxB = FEATURED_FLAGSHIPS.findIndex(fm => cleanB.startsWith(fm) || cleanB === fm || cleanB.includes(fm));
 
     const isFeaturedA = idxA !== -1;
     const isFeaturedB = idxB !== -1;
@@ -498,6 +505,13 @@ const sortModelsForDisplay = (models) => {
     }
     if (isFeaturedA) return -1;
     if (isFeaturedB) return 1;
+
+    // Prioritize high capability ratings
+    const ratingA = a.rating || 0;
+    const ratingB = b.rating || 0;
+    if (ratingA !== ratingB) {
+      return ratingB - ratingA;
+    }
 
     const nameA = (a.name || a.id || '');
     const nameB = (b.name || b.id || '');
@@ -527,28 +541,25 @@ export default function WizardFlow({
   const [apiSearchQuery, setApiSearchQuery] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [dbModels, setDbModels] = useState([
-    { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5' },
-    { id: 'openai/gpt-5.5-pro', name: 'OpenAI: GPT-5.5 Pro' },
-    { id: 'google/gemini-3.5-flash', name: 'Google: Gemini 3.5 Flash' },
-    { id: 'anthropic/claude-opus-4.8', name: 'Anthropic: Claude Opus 4.8' },
-    { id: 'google/gemini-3.1-pro-preview', name: 'Google: Gemini 3.1 Pro' },
-    { id: 'x-ai/grok-4-20', name: 'xAI: Grok 4.20' },
-    { id: 'google/gemini-3-pro', name: 'Google: Gemini 3 Pro' },
-    { id: 'openai/gpt-5.4', name: 'OpenAI: GPT-5.4' },
-    { id: 'alibaba/qwen3-7-max', name: 'Alibaba: Qwen 3.7 Max' },
-    { id: 'meta-llama/muse-spark', name: 'Meta: Muse Spark' }
+    { id: 'openai/gpt-5-6-sol', name: 'OpenAI: GPT-5.6 Sol', developer: 'OpenAI' },
+    { id: 'anthropic/claude-opus-5', name: 'Anthropic: Claude Opus 5', developer: 'Anthropic' },
+    { id: 'google/gemini-3-7-flash', name: 'Google: Gemini 3.7 Flash', developer: 'Google' },
+    { id: 'x-ai/grok-4-6', name: 'xAI: Grok 4.6', developer: 'xAI' },
+    { id: 'deepseek/deepseek-v4-pro', name: 'DeepSeek: DeepSeek V4 Pro', developer: 'DeepSeek' },
+    { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5', developer: 'Anthropic' },
+    { id: 'openai/gpt-5-5-pro', name: 'OpenAI: GPT-5.5 Pro', developer: 'OpenAI' },
+    { id: 'google/gemini-3-5-flash', name: 'Google: Gemini 3.5 Flash', developer: 'Google' },
+    { id: 'anthropic/claude-3-7-sonnet', name: 'Anthropic: Claude 3.7 Sonnet', developer: 'Anthropic' },
+    { id: 'alibaba/qwen3-5-omni-plus', name: 'Alibaba: Qwen 3.5 Omni Plus', developer: 'Alibaba' }
   ]);
 
-  // Fetch available models from backend for API dropdowns
+  // Fetch available models from backend for API dropdowns (cached)
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/audits/models/list`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setDbModels(data);
-          }
+        const data = await getCachedModelsList();
+        if (data && data.length > 0) {
+          setDbModels(data);
         }
       } catch (err) {
         console.error('Failed to fetch models list in Wizard:', err);
@@ -561,10 +572,18 @@ export default function WizardFlow({
 
   const maxAllowedTools = useMemo(() => {
     if (!user) return 2;
-    if (user.plan === 'enterprise' || (user.credits && user.credits.proMax > 0)) return Infinity;
-    if (user.plan === 'pro' || (user.credits && user.credits.pro > 0)) return 15;
+    const plan = (user.plan || '').toLowerCase();
+    if (plan === 'enterprise' || plan === 'promax' || (user.credits && user.credits.proMax > 0)) return Infinity;
+    if (plan === 'pro' || (user.credits && user.credits.pro > 0)) return 15;
     return 2;
   }, [user]);
+
+  // Ensure selected tools don't exceed current subscription limit
+  useEffect(() => {
+    if (selectedToolIds.length > maxAllowedTools) {
+      setSelectedToolIds(prev => prev.slice(0, maxAllowedTools));
+    }
+  }, [maxAllowedTools, selectedToolIds.length, setSelectedToolIds]);
 
   const getLimitWarningMessage = (maxLimit) => {
     if (maxLimit === 2) {
@@ -721,7 +740,12 @@ export default function WizardFlow({
     }
   };
 
-  const getProviderName = (modelId) => {
+  const getProviderName = (model) => {
+    if (typeof model === 'object' && model !== null) {
+      if (model.developer) return model.developer;
+      if (model.creator) return model.creator;
+    }
+    const modelId = typeof model === 'string' ? model : (model?.id || '');
     const parts = modelId.split('/');
     if (parts.length > 1) {
       const raw = parts[0];
@@ -915,17 +939,28 @@ export default function WizardFlow({
           gap: 6px;
         }
         
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
           .split-workspace {
-            grid-template-columns: 1fr;
-            gap: 20px;
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
           }
           .workspace-panel {
-            height: auto;
-            max-height: 620px;
+            height: auto !important;
+            max-height: 520px !important;
           }
           .wizard-body-wide {
-            padding: 24px 16px;
+            padding: 24px 16px !important;
+          }
+        }
+        @media (max-width: 540px) {
+          .tool-grid {
+            grid-template-columns: 1fr !important;
+          }
+          .wizard-steps-indicator {
+            gap: 4px !important;
+          }
+          .wizard-step-line {
+            width: 16px !important;
           }
         }
       `}</style>
@@ -951,8 +986,29 @@ export default function WizardFlow({
       
       <main className="main-content wizard-body-wide">
         <div className="wizard-progress-meta">✦ Step 1 of 4 - 25% Complete</div>
-        <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '18px' }}>Which AI tools does your team use?</h2>
-        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '20px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
+        <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '8px' }}>Which AI tools does your team use?</h2>
+        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '14px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
+        
+        {/* Dynamic Subscription Limit Badge */}
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '4px 14px',
+            borderRadius: '20px',
+            fontSize: '12px',
+            fontWeight: '700',
+            backgroundColor: maxAllowedTools === Infinity ? '#F5F3FF' : maxAllowedTools > 2 ? '#ECFDF5' : '#F1F5F9',
+            color: maxAllowedTools === Infinity ? '#7C3AED' : maxAllowedTools > 2 ? '#059669' : '#475569',
+            border: `1px solid ${maxAllowedTools === Infinity ? '#DDD6FE' : maxAllowedTools > 2 ? '#A7F3D0' : '#E2E8F0'}`
+          }}>
+            <span>{maxAllowedTools === Infinity ? '⚡' : maxAllowedTools > 2 ? '💎' : '🛡️'}</span>
+            <span>
+              {user?.plan ? (user.plan.charAt(0).toUpperCase() + user.plan.slice(1)) : 'Free'} Plan: Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools} Tools
+            </span>
+          </span>
+        </div>
 
         {limitWarning && (
           <div style={{
@@ -1169,10 +1225,10 @@ export default function WizardFlow({
                       onClick={() => toggleApiModelSelection(model.id)}
                     >
                       <div className="api-row-left">
-                        <ProviderLogo provider={model.id} size={22} />
+                        <ProviderLogo provider={model.developer || model.creator || model.id} size={22} />
                         <div className="api-row-info">
                           <span className="api-model-name">{getCleanModelName(model)}</span>
-                          <span className="api-provider-name">{getProviderName(model.id)}</span>
+                          <span className="api-provider-name">{getProviderName(model)}</span>
                         </div>
                       </div>
                       
@@ -1204,8 +1260,14 @@ export default function WizardFlow({
         {/* Success Banner Bottom CTA */}
         {selectedToolIds.length > 0 ? (
           <div className="bottom-cta-banner">
-            <span className="bottom-cta-text">
-              <span>✔</span> {selectedToolIds.length} / 2 tools selected
+            <span className="bottom-cta-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>✔</span>
+              <span>
+                <strong>{selectedToolIds.length}</strong> / <strong>{maxAllowedTools === Infinity ? '∞' : maxAllowedTools}</strong> tools selected
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', marginLeft: '6px' }}>
+                  ({maxAllowedTools === Infinity ? 'Enterprise Unlimited' : maxAllowedTools > 2 ? 'Pro Plan: up to 15' : 'Free Plan: up to 2'})
+                </span>
+              </span>
             </span>
             <button 
               onClick={() => onNavigateToView('step2')} 
@@ -1226,7 +1288,7 @@ export default function WizardFlow({
         ) : (
           <div className="bottom-cta-banner" style={{ backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#6B7280' }}>
             <span className="bottom-cta-text" style={{ fontWeight: '500' }}>
-              Select at least one tool to proceed
+              Select at least one tool to proceed (Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools})
             </span>
             <button 
               className="btn btn-disabled"

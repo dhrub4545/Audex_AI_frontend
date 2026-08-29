@@ -32,12 +32,6 @@ const getNormalizedProvider = (prov) => {
   return prov;
 };
 
-const getRecommendedOption = (rec) => {
-  const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
-  const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
-  return apiSav >= subSav ? 'api' : 'subscription';
-};
-
 function ProviderBadge({ provider, model, plan, size = 18 }) {
   const getBadgeStyles = (prov) => {
     const p = (prov || '').toLowerCase().trim();
@@ -407,13 +401,7 @@ export default function ActionPlanView({
         </p>
 
         {/* Two-Column Layout: Info Sidebar (left) + Recommendations (right) */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '340px 1fr',
-          gap: '28px',
-          marginTop: '24px',
-          alignItems: 'start'
-        }}>
+        <div className="action-plan-layout" style={{ marginTop: '24px' }}>
 
           {/* LEFT COLUMN — Sticky Info Panel */}
           <div style={{ position: 'sticky', top: '100px' }}>
@@ -1388,10 +1376,7 @@ export default function ActionPlanView({
             </div>
 
             {/* Wizard Footer Navigation Actions */}
-            <div className="wizard-actions" style={{ marginTop: '32px' }}>
-              <button onClick={() => onNavigateToView('step3')} className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                <ArrowLeft size={16} /> Back to Step 3
-              </button>
+            <div className="wizard-actions" style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end' }}>
               <button 
                 onClick={() => onNavigateToView('results')} 
                 className="btn btn-green"

@@ -1,17 +1,31 @@
 import React from 'react';
-import { Zap, Coins, ShoppingCart, ArrowRight, User, FileText, DollarSign, LogOut } from 'lucide-react';
+import { Zap, Coins, ShoppingCart, ArrowRight, User, FileText, DollarSign, LogOut, Menu, X, ShieldCheck } from 'lucide-react';
 import logoImg from '../assets/audex-ai-logo.png';
 
 export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigateToModelAuditor, onNavigateToMarketIntel, onNavigateToLanding, onNavigateToStep1, onNavigateToSignIn, activeView }) {
   const [activeSection, setActiveSection] = React.useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   React.useEffect(() => {
-    const handleClose = () => setIsUserMenuOpen(false);
+    const handleClose = () => {
+      setIsUserMenuOpen(false);
+    };
     document.addEventListener('click', handleClose);
     return () => {
       document.removeEventListener('click', handleClose);
     };
+  }, []);
+
+  // Close mobile menu on resize to desktop
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 992) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   const toggleUserMenu = (e) => {
@@ -53,11 +67,10 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
       observer.disconnect();
     };
   }, [activeView]);
-  const credits = user?.credits || { starter: 0, pro: 0, proMax: 0 };
-  const totalCredits = (credits.starter || 0) + (credits.pro || 0) + (credits.proMax || 0);
 
   const handlePricingScroll = (e) => {
     e.preventDefault();
+    setIsMobileMenuOpen(false);
     onNavigateToLanding();
     setTimeout(() => {
       const el = document.getElementById('pricing');
@@ -71,81 +84,112 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     }, 100);
   };
 
+  const handleHowItWorksScroll = (e) => {
+    e.preventDefault();
+    setIsMobileMenuOpen(false);
+    onNavigateToLanding();
+    setTimeout(() => {
+      const el = document.getElementById('how-it-works');
+      if (el) {
+        if (window.lenis) {
+          window.lenis.scrollTo(el);
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }, 100);
+  };
+
+  const planName = user ? (user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan')) : '';
+  const badgeColor = user ? (user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B')) : '';
+  const bgColor = user ? (user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9')) : '';
+
   return (
-    <header className="navbar">
-      <div className="container">
-        <a href="/" onClick={(e) => { e.preventDefault(); onNavigateToLanding(); }} className="brand" title="Audex AI Home">
-          <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
-          <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
+    <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
+      <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative' }}>
+        
+        {/* Brand Logo */}
+        <a href="/" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToLanding(); }} className="brand" title="Audex AI Home" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
+          <img src={logoImg} alt="Audex AI Logo" className="brand-logo" style={{ height: '36px', width: 'auto' }} />
+          <span className="brand-name" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '20px', color: '#0F172A' }}>
+            Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span>
+          </span>
         </a>
+
         <style>{`
-          .nav-links {
+          /* Desktop Links */
+          .desktop-nav {
             display: flex;
             align-items: center;
-            gap: 16px !important;
+            gap: 24px;
           }
-          .nav-links .nav-link {
+          .nav-link {
             position: relative;
             padding-bottom: 6px;
-            font-size: 13px !important;
-            white-space: nowrap !important;
+            font-size: 13.5px;
+            white-space: nowrap;
             text-decoration: none;
             color: var(--color-text-secondary);
+            font-weight: 500;
+            transition: color 180ms ease;
           }
-          .nav-links .nav-link.active {
+          .nav-link:hover {
+            color: var(--color-text-primary);
+          }
+          .nav-link.active {
             color: var(--color-green-primary) !important;
             font-weight: 600 !important;
           }
-          .nav-links .nav-link::after {
+          .nav-link::after {
             content: '';
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 3px;
+            height: 2.5px;
             background-color: var(--color-green-primary);
             border-radius: 999px;
             transform: scaleX(0);
             transform-origin: center;
             transition: transform 220ms ease;
           }
-          .nav-links .nav-link.active::after {
+          .nav-link.active::after {
             transform: scaleX(1);
           }
-          
+
+          /* User menu dropdown */
           .user-menu-container {
             position: relative;
             display: inline-block;
-            margin-left: 4px;
           }
           .user-menu-trigger {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 13px;
             color: var(--color-text-secondary);
-            font-weight: 500;
+            font-weight: 600;
             background: none;
-            border: none;
+            border: 1px solid var(--color-border);
             cursor: pointer;
             padding: 6px 12px;
             border-radius: 9999px;
-            transition: all 200ms ease;
+            transition: all 180ms ease;
           }
           .user-menu-trigger:hover {
             background-color: var(--color-bg-accent);
             color: var(--color-text-primary);
+            border-color: #CBD5E1;
           }
           .user-menu-dropdown {
             position: absolute;
-            top: 100%;
+            top: calc(100% + 8px);
             right: 0;
-            margin-top: 8px;
-            width: 200px;
+            width: 210px;
             background-color: #FFFFFF;
             border: 1px solid var(--color-border);
             border-radius: 12px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 12px 24px -4px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
             padding: 8px;
             z-index: 1100;
             display: flex;
@@ -165,15 +209,15 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 12px;
+            padding: 8px 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--color-text-primary);
           }
           .user-menu-divider {
             height: 1px;
             background-color: var(--color-border);
-            margin: 6px 0;
+            margin: 4px 0;
           }
           .user-menu-item {
             display: flex;
@@ -203,110 +247,314 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             background-color: #FEF2F2;
             color: #DC2626;
           }
+
+          /* Responsive Breakpoint Visibility */
+          .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            color: var(--color-text-primary);
+            align-items: center;
+            justify-content: center;
+            transition: background 150ms ease;
+          }
+          .mobile-menu-btn:hover {
+            background-color: var(--color-bg-accent);
+          }
+
+          @media (max-width: 991px) {
+            .desktop-nav {
+              display: none !important;
+            }
+            .desktop-plan-badge {
+              display: none !important;
+            }
+            .mobile-menu-btn {
+              display: flex !important;
+            }
+          }
+
+          @media (max-width: 520px) {
+            .desktop-start-btn {
+              display: none !important;
+            }
+          }
+
+          /* Mobile Slide Down Menu */
+          .mobile-nav-panel {
+            position: absolute;
+            top: 70px;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--color-border);
+            box-shadow: 0 20px 30px rgba(0, 0, 0, 0.08);
+            padding: 20px 24px 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            z-index: 1000;
+            animation: slideDownMobile 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          }
+
+          @keyframes slideDownMobile {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+
+          .mobile-link-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 150ms ease;
+          }
+          .mobile-link-item:hover, .mobile-link-item.active {
+            background-color: var(--color-bg-accent);
+            color: var(--color-green-primary);
+          }
         `}</style>
-        <nav className="nav-links" aria-label="Audex AI Main Navigation">
-          <a href="#how-it-works" onClick={(e) => {
-            e.preventDefault();
-            onNavigateToLanding();
-            setTimeout(() => {
-              const el = document.getElementById('how-it-works');
-              if (el) {
-                if (window.lenis) {
-                  window.lenis.scrollTo(el);
-                } else {
-                  el.scrollIntoView({ behavior: 'smooth' });
-                }
-              }
-            }, 100);
-          }} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">How it works</a>
-          <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`} title="Audex AI Pricing & Plans">Pricing</a>
+
+        {/* Desktop Navigation Links */}
+        <nav className="desktop-nav" aria-label="Audex AI Main Navigation">
+          <a href="#how-it-works" onClick={handleHowItWorksScroll} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">
+            How it works
+          </a>
+          <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`} title="Audex AI Pricing & Plans">
+            Pricing
+          </a>
           <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
             Market Intel
           </a>
           <a href="/?view=history" onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
             Reports History
           </a>
-          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '4px' }} title="Benchmark 570+ Models in Live AI Model Auditor">
-            Model Auditor <Zap size={14} stroke="currentColor" strokeWidth={2} />
+          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 570+ Models in Live AI Model Auditor">
+            Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#F5F3FF', color: '#7C3AED', padding: '1px 5px', borderRadius: '4px', border: '1px solid #DDD6FE', letterSpacing: '0.04em' }}>ENT</span>
           </a>
         </nav>
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px', flexShrink: 0 }}>
-          {user && (() => {
-            const planName = user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan');
-            const badgeColor = user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B');
-            const bgColor = user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9');
 
-            return (
-              <div style={{ display: 'inline-flex', alignItems: 'center' }}>
-                <span style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  backgroundColor: bgColor,
-                  border: `1px solid ${badgeColor}`,
-                  color: badgeColor,
-                  padding: '5px 10px',
-                  borderRadius: '9999px',
-                  fontWeight: '700',
-                  fontSize: '11px',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.04em',
-                  userSelect: 'none'
-                }}>
-                  ✦ {planName}
-                </span>
-              </div>
-            );
-          })()}
+        {/* Action Controls & User Menu */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          
+          {/* Plan Badge (Desktop Only) */}
+          {user && (
+            <div className="desktop-plan-badge" style={{ display: 'inline-flex', alignItems: 'center' }}>
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                backgroundColor: bgColor,
+                border: `1px solid ${badgeColor}`,
+                color: badgeColor,
+                padding: '4px 10px',
+                borderRadius: '9999px',
+                fontWeight: '700',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                userSelect: 'none'
+              }}>
+                ✦ {planName}
+              </span>
+            </div>
+          )}
+
+          {/* Desktop/Tablet CTA Button */}
+          <button 
+            onClick={() => { setIsMobileMenuOpen(false); onNavigateToStep1(); }} 
+            className="btn btn-black desktop-start-btn" 
+            style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}
+          >
+            Start Free Audit <ArrowRight size={14} style={{ marginLeft: '4px' }} />
+          </button>
+
+          {/* User Profile Dropdown (Desktop) */}
           {user ? (
-            <>
-              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>
-                Start Free Audit <ArrowRight size={14} style={{ marginLeft: '4px' }} />
+            <div className="user-menu-container desktop-plan-badge">
+              <button 
+                onClick={toggleUserMenu} 
+                className="user-menu-trigger"
+              >
+                <User size={15} />
+                <span>Hi, {user.name}</span>
               </button>
-              <div className="user-menu-container">
-                <button 
-                  onClick={toggleUserMenu} 
-                  className="user-menu-trigger"
-                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', padding: '6px 12px' }}
-                >
+              <div className={`user-menu-dropdown ${isUserMenuOpen ? 'open' : ''}`}>
+                <div className="user-menu-header">
                   <User size={15} />
                   <span>Hi, {user.name}</span>
+                </div>
+                <div className="user-menu-divider"></div>
+                <button onClick={() => { setIsUserMenuOpen(false); onNavigateToHistory(); }} className="user-menu-item">
+                  <FileText size={14} />
+                  <span>Reports History</span>
                 </button>
-                <div className={`user-menu-dropdown ${isUserMenuOpen ? 'open' : ''}`}>
-                  <div className="user-menu-header">
-                    <User size={15} />
-                    <span>Hi, {user.name}</span>
-                  </div>
-                  <div className="user-menu-divider"></div>
-                  <button onClick={onNavigateToHistory} className="user-menu-item">
-                    <FileText size={14} />
-                    <span>Reports History</span>
-                  </button>
-                  <button onClick={handlePricingScroll} className="user-menu-item">
-                    <Coins size={14} />
-                    <span>Credits</span>
-                  </button>
-                  <button onClick={handlePricingScroll} className="user-menu-item">
-                    <DollarSign size={14} />
-                    <span>Pricing</span>
-                  </button>
-                  <div className="user-menu-divider"></div>
-                  <button onClick={onLogout} className="user-menu-item logout-item">
-                    <LogOut size={14} />
-                    <span>Sign Out</span>
-                  </button>
+                <button onClick={(e) => { setIsUserMenuOpen(false); handlePricingScroll(e); }} className="user-menu-item">
+                  <Coins size={14} />
+                  <span>Credits</span>
+                </button>
+                <button onClick={(e) => { setIsUserMenuOpen(false); handlePricingScroll(e); }} className="user-menu-item">
+                  <DollarSign size={14} />
+                  <span>Pricing</span>
+                </button>
+                <div className="user-menu-divider"></div>
+                <button onClick={() => { setIsUserMenuOpen(false); onLogout(); }} className="user-menu-item logout-item">
+                  <LogOut size={14} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button 
+              onClick={() => { setIsMobileMenuOpen(false); onNavigateToSignIn(); }} 
+              className="btn btn-outline desktop-plan-badge" 
+              style={{ fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}
+            >
+              Sign in
+            </button>
+          )}
+
+          {/* Mobile Hamburger Toggle Button */}
+          <button 
+            className="mobile-menu-btn" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+            aria-label="Toggle Navigation Menu"
+          >
+            {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
+
+      </div>
+
+      {/* Mobile Slide-Down Navigation Panel */}
+      {isMobileMenuOpen && (
+        <div className="mobile-nav-panel">
+          
+          {/* User Card if Logged In */}
+          {user ? (
+            <div style={{ padding: '12px 14px', backgroundColor: '#F8FAFC', borderRadius: '12px', border: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#E2E8F0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <User size={16} />
+                </div>
+                <div>
+                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#0F172A' }}>Hi, {user.name}</div>
+                  <div style={{ fontSize: '11px', color: '#64748B' }}>{user.email || 'Logged in'}</div>
                 </div>
               </div>
-            </>
-          ) : (
-            <>
-              <button onClick={onNavigateToSignIn} className="btn btn-outline" style={{ marginRight: 0, fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>Sign in</button>
-              <button onClick={onNavigateToStep1} className="btn btn-black" style={{ display: 'inline-flex', alignItems: 'center', fontSize: '13px', padding: '8px 16px', borderRadius: '8px' }}>
-                Start Free Audit <ArrowRight size={14} style={{ marginLeft: '4px' }} />
+              <span style={{
+                backgroundColor: bgColor,
+                border: `1px solid ${badgeColor}`,
+                color: badgeColor,
+                padding: '3px 8px',
+                borderRadius: '9999px',
+                fontWeight: '700',
+                fontSize: '10px',
+                textTransform: 'uppercase'
+              }}>
+                ✦ {planName}
+              </span>
+            </div>
+          ) : null}
+
+          {/* Navigation Links */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <a 
+              href="#how-it-works" 
+              onClick={handleHowItWorksScroll} 
+              className={`mobile-link-item ${activeSection === 'how-it-works' ? 'active' : ''}`}
+            >
+              <span>How it works</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+            
+            <a 
+              href="#pricing" 
+              onClick={handlePricingScroll} 
+              className={`mobile-link-item ${activeSection === 'pricing' ? 'active' : ''}`}
+            >
+              <span>Pricing & Plans</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+
+            <a 
+              href="/?view=market-intel" 
+              onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToMarketIntel(); }} 
+              className={`mobile-link-item ${activeSection === 'market_intel' ? 'active' : ''}`}
+            >
+              <span>Enterprise Market Intel</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+
+            <a 
+              href="/?view=history" 
+              onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToHistory(); }} 
+              className={`mobile-link-item ${activeSection === 'history' ? 'active' : ''}`}
+            >
+              <span>Reports History</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+
+            <a 
+              href="/?view=model-auditor" 
+              onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToModelAuditor(); }} 
+              className={`mobile-link-item ${activeSection === 'model_auditor' ? 'active' : ''}`}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-green-primary)' }}>
+                Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#F5F3FF', color: '#7C3AED', padding: '1px 5px', borderRadius: '4px', border: '1px solid #DDD6FE' }}>ENT</span>
+              </span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+          </div>
+
+          {/* Action Buttons in Mobile Menu */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', paddingTop: '10px', borderTop: '1px solid var(--color-border)' }}>
+            <button 
+              onClick={() => { setIsMobileMenuOpen(false); onNavigateToStep1(); }} 
+              className="btn btn-black" 
+              style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '14px', fontWeight: '700' }}
+            >
+              Start Free Audit <ArrowRight size={15} style={{ marginLeft: '4px' }} />
+            </button>
+
+            {user ? (
+              <button 
+                onClick={() => { setIsMobileMenuOpen(false); onLogout(); }} 
+                className="btn btn-outline" 
+                style={{ width: '100%', padding: '10px', borderRadius: '10px', fontSize: '13px', color: '#EF4444', borderColor: '#FCA5A5' }}
+              >
+                <LogOut size={14} style={{ marginRight: '6px' }} /> Sign Out
               </button>
-            </>
-          )}
+            ) : (
+              <button 
+                onClick={() => { setIsMobileMenuOpen(false); onNavigateToSignIn(); }} 
+                className="btn btn-outline" 
+                style={{ width: '100%', padding: '10px', borderRadius: '10px', fontSize: '13px' }}
+              >
+                Sign in to Account
+              </button>
+            )}
+          </div>
+
         </div>
-      </div>
+      )}
+
     </header>
   );
 }
+

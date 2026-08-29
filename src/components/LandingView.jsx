@@ -5,7 +5,7 @@ import {
   Cpu, Users, Copy, GitMerge, EyeOff, BarChart3, LineChart, Key, Binary,
   FileCheck, Scale, ShieldCheck, Recycle, Sparkles, Bot, Video, Volume2,
   Music, Presentation, Layers, Sliders, ClipboardCheck, Shield, Lock, Database, FileText,
-  AlertCircle, CheckCircle, BadgeCheck, Percent
+  AlertCircle, CheckCircle, BadgeCheck, Percent, RotateCcw
 } from 'lucide-react';
 
 import {
@@ -28,9 +28,6 @@ import {
 import turtleOutline from '../assets/Audex-outline.jpg';
 
 export default function LandingView({ onNavigateToStep1, onViewSample, onPurchase }) {
-  // Localizing this state prevents full App re-renders when adjusting the spend calculator!
-  const [monthlySpend, setMonthlySpend] = useState(10000);
-
   const pipelineRef = useRef(null);
   const [isPipelineAnimated, setIsPipelineAnimated] = useState(false);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
@@ -349,95 +346,186 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               }
             `}</style>
             <img src={turtleOutline} className="hero-turtle" alt="" aria-hidden="true" />
-            <div className="savings-preview-card">
-              {/* 1. Header Layout */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '24px' }}>
-                {/* Left Side */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <span style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Estimated Annual Savings</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <span style={{ fontSize: '32px', fontWeight: '800', color: '#16A34A', lineHeight: 1 }}>$30,180</span>
-                    <TrendingUp color="#16A34A" size={24} strokeWidth={2.5} />
-                  </div>
-                  <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0, marginTop: '8px', lineHeight: 1.5 }}>
-                    Based on your team's AI subscriptions,<br />we identified approximately<br />
-                    <strong style={{ color: 'var(--color-text-primary)' }}>$2,515/month</strong> in avoidable spend across 6 recommendations.
-                  </p>
+            <div className="savings-preview-card" style={{ padding: '24px 28px', borderRadius: '22px', border: '1.5px solid var(--color-border)', backgroundColor: '#FFFFFF', boxShadow: '0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02)' }}>
+              {/* Header: Unlocked Badge + Date + Monthly Savings */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#ECFDF5', color: '#059669', padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '850', border: '1px solid #A7F3D0', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                    <ShieldCheck size={13} strokeWidth={2.5} /> UNLOCKED
+                  </span>
+                  <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#334155' }}>
+                    21 July 2026 at 11:13 pm
+                  </span>
                 </div>
+                <span style={{ fontSize: '24px', fontWeight: '850', color: '#059669', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                  +$140.74/mo
+                </span>
+              </div>
 
-                {/* Right Side */}
-                <div style={{ backgroundColor: '#FEF2F2', border: '1px solid #FEE2E2', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', minWidth: '140px' }}>
-                  <AlertTriangle color="#EF4444" size={20} />
-                  <div style={{ fontSize: '13px', fontWeight: '700', color: '#991B1B', marginTop: '4px' }}>High waste detected</div>
-                  <div style={{ fontSize: '11px', color: '#B91C1C', lineHeight: 1.4 }}>Act now to recover<br />$2,515/month</div>
+              {/* Meta Rows */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '9px', marginTop: '16px', marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475569', fontWeight: '600' }}>
+                    <Users size={15} strokeWidth={2} style={{ color: '#64748B' }} /> Team Size:
+                  </span>
+                  <strong style={{ fontSize: '13px', color: '#0F172A', fontWeight: '750' }}>11 seats</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475569', fontWeight: '600' }}>
+                    <Target size={15} strokeWidth={2} style={{ color: '#64748B' }} /> Audit Mode:
+                  </span>
+                  <span style={{ fontSize: '10.5px', fontWeight: '850', color: '#059669', backgroundColor: '#ECFDF5', padding: '2px 8px', borderRadius: '6px', border: '1px solid #A7F3D0', letterSpacing: '0.03em', textTransform: 'uppercase' }}>
+                    PERFORMANCE PRESERVATION MODE
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', color: '#475569', fontWeight: '600' }}>
+                    <Bot size={15} strokeWidth={2} style={{ color: '#64748B' }} /> Active Tools:
+                  </span>
+                  <strong style={{ fontSize: '13px', color: '#0F172A', fontWeight: '750' }}>7 tools</strong>
                 </div>
               </div>
 
-              {/* 2. Subtle Divider */}
-              <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }}></div>
-
-              {/* 3. Section Title */}
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', color: 'var(--color-text-muted)', textTransform: 'uppercase', marginBottom: '16px' }}>Top Savings Opportunities</div>
-
-                {/* 4 & 5. Savings Rows */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-
-                  {/* Row 1 */}
-                  <div className="savings-row">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--color-border)' }}><OpenAI size={18} /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>ChatGPT Enterprise</span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Over-provisioned by 12 seats</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#EF4444', textAlign: 'right' }}>-$1,200/mo</span>
-                    </div>
-                  </div>
-
-                  {/* Row 2 */}
-                  <div className="savings-row">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--color-border)' }}><GithubCopilot size={18} /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>GitHub Copilot</span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>14 inactive users detected</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#EF4444', textAlign: 'right' }}>-$850/mo</span>
-                    </div>
-                  </div>
-
-                  {/* Row 3 */}
-                  <div className="savings-row">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', backgroundColor: '#F8FAFC', borderRadius: '8px', border: '1px solid var(--color-border)' }}><Midjourney size={18} /></div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text-primary)' }}>Midjourney</span>
-                        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Duplicate with Canva AI</span>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span style={{ fontSize: '14px', fontWeight: '700', color: '#EF4444', textAlign: 'right' }}>-$600/mo</span>
-                    </div>
-                  </div>
-
+              {/* Audited Tools Compact Table */}
+              <div style={{ borderTop: '1px solid #F1F5F9', paddingTop: '12px' }}>
+                <div style={{ fontSize: '9.5px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B', marginBottom: '8px' }}>
+                  AUDITED TOOLS
                 </div>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #E2E8F0', color: '#64748B', fontSize: '9.5px', fontWeight: '800', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '4px 0', textAlign: 'left' }}>TOOL</th>
+                      <th style={{ padding: '4px 0', textAlign: 'center' }}>TYPE</th>
+                      <th style={{ padding: '4px 0', textAlign: 'center' }}>SEATS</th>
+                      <th style={{ padding: '4px 0', textAlign: 'right' }}>USE CASE</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr style={{ borderBottom: '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '6.5px 0', fontWeight: '750', color: '#0F172A' }}>OpenAI</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center' }}>
+                        <span style={{ fontSize: '9px', fontWeight: '850', color: '#059669', backgroundColor: '#ECFDF5', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>SUB</span>
+                      </td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center', fontWeight: '700', color: '#334155' }}>1</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>Mixed</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '6.5px 0', fontWeight: '750', color: '#0F172A' }}>Anthropic</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center' }}>
+                        <span style={{ fontSize: '9px', fontWeight: '850', color: '#059669', backgroundColor: '#ECFDF5', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>SUB</span>
+                      </td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center', fontWeight: '700', color: '#334155' }}>5</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>Mixed</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '6.5px 0', fontWeight: '750', color: '#0F172A' }}>Google</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center' }}>
+                        <span style={{ fontSize: '9px', fontWeight: '850', color: '#059669', backgroundColor: '#ECFDF5', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>SUB</span>
+                      </td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center', fontWeight: '700', color: '#334155' }}>1</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>Mixed</td>
+                    </tr>
+                    <tr style={{ borderBottom: '1px solid #F8FAFC' }}>
+                      <td style={{ padding: '6.5px 0', fontWeight: '750', color: '#0F172A' }}>Anthropic: Claude Fable 5</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center' }}>
+                        <span style={{ fontSize: '9px', fontWeight: '850', color: '#2563EB', backgroundColor: '#EFF6FF', padding: '1px 5px', borderRadius: '4px', textTransform: 'uppercase' }}>API</span>
+                      </td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'center', fontWeight: '700', color: '#334155' }}>1</td>
+                      <td style={{ padding: '6.5px 0', textAlign: 'right', fontWeight: '600', color: '#475569' }}>Coding</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              {/* CTA & Microcopy */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <button onClick={onNavigateToStep1} className="btn btn-green" style={{ width: '100%', padding: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', borderRadius: '8px' }}>
-                  <Search size={18} /> Audit my AI stack — it's free
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <button
+                    onClick={() => onViewSample('plan')}
+                    className="btn btn-outline"
+                    style={{
+                      fontSize: '12px',
+                      padding: '10px 12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      borderRadius: '8px',
+                      border: '1.5px solid var(--color-border)',
+                      backgroundColor: '#FFFFFF',
+                      color: 'var(--color-text-primary)',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <ClipboardCheck size={14} style={{ color: '#2563EB' }} /> Final Plan
+                  </button>
+                  <button
+                    onClick={() => onViewSample('report')}
+                    className="btn btn-outline"
+                    style={{
+                      fontSize: '12px',
+                      padding: '10px 12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      borderRadius: '8px',
+                      border: '1.5px solid var(--color-border)',
+                      backgroundColor: '#FFFFFF',
+                      color: 'var(--color-text-primary)',
+                      fontWeight: '700',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    <BarChart3 size={14} style={{ color: '#059669' }} /> Detailed Report
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => onViewSample('report')}
+                  className="btn btn-green"
+                  style={{
+                    width: '100%',
+                    padding: '11px 16px',
+                    fontSize: '13px',
+                    fontWeight: '800',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    backgroundColor: '#065F46',
+                    color: '#FFFFFF',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(6, 95, 70, 0.2)'
+                  }}
+                >
+                  <Sparkles size={15} /> Consult AI Spend Specialist
                 </button>
-                <div style={{ textAlign: 'center', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                  No sign-up required • Results in under 60 seconds
+
+                <div style={{ textAlign: 'center', marginTop: '2px' }}>
+                  <button
+                    onClick={onNavigateToStep1}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#64748B',
+                      fontSize: '11.5px',
+                      fontWeight: '600',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      cursor: 'pointer',
+                      padding: '2px 6px'
+                    }}
+                  >
+                    <RotateCcw size={11} /> Run New Custom Audit
+                  </button>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -2277,6 +2365,9 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px', fontWeight: '700', color: '#0F172A' }}>
+                    <Check size={16} color="#22C55E" strokeWidth={3} /> Live AI Model Auditor Access
+                  </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
                     <Check size={16} color="#22C55E" strokeWidth={3} /> Unlimited tools audited
                   </div>

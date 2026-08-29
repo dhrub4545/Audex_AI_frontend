@@ -1,18 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import Lenis from 'lenis';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import LandingView from './components/LandingView';
-import WizardFlow from './components/WizardFlow';
-import ResultsView from './components/ResultsView';
-import HistoryView from './components/HistoryView';
-import { SignInView, SignUpView } from './components/AuthViews';
 import { LoadingIndicator, PurchaseSuccessModal, CheckoutModal } from './components/CommonComponents';
-import ModelAuditorView from './components/ModelAuditorView';
-import MarketIntelView from './components/MarketIntelView';
-import ComparisonView from './components/ComparisonView';
-import ActionPlanView from './components/ActionPlanView';
+import { ShieldCheck, Sparkles, Zap, Lock } from 'lucide-react';
 import { API_BASE_URL } from './config';
+import { getCachedSubscriptionTiers, preloadCoreData } from './utils/dataCache';
+import { SAMPLE_AUDIT_DATA } from './utils/sampleReportData';
+
+const LandingView = lazy(() => import('./components/LandingView'));
+const WizardFlow = lazy(() => import('./components/WizardFlow'));
+const ResultsView = lazy(() => import('./components/ResultsView'));
+const HistoryView = lazy(() => import('./components/HistoryView'));
+const ModelAuditorView = lazy(() => import('./components/ModelAuditorView'));
+const MarketIntelView = lazy(() => import('./components/MarketIntelView'));
+const ComparisonView = lazy(() => import('./components/ComparisonView'));
+const ActionPlanView = lazy(() => import('./components/ActionPlanView'));
+const SignInView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignInView })));
+const SignUpView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignUpView })));
 
 const INITIAL_TOOLS = [
   { id: 'GitHub Copilot', name: 'GitHub Copilot', desc: 'GitHub AI assistant', icon: '🤖', type: 'subscription', plans: ['Copilot Free', 'Copilot Pro', 'Copilot Pro+'], defaultPlan: 'Copilot Pro', defaultSeats: 5 },
@@ -56,7 +61,7 @@ const getViewFromUrl = () => {
     if (normalized === 'signup' || normalized === 'register') return 'signup';
     if (normalized === 'pricing') return 'pricing_scroll';
     return 'landing';
-  } catch (e) {
+  } catch {
     return 'landing';
   }
 };
@@ -99,38 +104,88 @@ export default function App() {
     return initial === 'pricing_scroll' ? 'landing' : initial;
   });
 
+  // Authentication state
+  const [token, setToken] = useState(() => localStorage.getItem('audex_token') || null);
+  const [user, setUser] = useState(() => {
+    try {
+      const storedUser = localStorage.getItem('audex_user');
+      return storedUser ? JSON.parse(storedUser) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [authError, setAuthError] = useState(null);
+  const [authMessage, setAuthMessage] = useState(null);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // State for search and custom tools
+  const [tools, setTools] = useState(INITIAL_TOOLS);
+  
+  // Wizard choices
+  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude']);
+  const [toolConfigs, setToolConfigs] = useState({
+    'GitHub Copilot': [{ id: 'g1', plan: 'Copilot Pro', seats: 5, purpose: 'Coding' }],
+    'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }]
+  });
+  const [teamSize, setTeamSize] = useState(3);
+  const [useCase, setUseCase] = useState('Coding');
+  const [optimizationGoal, setOptimizationGoal] = useState('performance');
+  const [costCutPercentage, setCostCutPercentage] = useState(50);
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [tokenAdjustments, setTokenAdjustments] = useState({});
+
+  // Credit / Pricing State
+  const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
+  const [purchasedPlanName, setPurchasedPlanName] = useState('');
+  const [purchasedCreditsCount, setPurchasedCreditsCount] = useState(0);
+
+  const [auditResult, setAuditResult] = useState(null);
+  const [pastAudits, setPastAudits] = useState([]);
+  const [apiError, setApiError] = useState(null);
+
+  // Preload market dataset quietly in background during browser idle time
+  useEffect(() => {
+    preloadCoreData();
+  }, []);
+
   useEffect(() => {
     const fetchSubscriptionTiers = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/audits/subscription-tiers/list`);
-        if (response.ok) {
-          const dynamicTools = await response.json();
-          if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
-            setTools(dynamicTools);
-            
-            // Default select the first 3 tools
-            const initialSelected = dynamicTools.slice(0, 3).map(t => t.id);
-            setSelectedToolIds(initialSelected);
-            
-            // Set initial config for the loaded tools
-            const initialConfigs = {};
-            dynamicTools.forEach(t => {
-              initialConfigs[t.id] = [{
-                id: (Date.now() + Math.random()).toString(),
-                plan: t.defaultPlan || 'Free',
-                seats: t.defaultSeats || 1,
-                purpose: (t.id === 'GitHub Copilot' || t.id === 'Cursor' || t.id === 'Windsurf') ? 'Coding' : 'Mixed'
-              }];
-            });
-            setToolConfigs(initialConfigs);
-          }
+        const dynamicTools = await getCachedSubscriptionTiers();
+        if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
+          setTools(dynamicTools);
+          
+          // Determine allowed tools limit based on user subscription (2 for Free tier)
+          const plan = (user?.plan || '').toLowerCase();
+          const maxTools = (plan === 'enterprise' || plan === 'promax' || (user?.credits && user?.credits?.proMax > 0))
+            ? Infinity
+            : (plan === 'pro' || (user?.credits && user?.credits?.pro > 0))
+              ? 15
+              : 2;
+
+          // Default select up to allowed tools (strictly 2 for Free subscription)
+          const initialCount = Math.min(2, maxTools);
+          const initialSelected = dynamicTools.slice(0, initialCount).map(t => t.id);
+          setSelectedToolIds(initialSelected);
+          
+          // Set initial config for the loaded tools
+          const initialConfigs = {};
+          dynamicTools.forEach(t => {
+            initialConfigs[t.id] = [{
+              id: (Date.now() + Math.random()).toString(),
+              plan: t.defaultPlan || 'Free',
+              seats: t.defaultSeats || 1,
+              purpose: (t.id === 'GitHub Copilot' || t.id === 'Cursor' || t.id === 'Windsurf') ? 'Coding' : 'Mixed'
+            }];
+          });
+          setToolConfigs(initialConfigs);
         }
       } catch (err) {
         console.error('Failed to fetch dynamic subscription tiers from backend:', err);
       }
     };
     fetchSubscriptionTiers();
-  }, []);
+  }, [user]);
 
   // Google & GitHub OAuth callback detection effect
   useEffect(() => {
@@ -223,53 +278,6 @@ export default function App() {
     }
   }, []);
 
-  // State for search and custom tools
-  const [tools, setTools] = useState(INITIAL_TOOLS);
-  
-  // Wizard choices
-  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude']);
-  const [toolConfigs, setToolConfigs] = useState({
-    'GitHub Copilot': [{ id: 'g1', plan: 'Copilot Pro', seats: 5, purpose: 'Coding' }],
-    'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }]
-  });
-  const [teamSize, setTeamSize] = useState(3);
-  const [useCase, setUseCase] = useState('Coding');
-  const [optimizationGoal, setOptimizationGoal] = useState('performance');
-  const [costCutPercentage, setCostCutPercentage] = useState(50);
-  const [selectedOptions, setSelectedOptions] = useState({});
-  const [tokenAdjustments, setTokenAdjustments] = useState({});
-
-
-
-  // Credit / Pricing State
-  const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
-  const [purchasedPlanName, setPurchasedPlanName] = useState('');
-  const [purchasedCreditsCount, setPurchasedCreditsCount] = useState(0);
-
-  // Checkout Modal states
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutType, setCheckoutType] = useState('pro');
-  const [checkoutPrice, setCheckoutPrice] = useState(29);
-  const [checkoutAuditId, setCheckoutAuditId] = useState(null);
-
-  // Authentication state
-  const [token, setToken] = useState(() => localStorage.getItem('audex_token') || null);
-  const [user, setUser] = useState(() => {
-    try {
-      const storedUser = localStorage.getItem('audex_user');
-      return storedUser ? JSON.parse(storedUser) : null;
-    } catch (e) {
-      return null;
-    }
-  });
-  const [authError, setAuthError] = useState(null);
-  const [authMessage, setAuthMessage] = useState(null);
-  const [authLoading, setAuthLoading] = useState(false);
-
-  const [auditResult, setAuditResult] = useState(null);
-  const [pastAudits, setPastAudits] = useState([]);
-  const [apiError, setApiError] = useState(null);
-
   useEffect(() => {
     if (auditResult && auditResult.savings && auditResult.savings.recommendations) {
       const initial = {};
@@ -351,7 +359,7 @@ export default function App() {
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);
 
-  const handlePurchase = async (planOrType, price = 29, auditId = null) => {
+  const handlePurchase = async (planOrType, auditId = null) => {
     if (!user) {
       setAuthMessage(`Please sign in or create an account to upgrade.`);
       setCurrentView('signin');
@@ -635,27 +643,29 @@ export default function App() {
     }
   };
 
-  const handleViewSample = async () => {
-    setCurrentView('loading');
+  const handleViewSample = (target = 'sample_report') => {
     try {
-      const response = await fetch(`${BACKEND_URL}/audits/6a4fb719471a97ae89e88f49`);
-      if (!response.ok) {
-        throw new Error('Failed to load sample report.');
-      }
-      const data = await response.json();
-      setAuditResult(data);
+      setAuditResult(SAMPLE_AUDIT_DATA);
+      setSelectedOptions(SAMPLE_AUDIT_DATA.selectedOptions || {});
       
-      const initialChoices = {};
-      const recs = data.savings?.recommendations || [];
-      recs.forEach((rec, idx) => {
-        initialChoices[idx] = 'api';
+      const initial = {};
+      (SAMPLE_AUDIT_DATA.savings?.recommendations || []).forEach((rec, idx) => {
+        const defaultInput = rec.apiOption?.defaultInputTokens || 10000000;
+        const defaultOutput = rec.apiOption?.defaultOutputTokens || 2500000;
+        initial[idx] = {
+          inputMillions: defaultInput / 1000000,
+          outputMillions: defaultOutput / 1000000
+        };
       });
-      setSelectedOptions(initialChoices);
-      
-      setCurrentView('sample_report');
+      setTokenAdjustments(initial);
+
+      if (target === 'plan' || target === 'sample_plan') {
+        setCurrentView('step4');
+      } else {
+        setCurrentView('sample_report');
+      }
     } catch (err) {
       console.error('Failed to load sample audit report:', err);
-      alert('Sample report is currently unavailable. Please try again later.');
       setCurrentView('landing');
     }
   };
@@ -722,6 +732,7 @@ export default function App() {
         }
       }, 300);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -884,7 +895,7 @@ export default function App() {
                   body: JSON.stringify({ selectedOptions })
                 }).catch(err => console.error('Failed to save selected options:', err));
               }
-              if (view === 'results' && auditResult?._id === '6a4fb719471a97ae89e88f49') {
+              if (view === 'results' && (auditResult?._id === 'sample_audit_2026' || auditResult?._id === '6a4fb719471a97ae89e88f49')) {
                 setCurrentView('sample_report');
               } else {
                 setCurrentView(view);
@@ -932,7 +943,76 @@ export default function App() {
           />
         );
 
-      case 'model_auditor':
+      case 'model_auditor': {
+        const plan = (user?.plan || '').toLowerCase();
+        const isEnterprise = plan === 'enterprise' || plan === 'promax' || (user?.credits && user?.credits?.proMax > 0);
+
+        if (!isEnterprise) {
+          return (
+            <div className="app-container" style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
+              <Navbar 
+                user={user}
+                onLogout={handleLogout}
+                onNavigateToLanding={() => setCurrentView('landing')}
+                onNavigateToStep1={() => setCurrentView('step1')}
+                onNavigateToHistory={() => setCurrentView('history')}
+                onNavigateToMarketIntel={() => setCurrentView('market_intel')}
+                onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+                onNavigateToSignIn={() => setCurrentView('signin')}
+                onNavigateToSignUp={() => setCurrentView('signup')}
+                renderCoinDropdown={renderCoinDropdown}
+                activeSection="model_auditor"
+              />
+              <main className="main-content" style={{ flex: 1, padding: '70px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                <div style={{ maxWidth: '640px', width: '100%', backgroundColor: '#FFFFFF', borderRadius: '24px', border: '1.5px solid #E2E8F0', padding: '44px 36px', textAlign: 'center', boxShadow: '0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02)' }}>
+                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#7C3AED' }}>
+                    <ShieldCheck size={32} strokeWidth={2.2} />
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
+                    ⚡ Enterprise Exclusive Feature
+                  </span>
+                  <h2 style={{ fontSize: '28px', fontWeight: '850', color: '#0F172A', marginBottom: '12px', letterSpacing: '-0.02em' }}>
+                    Live AI Model Auditor
+                  </h2>
+                  <p style={{ fontSize: '14.5px', color: '#475569', lineHeight: 1.6, marginBottom: '28px', maxWidth: '520px', margin: '0 auto 28px auto' }}>
+                    The Live Model Auditor is available exclusively for <strong>Enterprise</strong> subscribers. Upgrade to benchmark 620+ Frontier LLMs, simulate live token cost optimizations, and inspect real-time Pareto frontiers.
+                  </p>
+                  
+                  <div style={{ backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '20px 24px', marginBottom: '28px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
+                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> 624+ Frontier &amp; Open Source LLMs benchmarked daily
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
+                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> Dynamic token burn &amp; prompt caching ROI calculator
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
+                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> Interactive Head-to-Head &amp; Pareto frontier deep dives
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <button
+                      onClick={() => handlePurchase('enterprise', 99)}
+                      className="btn btn-black"
+                      style={{ width: '100%', padding: '14px', borderRadius: '10px', fontSize: '14.5px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)' }}
+                    >
+                      <Sparkles size={16} /> Upgrade to Enterprise ($99/mo)
+                    </button>
+                    <button
+                      onClick={() => setCurrentView('market_intel')}
+                      className="btn btn-outline"
+                      style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF', color: '#334155' }}
+                    >
+                      Explore Market Intelligence (Free)
+                    </button>
+                  </div>
+                </div>
+              </main>
+              <Footer onNavigateToView={(view) => setCurrentView(view)} />
+            </div>
+          );
+        }
+
         return (
           <ModelAuditorView 
             onNavigateToView={(view) => setCurrentView(view)}
@@ -951,6 +1031,7 @@ export default function App() {
             setTargetUseCase={setUseCase}
           />
         );
+      }
 
       case 'comparison':
         return (
@@ -1033,7 +1114,9 @@ export default function App() {
 
   return (
     <>
-      {renderActiveView()}
+      <Suspense fallback={<LoadingIndicator />}>
+        {renderActiveView()}
+      </Suspense>
       <PurchaseSuccessModal 
         show={showPurchaseSuccess} 
         planName={purchasedPlanName} 

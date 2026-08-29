@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { API_BASE_URL } from '../config';
+import { getCachedRawData, getCachedModelsList } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
 import {
@@ -396,7 +397,6 @@ function CustomSelect({ value, onChange, options, placeholder }) {
 
 export default function ModelAuditorView({ 
   onNavigateToView, 
-  user, 
   renderCoinDropdown, 
   onCompareModels,
   optimizationGoal: propOptimizationGoal,
@@ -462,15 +462,11 @@ export default function ModelAuditorView({
     };
   }, [hoveredElement]);
 
-  // Fetch raw analysis data from the backend
+  // Fetch raw analysis data from the backend (cached)
   useEffect(() => {
-    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch raw market data');
-        return res.json();
-      })
+    getCachedRawData()
       .then(data => {
-        setIntelData(data);
+        if (data) setIntelData(data);
       })
       .catch(err => {
         console.error('Failed to load raw market data in AuditorView:', err);
@@ -512,14 +508,25 @@ export default function ModelAuditorView({
       const inputCost = found.pricing?.price_1m_input_tokens || rec.cost_per_m_input || 0;
       const outputCost = found.pricing?.price_1m_output_tokens || rec.cost_per_m_output || 0;
       const blendedPrice = found.pricing?.price_1m_blended_3_to_1 || (inputCost * 0.75 + outputCost * 0.25);
+      const devName = found.organization || found.model_creator?.name || rec.developer || rec.name?.split(':')[0] || 'Unknown';
 
       return {
         ...found,
-        modelId: rec.modelId,
-        name: found.name || found.model_name || found.slug || rec.name,
-        creator: found.organization || found.model_creator?.name || rec.developer || 'Unknown',
+        modelId: rec.modelId || found.modelId || found.slug,
+        slug: found.slug || rec.modelId?.split('/')[1] || rec.slug,
+        name: rec.name || found.name || found.model_name || found.slug,
+        developer: devName,
+        creator: devName,
+        provider: devName,
         rating: found.rating || found.arena_elo || 0,
         rank: rec.category_rank || found.rank || 999,
+        evaluations: found.evaluations || {
+          artificial_analysis_coding_index: found.coding_index,
+          artificial_analysis_math_index: found.math_index,
+          artificial_analysis_intelligence_index: found.intelligence_index,
+          gpqa: found.gpqa,
+          hle: found.hle
+        },
         intelligence_index: found.evaluations?.artificial_analysis_intelligence_index || null,
         coding_index: found.evaluations?.artificial_analysis_coding_index || null,
         math_index: found.evaluations?.artificial_analysis_math_index || null,
@@ -534,13 +541,17 @@ export default function ModelAuditorView({
       };
     }
 
+    const fallbackDev = rec.developer || rec.name?.split(':')[0] || (rec.modelId ? rec.modelId.split('/')[0] : 'Unknown');
     return {
-      name: rec.name,
-      creator: rec.developer,
+      ...rec,
+      name: rec.name || rec.modelId,
+      developer: fallbackDev,
+      creator: fallbackDev,
+      provider: fallbackDev,
       modelId: rec.modelId,
-      slug: rec.modelId.split('/')[1],
+      slug: rec.modelId ? rec.modelId.split('/')[1] : (rec.slug || 'model'),
       rank: rec.category_rank || 999,
-      rating: 0,
+      rating: rec.rating || 1200,
       pricing: {
         price_1m_blended_3_to_1: (rec.cost_per_m_input || 0) * 0.75 + (rec.cost_per_m_output || 0) * 0.25,
         price_1m_input_tokens: rec.cost_per_m_input || 0,
@@ -555,16 +566,13 @@ export default function ModelAuditorView({
     };
   };
 
-  // Fetch all available models for dropdown baseline selection
+  // Fetch all available models for dropdown baseline selection (cached)
   useEffect(() => {
     const fetchModels = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/audits/models/list`);
-        if (response.ok) {
-          const data = await response.json();
-          if (data && data.length > 0) {
-            setAvailableModels(data);
-          }
+        const data = await getCachedModelsList();
+        if (data && data.length > 0) {
+          setAvailableModels(data);
         }
       } catch (err) {
         console.error('Failed to fetch models list:', err);
@@ -782,7 +790,7 @@ export default function ModelAuditorView({
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: '32px' }}>
+          <div className="auditor-main-layout">
 
             {/* Left Column: Workload Configuration */}
             <div>
@@ -1208,7 +1216,7 @@ export default function ModelAuditorView({
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', textAlign: 'center', marginBottom: '24px' }}>
+                      <div className="grid-auto-fit-sm" style={{ textAlign: 'center', marginBottom: '24px' }}>
 
                         <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
                           <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700 }}>Annual Saving</div>
@@ -1303,41 +1311,37 @@ export default function ModelAuditorView({
       {hoveredModel && (() => {
         const rect = hoveredElement
           ? hoveredElement.getBoundingClientRect()
-          : { top: hoverPosition.y, bottom: hoverPosition.y, left: hoverPosition.x, right: hoverPosition.x, width: 0, height: 0 };
+          : null;
 
         // Consume scrollTick to satisfy ESLint and force position refreshes on scroll/resize
         const _tick = scrollTick;
 
-        const tooltipWidth = tooltipDimensions.width;
-        const tooltipHeight = tooltipDimensions.height;
+        const tooltipWidth = Math.min(420, window.innerWidth - 32);
+        const tooltipHeight = tooltipDimensions.height || 420;
+        const padding = 16;
+        const topNavOffset = 76; // Keep clear of top navbar
 
-        const spaceBelow = window.innerHeight - rect.bottom;
-        const spaceAbove = rect.top;
-        const requiredSpace = tooltipHeight + 20; // height + spacing
+        // Determine anchor point from mouse position or element bounds
+        const mouseX = hoverPosition.x || (rect ? rect.left + rect.width / 2 : window.innerWidth / 2);
+        const mouseY = hoverPosition.y || (rect ? rect.top + rect.height / 2 : window.innerHeight / 2);
 
-        let top;
-        if (spaceBelow >= requiredSpace) {
-          // Render below
-          top = rect.bottom + 10;
-        } else if (spaceAbove >= requiredSpace) {
-          // Render above
-          top = rect.top - tooltipHeight - 10;
-        } else {
-          // Render in whichever direction has more space
-          if (spaceBelow >= spaceAbove) {
-            top = rect.bottom + 10;
-          } else {
-            top = rect.top - tooltipHeight - 10;
-          }
+        // Horizontal positioning:
+        // Position adjacent to cursor, flipping to left if near right edge of screen
+        let left = mouseX + 18;
+        if (left + tooltipWidth + padding > window.innerWidth) {
+          left = mouseX - tooltipWidth - 18;
         }
+        // Safety clamp within viewport margins
+        left = Math.max(padding, Math.min(window.innerWidth - tooltipWidth - padding, left));
 
-        // Clamp top/bottom coordinates to prevent vertical overflow outside visible screen
-        top = Math.max(10, Math.min(window.innerHeight - tooltipHeight - 10, top));
-
-        // Center horizontally relative to hovered target element
-        let left = rect.left + rect.width / 2 - tooltipWidth / 2;
-        // Clamp left/right coordinates to prevent horizontal overflow outside visible screen
-        left = Math.max(10, Math.min(window.innerWidth - tooltipWidth - 10, left));
+        // Vertical positioning:
+        // Anchor vertically near cursor / hovered element
+        let top = mouseY - 40;
+        if (top + tooltipHeight + padding > window.innerHeight) {
+          top = window.innerHeight - tooltipHeight - padding;
+        }
+        // Safety clamp below navbar
+        top = Math.max(topNavOffset, top);
 
         const aaScore = (targetUseCase === 'Coding')
           ? (hoveredModel.evaluations?.artificial_analysis_coding_index || hoveredModel.coding_index)
@@ -1353,20 +1357,23 @@ export default function ModelAuditorView({
               left: `${left}px`,
               top: `${top}px`,
               width: `${tooltipWidth}px`,
+              maxHeight: 'min(520px, calc(100vh - 96px))',
+              overflowY: 'auto',
               zIndex: 9999,
               pointerEvents: 'none',
-              padding: '20px',
-              backgroundColor: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: '16px',
-              color: '#1E293B',
-              boxShadow: '0 20px 40px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.8)',
-              border: '1px solid rgba(226, 232, 240, 0.8)',
+              padding: '18px 20px',
+              backgroundColor: 'rgba(255, 255, 255, 0.94)',
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              borderRadius: '20px',
+              color: '#0F172A',
+              boxShadow: '0 24px 60px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+              border: '1px solid rgba(226, 232, 240, 0.9)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '16px',
-              animation: 'fadeIn 0.15s ease'
+              gap: '14px',
+              animation: 'fadeIn 0.12s cubic-bezier(0.16, 1, 0.3, 1)',
+              boxSizing: 'border-box'
             }}>
             {/* Title & Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(226, 232, 240, 0.8)', paddingBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
@@ -1477,7 +1484,7 @@ export default function ModelAuditorView({
             })()}
 
             {/* Details Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+            <div className="grid-auto-fit-sm" style={{ gap: '12px' }}>
               {/* Column 1: Metadata */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <h5 style={{ margin: 0, fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>Metadata</h5>

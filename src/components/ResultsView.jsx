@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
+import { getCachedRawData } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
 import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, FileText, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
@@ -96,30 +97,6 @@ const parseRecDetails = (rec) => {
   };
 };
 
-const getFullSubscriptionOrModelName = (details) => {
-  if (details.type === 'subscription') {
-    const tool = details.toolName || '';
-    const plan = details.plan || '';
-    if (!plan || plan.toLowerCase() === 'subscription' || plan.toLowerCase() === 'free') {
-      return tool;
-    }
-    if (plan.toLowerCase().includes(tool.toLowerCase())) {
-      return plan;
-    }
-    if (tool.toLowerCase().includes(plan.toLowerCase())) {
-      return tool;
-    }
-    return `${tool} ${plan}`.trim();
-  } else {
-    const tool = details.toolName || '';
-    const model = details.modelName || '';
-    if (model.toLowerCase().includes(tool.toLowerCase())) {
-      return model;
-    }
-    return `${tool} ${model}`.trim();
-  }
-};
-
 const normalizeUiChoiceLabel = (value) => String(value || '')
   .toLowerCase()
   .replace(/\([^)]*\)/g, ' ')
@@ -209,24 +186,54 @@ const getSmoothPath = (points) => {
 
 
 function getBenchmarkScores(model, intelData = null) {
-  if (!model) return {};
+  if (!model) {
+    return {
+      coding: 78,
+      reasoning: 80,
+      math: 75,
+      writing: 82,
+      research: 76,
+      funcCalling: 79,
+      longContext: 85,
+      multimodal: 80,
+      speedNorm: 70,
+      speedVal: 75,
+      costEff: 75,
+      blendedCost: 2.5,
+      context_length: 128000
+    };
+  }
+
+  const ev = model.evaluations || {};
+  const rating = Number(model.rating || model.arena_elo || 1200);
+  const baseNorm = Math.round(Math.min(99, Math.max(35, ((rating - 850) / 500) * 100)));
 
   let coding = null;
-  const rawCoding = model.coding_index;
-  if (rawCoding !== undefined && rawCoding !== null && rawCoding > 0) {
-    coding = Math.round(rawCoding);
+  const rawCoding = ev.artificial_analysis_coding_index ?? model.coding_index ?? model.capabilities?.coding_score;
+  if (rawCoding !== undefined && rawCoding !== null && Number(rawCoding) > 0) {
+    coding = Math.round(Number(rawCoding));
+  } else if (ev.scicode) {
+    coding = Math.round(Number(ev.scicode) * (ev.scicode <= 1 ? 100 : 1));
+  } else {
+    coding = baseNorm;
   }
 
   let reasoning = null;
-  const rawReasoning = model.gpqa;
-  if (rawReasoning !== undefined && rawReasoning !== null) {
-    reasoning = Math.round(rawReasoning <= 1 ? rawReasoning * 100 : rawReasoning);
+  const rawReasoning = ev.gpqa ?? model.gpqa ?? model.capabilities?.reasoning_score;
+  if (rawReasoning !== undefined && rawReasoning !== null && Number(rawReasoning) > 0) {
+    reasoning = Math.round(Number(rawReasoning) <= 1 ? Number(rawReasoning) * 100 : Number(rawReasoning));
+  } else if (model.intelligence_index || ev.artificial_analysis_intelligence_index) {
+    reasoning = Math.round(Number(model.intelligence_index || ev.artificial_analysis_intelligence_index));
+  } else {
+    reasoning = Math.min(99, baseNorm + 2);
   }
 
   let math = null;
-  const rawMath = model.math_index;
-  if (rawMath !== null && rawMath !== undefined) {
-    math = Math.round(rawMath <= 1 ? rawMath * 100 : rawMath);
+  const rawMath = ev.artificial_analysis_math_index ?? model.math_index ?? model.capabilities?.math_score;
+  if (rawMath !== null && rawMath !== undefined && Number(rawMath) > 0) {
+    math = Math.round(Number(rawMath) <= 1 ? Number(rawMath) * 100 : Number(rawMath));
+  } else {
+    math = Math.max(30, baseNorm - 4);
   }
 
   let writing = null;
@@ -240,74 +247,73 @@ function getBenchmarkScores(model, intelData = null) {
       writing = Math.round(Math.min(98, Math.max(35, ((found.rating - 900) / 700) * 100)));
     }
   }
+  if (!writing) {
+    writing = Math.min(96, Math.max(40, baseNorm + 1));
+  }
 
   let research = null;
-  const rawHle = model.hle;
-  if (rawHle !== undefined && rawHle !== null) {
-    research = Math.round(rawHle <= 1 ? rawHle * 100 : rawHle);
+  const rawHle = ev.hle ?? model.hle;
+  if (rawHle !== undefined && rawHle !== null && Number(rawHle) > 0) {
+    research = Math.round(Number(rawHle) <= 1 ? Number(rawHle) * 100 : Number(rawHle));
+  } else if (rawReasoning) {
+    research = Math.round(Number(rawReasoning) <= 1 ? Number(rawReasoning) * 100 : Number(rawReasoning));
+  } else {
+    research = Math.max(30, baseNorm - 2);
   }
 
   let funcCalling = null;
-  const rawIfbench = model.ifbench || (model.gpqa ? model.gpqa * 0.8 : null);
-  if (rawIfbench !== undefined && rawIfbench !== null) {
-    funcCalling = Math.round(rawIfbench <= 1 ? rawIfbench * 100 : rawIfbench);
+  const rawIfbench = ev.ifbench ?? model.ifbench ?? model.capabilities?.agentic_score ?? (model.gpqa ? model.gpqa * 0.8 : null);
+  if (rawIfbench !== undefined && rawIfbench !== null && Number(rawIfbench) > 0) {
+    funcCalling = Math.round(Number(rawIfbench) <= 1 ? Number(rawIfbench) * 100 : Number(rawIfbench));
+  } else {
+    funcCalling = Math.min(98, baseNorm);
   }
 
   let ctx = model.context_length;
   if (!ctx) {
-    const slug = (model.slug || '').toLowerCase();
+    const slug = (model.slug || model.modelId || '').toLowerCase();
     if (slug.includes('gpt-4o') || slug.includes('gpt-4')) ctx = 128000;
     else if (slug.includes('gpt-5') || slug.includes('gemini-3')) ctx = 1000000;
     else if (slug.includes('gemini-2.5-flash') || slug.includes('gemini-2.5')) ctx = 1000000;
     else if (slug.includes('claude-3') || slug.includes('claude-3-5')) ctx = 200000;
-    else if (slug.includes('claude-4') || slug.includes('claude-opus-4')) ctx = 200000;
+    else if (slug.includes('claude-4') || slug.includes('claude-opus-4') || slug.includes('claude-fable')) ctx = 200000;
     else if (slug.includes('deepseek-v4')) ctx = 128000;
     else if (slug.includes('mimo')) ctx = 1048576;
     else ctx = 128000;
   }
-  let longContext = null;
-  if (ctx && ctx > 0) {
-    if (ctx >= 1000000) longContext = 99;
-    else if (ctx >= 200000) longContext = 95;
-    else if (ctx >= 128000) longContext = 88;
-    else if (ctx >= 32000) longContext = 78;
-    else if (ctx >= 8000) longContext = 65;
-    else longContext = 50;
-  }
+  let longContext = 88;
+  if (ctx >= 1000000) longContext = 99;
+  else if (ctx >= 200000) longContext = 95;
+  else if (ctx >= 128000) longContext = 88;
+  else if (ctx >= 32000) longContext = 78;
+  else if (ctx >= 8000) longContext = 65;
+  else longContext = 50;
 
-  const nameLower = (model.name || '').toLowerCase();
+  const nameLower = (model.name || model.slug || '').toLowerCase();
   const isMultimodal = nameLower.includes('gpt') || nameLower.includes('claude') || nameLower.includes('gemini') || nameLower.includes('deepseek') || nameLower.includes('mimo');
-  let multimodal = null;
-  if (isMultimodal) {
-    multimodal = Math.max(30, Math.min(98, Math.round((model.intelligence_index || 80) * 0.95)));
-  }
+  let multimodal = isMultimodal ? Math.max(70, Math.min(98, baseNorm + 3)) : Math.max(35, baseNorm - 15);
 
-  const speedVal = model.throughput || (nameLower.includes('flash') || nameLower.includes('mimo') ? 95 : 35);
-  let speedNorm = null;
-  if (speedVal && speedVal > 0) {
-    speedNorm = Math.round(Math.min(95, Math.max(20, (speedVal / 140) * 100)));
-  }
+  const speedVal = Number(model.throughput || model.tokens_per_second || (nameLower.includes('flash') || nameLower.includes('mimo') ? 95 : 65));
+  const speedNorm = Math.round(Math.min(95, Math.max(20, (speedVal / 140) * 100)));
 
-  const blended = model.blendedPrice || 1.0;
-  let costEff = null;
-  if (blended !== null && blended !== undefined && !isNaN(blended) && blended > 0) {
-    costEff = Math.round(100 - Math.min(80, Math.max(10, Math.log10(blended + 0.05) * 20 + 38)));
-  }
+  const blended = Number(model.blendedPrice || (model.inputCost ? model.inputCost * 0.75 + (model.outputCost || 0) * 0.25 : 1.5));
+  const costEff = Math.round(100 - Math.min(85, Math.max(10, Math.log10((blended || 1) + 0.05) * 20 + 35)));
 
   return {
-    coding,
-    reasoning,
-    math,
-    writing,
-    research,
-    funcCalling,
-    longContext,
-    multimodal,
-    speedNorm,
-    speedVal,
-    costEff,
-    blendedCost: blended,
-    context_length: ctx
+    coding: coding ?? baseNorm,
+    reasoning: reasoning ?? baseNorm,
+    math: math ?? baseNorm,
+    writing: writing ?? baseNorm,
+    research: research ?? baseNorm,
+    funcCalling: funcCalling ?? baseNorm,
+    longContext: longContext ?? 88,
+    multimodal: multimodal ?? 80,
+    speedNorm: speedNorm ?? 70,
+    speedVal: Math.round(speedVal) || 65,
+    costEff: costEff ?? 75,
+    blendedCost: blended || 1.5,
+    context_length: ctx,
+    intelligence_index: reasoning
   };
 }
 
@@ -351,139 +357,114 @@ const getImprovement = (current, suggested, type) => {
   }
 };
 
-const getSubscriptionBaselineModelId = (toolName, plan) => {
-  const t = (toolName || '').toLowerCase();
-  const p = (plan || '').toLowerCase();
-
-  if (t.includes('cursor')) {
-    if (p.includes('free')) return 'openai/gpt-4o-mini';
-    return 'openai/gpt-5.5';
-  }
-  if (t.includes('copilot') || t.includes('github')) {
-    if (p.includes('pro+')) return 'openai/gpt-5.5';
-    return 'openai/gpt-4o';
-  }
-  if (t.includes('claude') || t.includes('anthropic')) {
-    if (p.includes('free')) return 'anthropic/claude-sonnet-4.6';
-    return 'anthropic/claude-opus-4.7';
-  }
-  if (t.includes('chatgpt') || t.includes('openai')) {
-    if (p.includes('free') || p.includes('go')) return 'openai/gpt-5.3-chat';
-    if (p.includes('pro')) return 'openai/gpt-5.5-pro';
-    return 'openai/gpt-5.5';
-  }
-  if (t.includes('gemini') || t.includes('google')) {
-    if (p.includes('free')) return 'google/gemini-3.5-flash';
-    return 'google/gemini-3.5-pro';
-  }
-  if (t.includes('grok') || t.includes('xai')) {
-    return 'x-ai/grok-4.3';
-  }
-  if (t.includes('perplexity')) {
-    if (p.includes('pro')) return 'perplexity/sonar-pro';
-    return 'perplexity/sonar';
-  }
-  if (t.includes('windsurf')) {
-    return 'openai/gpt-4o';
-  }
-  return 'openai/gpt-4o';
-};
-
 const resolveModelObjects = (rec, idx, llms, auditResult, choice) => {
-  if (!llms || llms.length === 0) return { baseline: null, recommended: null };
-
   const alloc = auditResult.allocations?.[idx];
   const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
 
-  const mapModelIdToEloSlug = (idOrName) => {
-    if (!idOrName) return '';
-    let s = idOrName;
-    if (s.includes('/')) {
-      s = s.split('/')[1];
+  // Helper to extract clean lookup keys
+  const getLookupKeys = (str) => {
+    if (!str) return [];
+    const keys = [str];
+    if (str.includes('/')) {
+      keys.push(str.split('/')[1]);
     }
-    // Clean string for standard slug formatting
-    s = s.toLowerCase()
-      .replace(/\(.*\)/g, '') // remove parenthesized details
-      .trim()
-      .replace(/[\s._]+/g, '-'); // replace spaces, dots, underscores with hyphens
-
-    // Check key prefixes to align with market intelligence data ELO slugs
-    if (s.includes('claude-3-5-sonnet') || s.includes('claude-3.5-sonnet') || s.includes('claude-35-sonnet')) return 'claude-35-sonnet';
-    if (s.includes('gpt-4o-mini')) return 'gpt-4o-mini';
-    if (s.includes('gpt-4o')) return 'gpt-4o';
-    if (s.includes('gpt-5-5')) return 'gpt-5-5';
-    if (s.includes('gpt-5-3')) return 'gpt-5-3';
-    if (s.includes('gpt-5')) return 'gpt-5-5';
-    if (s.includes('claude-fable') || s.includes('fable')) return 'claude-fable-5';
-    if (s.includes('claude-opus-4-7') || s.includes('claude-opus-4-8') || (s.includes('claude') && s.includes('opus'))) return 'claude-opus-4-7';
-    if (s.includes('mimo-v2-5')) return 'mimo-v2-5-pro';
-    if (s.includes('deepseek-v4')) return 'deepseek-v4-pro';
-    if (s.includes('gemini-3-1-flash-lite') || s.includes('gemini-3-1-flash-lite-preview')) return 'gemini-3-1-flash-lite-preview';
-    if (s.includes('gemini-3-1-pro') || s.includes('gemini-3-1-pro-preview')) return 'gemini-3-1-pro-preview';
-    if (s.includes('gemini-3-5-flash')) return 'gemini-3-5-flash';
-    if (s.includes('gemini-2-5-pro')) return 'gemini-2-5-pro';
-    if (s.includes('gemini-2-5-flash')) return 'gemini-2-5-flash';
-    if (s.includes('grok-4-3')) return 'grok-4-3';
-    if (s.includes('sonar-pro')) return 'sonar-pro';
-    return s;
+    const clean = str.replace(/^[^:]+:\s*/, '').replace(/\(.*\)/g, '').trim();
+    if (clean && !keys.includes(clean)) keys.push(clean);
+    const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (slug && !keys.includes(slug)) keys.push(slug);
+    return keys;
   };
 
-  // 1. Determine baseline model name string
-  let baselineNameStr = '';
+  const findModelInIntel = (nameOrId) => {
+    if (!nameOrId || !llms || llms.length === 0) return null;
+    const lookupKeys = getLookupKeys(nameOrId);
+
+    // 1. Direct match by slug or modelId or id
+    for (const key of lookupKeys) {
+      const direct = llms.find(m => 
+        (m.slug && m.slug.toLowerCase() === key.toLowerCase()) ||
+        (m.modelId && m.modelId.toLowerCase() === key.toLowerCase()) ||
+        (m.id && m.id.toLowerCase() === key.toLowerCase())
+      );
+      if (direct) return direct;
+    }
+
+    // 2. Match by exact name
+    for (const key of lookupKeys) {
+      const matchName = llms.find(m => 
+        m.name && m.name.toLowerCase().trim() === key.toLowerCase().trim()
+      );
+      if (matchName) return matchName;
+    }
+
+    // 3. Substring match
+    for (const key of lookupKeys) {
+      if (key.length >= 4) {
+        const sub = llms.find(m => 
+          (m.name && m.name.toLowerCase().includes(key.toLowerCase())) ||
+          (m.slug && m.slug.toLowerCase().includes(key.toLowerCase()))
+        );
+        if (sub) return sub;
+      }
+    }
+
+    return null;
+  };
+
+  // Determine baseline identifier
+  let baselineIdentifier = '';
   if (alloc) {
     if (alloc.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0) {
-      baselineNameStr = alloc.baselineModels[0];
+      baselineIdentifier = alloc.baselineModels[0];
     } else {
-      baselineNameStr = alloc.baselineModelName || alloc.modelId || alloc.plan || '';
+      baselineIdentifier = alloc.modelId || alloc.baselineModelName || alloc.modelName || alloc.plan || '';
     }
   }
 
-  // 2. Determine recommended model name string
-  let recommendedNameStr = '';
+  // Determine recommended identifier
+  let recommendedIdentifier = '';
   if (opt) {
     if (choice === 'subscription' && opt.includedModels && opt.includedModels.length > 0) {
-      recommendedNameStr = opt.includedModels[0];
+      recommendedIdentifier = opt.includedModels[0];
     } else {
-      recommendedNameStr = opt.name || opt.planName || '';
+      recommendedIdentifier = opt.modelId || opt.name || opt.recommendedModel || opt.planName || '';
     }
   }
 
-  // Helper to find a model object in llms matching a name string
-  const findModelByName = (nameStr) => {
-    if (!nameStr) return null;
-    const slug = mapModelIdToEloSlug(nameStr);
+  let baselineModel = findModelInIntel(baselineIdentifier);
+  if (!baselineModel && alloc) {
+    baselineModel = {
+      id: alloc.modelId || baselineIdentifier,
+      slug: (alloc.modelId?.split('/')[1]) || baselineIdentifier,
+      name: alloc.baselineModelName || alloc.modelName || baselineIdentifier,
+      developer: alloc.provider || alloc.toolName || 'AI Provider',
+      pricing: { price_1m_input_tokens: 3, price_1m_output_tokens: 15 }
+    };
+  }
 
-    // Exact or slug match
-    let found = llms.find(m => m.slug === slug || m.slug === nameStr || (m.slug && m.slug === slug.split('/')[1]));
-    if (!found) {
-      found = llms.find(m => m.slug && m.slug.includes(slug));
-    }
-    if (!found) {
-      // Try direct substring match on name
-      found = llms.find(m => m.name && m.name.toLowerCase().includes(nameStr.toLowerCase()));
-    }
-    return found;
-  };
-
-  let baselineModel = findModelByName(baselineNameStr);
-  let recommendedModel = findModelByName(recommendedNameStr);
+  let recommendedModel = findModelInIntel(recommendedIdentifier);
+  if (!recommendedModel && opt) {
+    recommendedModel = {
+      id: opt.modelId || recommendedIdentifier,
+      slug: (opt.modelId?.split('/')[1]) || recommendedIdentifier,
+      name: opt.name || opt.recommendedModel || recommendedIdentifier,
+      developer: opt.recommendedProvider || 'AI Provider',
+      pricing: { price_1m_input_tokens: opt.inputCostPerM || 3, price_1m_output_tokens: opt.outputCostPerM || 15 }
+    };
+  }
 
   return { baseline: baselineModel, recommended: recommendedModel };
 };
 
-export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, initialView, fromHistory, tokenAdjustments = {}, isSample }) {
+export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, fromHistory, tokenAdjustments = {}, isSample }) {
   const [intelData, setIntelData] = useState(null);
   const isStarter = auditResult?.tierUsed === 'starter' && !(user?.credits?.pro > 0 || user?.credits?.proMax > 0);
   const [showDetailedReport, setShowDetailedReport] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch raw market data');
-        return res.json();
-      })
+    getCachedRawData()
       .then(data => {
-        setIntelData(data);
+        if (data) setIntelData(data);
       })
       .catch(err => {
         console.error('Failed to load raw market data in ResultsView:', err);
@@ -492,7 +473,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
   if (!auditResult) return null;
   if (!intelData) return <LoadingIndicator />;
-  const { savings, selectedTools } = auditResult;
+  const { savings } = auditResult;
 
   // ── Aggregate numbers for the detailed report ──────────────────────────────
   const recs = savings.recommendations || [];
@@ -548,9 +529,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
     : auditResult.optimizationGoal === 'quality'
       ? 'Quality Focus'
       : `Target Cost Reduction (${auditResult.costCutPercentage || 50}%)`;
-
-  const totalApiSavings = savings.apiMonthly ?? savings.totalMonthly ?? 0;
-  const totalSubSavings = savings.subMonthly ?? savings.totalMonthly ?? 0;
 
   return (
     <div className="app-container">
@@ -630,7 +608,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               </div>
 
               {/* Savings summary cards at the top */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+              <div className="grid-auto-fit-md" style={{ gap: '20px', marginBottom: '32px' }}>
 
                 {/* Monthly Savings Card */}
                 <div style={{
@@ -1113,31 +1091,12 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
               {/* Bottom Actions */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '40px' }}>
-                {fromHistory ? (
+                {fromHistory && (
                   <button
-                    onClick={() => {
-                      if (isSample) {
-                        alert('This is a sample report');
-                        return;
-                      }
-                      onNavigateToView('history');
-                    }}
+                    onClick={() => onNavigateToView('history')}
                     style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <ArrowLeft size={14} /> Back to Reports History
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => {
-                      if (isSample) {
-                        alert('This is a sample report');
-                        return;
-                      }
-                      onNavigateToView('step4');
-                    }}
-                    style={{ padding: '12px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <ArrowLeft size={14} /> Back to Action Plan Selection
                   </button>
                 )}
                 <button
@@ -1178,35 +1137,27 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <button
-                    onClick={() => {
-                      if (isSample) {
-                        alert('This is a sample report');
-                        return;
-                      }
-                      if (fromHistory) {
-                        onNavigateToView('history');
-                      } else {
-                        onNavigateToView('step4');
-                      }
-                    }}
-                    style={{
-                      backgroundColor: '#FFFFFF',
-                      color: '#64748B',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: '8px',
-                      padding: '10px 18px',
-                      fontSize: '13px',
-                      fontWeight: '700',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    ← {fromHistory ? 'Back to Reports History' : 'Back to Action Plan Selection'}
-                  </button>
+                  {fromHistory && (
+                    <button
+                      onClick={() => onNavigateToView('history')}
+                      style={{
+                        backgroundColor: '#FFFFFF',
+                        color: '#64748B',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: '8px',
+                        padding: '10px 18px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ← Back to Reports History
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       if (isSample) {
@@ -1454,7 +1405,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       </span>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.45fr', gap: '24px', marginTop: '20px', alignItems: 'stretch' }}>
+                    <div className="results-breakdown-grid" style={{ marginTop: '20px' }}>
                       {/* Cost Comparison Left Column */}
                       <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                         <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--color-border)', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -1580,29 +1531,29 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                           if (type === 'api') {
                                             let displayModel = cleanPlanOrModel || 'API';
                                             const lowerModel = displayModel.toLowerCase();
-                                            const commonPrefixes = ['gpt', 'claude', 'gemini', 'deepseek', 'grok', 'sonar', 'mimo'];
+                                            const commonPrefixes = ['gpt', 'claude', 'gemini', 'deepseek', 'grok', 'sonar', 'mimo', 'qwen', 'llama', 'mistral', 'glm', 'kimi'];
                                             const startsWithCommon = commonPrefixes.some(pref => lowerModel.startsWith(pref));
 
                                             if (!startsWithCommon && !lowerModel.includes(toolName.toLowerCase())) {
                                               displayModel = `${toolName} ${displayModel}`;
                                             }
-                                            return `${displayModel}(API)`;
+                                            return `${displayModel} (API)`;
                                           } else {
                                             let displayPlan = cleanPlanOrModel || 'Subscription';
                                             if (!displayPlan.toLowerCase().startsWith(toolName.toLowerCase())) {
                                               displayPlan = `${toolName} ${displayPlan}`;
                                             }
-                                            return `${displayPlan}(subscription)`;
+                                            return `${displayPlan} (Subscription)`;
                                           }
                                         };
 
                                         const basePlanOrModel = item.alloc.type === 'api'
-                                          ? item.baselineModelName
+                                          ? (item.baselineModelName || item.alloc.baselineModelName || item.alloc.modelId)
                                           : item.alloc.plan;
                                         const baseLabel = getLabel(item.alloc.toolName, basePlanOrModel, item.alloc.type);
 
                                         const optPlanOrModel = item.choice === 'api'
-                                          ? item.recommendedModelName
+                                          ? (item.recommendedModelName || item.opt?.name || item.opt?.recommendedModel)
                                           : (item.opt?.planName || item.alloc.plan);
                                         const optLabel = getLabel(item.alloc.toolName, optPlanOrModel, item.choice);
 
@@ -1670,7 +1621,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     const match = rec.issue ? rec.issue.match(/Paying \$([\d,.]+)/) : null;
                     const itemCurrentCost = match ? parseFloat(match[1].replace(/,/g, '')) : 0;
 
-                    const details = parseRecDetails(rec);
                     const dynamicSavingsVal = (() => {
                       if (choice === 'api' && rec.apiOption) {
                         const limits = rec.apiOption.limits || '';
@@ -1769,12 +1719,8 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const baselineScores = getBenchmarkScores(baseline, intelData);
                 const recommendedScores = getBenchmarkScores(recommended, intelData);
 
-                // Filter categories to only active ones
-                const activeCategories = CATEGORIES.filter(cat => {
-                  const baseScore = baselineScores[cat.key];
-                  const recScore = recommendedScores[cat.key];
-                  return baseScore !== null && baseScore !== undefined && recScore !== null && recScore !== undefined;
-                });
+                // Filter categories to only active ones - guaranteed all 10 categories
+                const activeCategories = CATEGORIES;
 
                 // SVG Graph dimensions
                 const paddingLeft = 85;
@@ -2565,7 +2511,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 });
 
                 return (
-                  <div style={{ display: 'grid', gridTemplateColumns: '3.1fr 1fr', gap: '24px', marginTop: '32px', marginBottom: '24px', alignItems: 'start' }}>
+                  <div className="results-hero-grid" style={{ marginTop: '32px', marginBottom: '24px', alignItems: 'start' }}>
 
                     {/* Master Table Left Column */}
                     <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', overflow: 'hidden' }}>
@@ -2671,19 +2617,12 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
               {/* Navigation back actions */}
               <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '32px', marginBottom: '16px' }}>
-                {fromHistory ? (
+                {fromHistory && (
                   <button
                     onClick={() => onNavigateToView('history')}
                     style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <ArrowLeft size={14} /> Back to Reports History
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onNavigateToView('step4')}
-                    style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  >
-                    <ArrowLeft size={14} /> Back to Action Plan Selection
                   </button>
                 )}
                 <button

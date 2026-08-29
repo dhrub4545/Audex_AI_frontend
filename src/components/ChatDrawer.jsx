@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   X, 
   Send, 
@@ -166,29 +166,14 @@ export default function ChatDrawer({
 }) {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [selectedModel, setSelectedModel] = useState('gemini');
+  const [selectedModel] = useState('gemini');
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
 
-  // Fetch chat history when drawer opens for a specific audit
-  useEffect(() => {
-    if (show && audit && token) {
-      fetchChatHistory();
-    }
-  }, [show, audit, token]);
-
-  // Scroll to bottom on new messages
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const fetchChatHistory = async () => {
+  const fetchChatHistory = useCallback(async () => {
+    if (!audit?._id) return;
     setLoading(true);
     setError(null);
     try {
@@ -208,6 +193,22 @@ export default function ChatDrawer({
     } finally {
       setLoading(false);
     }
+  }, [audit?._id, backendUrl, token]);
+
+  // Fetch chat history when drawer opens for a specific audit
+  useEffect(() => {
+    if (show && audit && token) {
+      fetchChatHistory();
+    }
+  }, [show, audit, token, fetchChatHistory]);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, loading]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleSendMessage = async (e) => {

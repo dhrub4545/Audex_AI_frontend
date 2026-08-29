@@ -278,9 +278,7 @@ export default function FreeResultsView({
           </div>
 
           {/* Marketing Value Prop Badges */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
+          <div className="grid-auto-fit-md" style={{
             gap: '16px',
             marginBottom: '32px'
           }}>
@@ -366,7 +364,7 @@ export default function FreeResultsView({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-              {toolResults.map((res, i) => {
+              {toolResults.map((res) => {
                 const logo = getProviderLogo(res.toolName);
                 return (
                   <div key={res.id} style={{

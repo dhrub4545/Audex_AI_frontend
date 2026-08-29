@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useDeferredValue, useRef } from 'react';
 import { API_BASE_URL } from '../config';
-import { Trophy, TrendingUp, Database, Zap, Sparkles, Image, Video, Check, ChevronDown } from 'lucide-react';
+import { getCachedRawData } from '../utils/dataCache';
+import { Trophy, TrendingUp, Database, Zap, Sparkles, Image, Video, Check, ChevronDown, Info, Sliders, Eye, ArrowRight, Search, Crosshair, Activity, Sparkle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import {
   OpenAI,
   Claude,
@@ -427,16 +428,22 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   // Scatter tab settings
   const [xAxis, setXAxis] = useState('price'); // 'price' or 'speed'
   const [yAxis, setYAxis] = useState('intelligence'); // 'intelligence', 'coding', 'math', 'gpqa', 'hle'
+  const [scaleMode, setScaleMode] = useState('log'); // 'log' (Logarithmic) or 'linear'
+  const [filterOutliers, setFilterOutliers] = useState(true);
+  const [showFrontierLine, setShowFrontierLine] = useState(true);
   const [showScatterLabels, setShowScatterLabels] = useState(true);
+  const [selectedScatterPoint, setSelectedScatterPoint] = useState(null);
+  const [activeLegendProvider, setActiveLegendProvider] = useState(null);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCreators, setSelectedCreators] = useState(new Set());
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
-  // Explorer settings
-  const [explorerCategory, setExplorerCategory] = useState('llms'); // 'llms', 'text_to_image', 'text_to_video', 'text_to_speech'
+  // Explorer settings - exclusively Frontier Text LLMs
   const [sortConfig, setSortConfig] = useState({ key: 'intelligence_index', direction: 'descending' });
+  const [tablePage, setTablePage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
 
   // Hover states
   const [hoveredModel, setHoveredModel] = useState(null);
@@ -461,29 +468,26 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
         const y = latestPos.current.y;
 
         let tooltipWidth = 420;
-        let tooltipHeight = 450;
+        let tooltipHeight = 440;
         if (tooltipRef.current) {
           const rect = tooltipRef.current.getBoundingClientRect();
           if (rect.width > 0) tooltipWidth = rect.width;
           if (rect.height > 0) tooltipHeight = rect.height;
         }
         const padding = 16;
+        const topNavOffset = 76; // Navbar clearance
 
-        let left = x + 20;
+        let left = x + 18;
         if (left + tooltipWidth + padding > window.innerWidth) {
-          left = x - tooltipWidth - 20;
+          left = x - tooltipWidth - 18;
         }
-        if (left < padding) {
-          left = padding;
-        }
+        left = Math.max(padding, Math.min(window.innerWidth - tooltipWidth - padding, left));
 
-        let top = y + 10;
+        let top = y - 40;
         if (top + tooltipHeight + padding > window.innerHeight) {
-          top = y - tooltipHeight - 10;
+          top = window.innerHeight - tooltipHeight - padding;
         }
-        if (top < padding) {
-          top = padding;
-        }
+        top = Math.max(topNavOffset, top);
 
         setTooltipPos({ left, top });
       });
@@ -497,15 +501,11 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
     };
   }, []);
 
-  // Fetch raw analysis data from the backend
+  // Fetch raw analysis data from the backend (cached)
   useEffect(() => {
-    fetch(`${API_BASE_URL}/audits/analysis/raw-data`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch raw market data');
-        return res.json();
-      })
+    getCachedRawData()
       .then(data => {
-        setIntelData(data);
+        if (data) setIntelData(data);
         setLoadingIntel(false);
       })
       .catch(err => {
@@ -573,39 +573,6 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
       return true;
     });
   }, [intelData, deferredSearchQuery, selectedCreators]);
-
-  // Spotlight cards calculations
-  const spotlightStats = useMemo(() => {
-    if (!intelData) return { speedChampion: null, bestValue: null, topImage: null, topVideo: null };
-    const llms = intelData.llms || [];
-
-    let speedChampion = null;
-    let maxThroughput = -1;
-    llms.forEach(m => {
-      if (m.throughput && m.throughput > maxThroughput) {
-        maxThroughput = m.throughput;
-        speedChampion = m;
-      }
-    });
-
-    let bestValue = null;
-    let minPrice = Infinity;
-    llms.forEach(m => {
-      if (m.intelligence_index && m.intelligence_index >= 75 && m.blendedPrice < minPrice) {
-        minPrice = m.blendedPrice;
-        bestValue = m;
-      }
-    });
-
-    const media = intelData.media || {};
-    const imgModels = media.text_to_image || [];
-    const vidModels = media.text_to_video || [];
-
-    const topImage = imgModels.find(m => m.rank === 1) || imgModels[0] || null;
-    const topVideo = vidModels.find(m => m.rank === 1) || vidModels[0] || null;
-
-    return { speedChampion, bestValue, topImage, topVideo };
-  }, [intelData]);
 
   // rankingsData: LLMs sorted by the active ranking index, filtering out nulls
   const rankingsData = useMemo(() => {
@@ -723,40 +690,175 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
     });
   }, [filteredLlms, xAxis, yAxis]);
 
-  const maxScatterX = useMemo(() => {
-    if (chartData.length === 0) return 100;
-    const maxVal = Math.max(...chartData.map(d => xAxis === 'price' ? d.blendedPrice : d.throughput));
-    return maxVal > 0 ? maxVal * 1.08 : 100;
-  }, [chartData, xAxis]);
+  const { scatterPoints, paretoFrontierPoints, paretoPathD, xTicks } = useMemo(() => {
+    const paddingLeft = 80;
+    const paddingRight = 45;
+    const paddingTop = 45;
+    const paddingBottom = 65;
+    const width = 880 - paddingLeft - paddingRight;
+    const height = 500 - paddingTop - paddingBottom;
 
-  const scatterPoints = useMemo(() => {
-    const paddingLeft = 70;
-    const paddingRight = 40;
-    const paddingTop = 40;
-    const paddingBottom = 60;
-    const width = 840 - paddingLeft - paddingRight;
-    const height = 480 - paddingTop - paddingBottom;
+    if (chartData.length === 0) {
+      return { scatterPoints: [], paretoFrontierPoints: [], paretoPathD: '', xTicks: [] };
+    }
 
-    return chartData.map(m => {
-      let xVal = xAxis === 'price' ? m.blendedPrice : m.throughput;
+    let minX, maxX;
+    let ticks = [];
+
+    if (xAxis === 'price') {
+      if (scaleMode === 'log') {
+        minX = 0.03;
+        maxX = filterOutliers ? 30 : 300;
+        const logTicks = filterOutliers ? [0.05, 0.20, 1.0, 5.0, 20.0] : [0.05, 0.20, 1.0, 5.0, 25.0, 100.0, 250.0];
+        const logMin = Math.log10(minX);
+        const logMax = Math.log10(maxX);
+        ticks = logTicks.map(val => {
+          const ratio = Math.max(0, Math.min(1, (Math.log10(val) - logMin) / (logMax - logMin)));
+          return {
+            val,
+            label: val < 1 ? `$${val.toFixed(2)}` : `$${val.toFixed(0)}`,
+            x: paddingLeft + ratio * width
+          };
+        });
+      } else {
+        minX = 0;
+        maxX = filterOutliers ? 30 : Math.max(...chartData.map(d => d.blendedPrice || 0), 10);
+        ticks = [0, 0.25, 0.5, 0.75, 1.0].map(ratio => {
+          const val = maxX * ratio;
+          return {
+            val,
+            label: `$${val.toFixed(val < 10 ? 1 : 0)}`,
+            x: paddingLeft + ratio * width
+          };
+        });
+      }
+    } else {
+      // Speed / throughput
+      if (scaleMode === 'log') {
+        minX = 15;
+        maxX = filterOutliers ? 600 : 2200;
+        const logTicks = filterOutliers ? [25, 50, 100, 250, 500] : [25, 50, 100, 250, 500, 1000, 2000];
+        const logMin = Math.log10(minX);
+        const logMax = Math.log10(maxX);
+        ticks = logTicks.map(val => {
+          const ratio = Math.max(0, Math.min(1, (Math.log10(val) - logMin) / (logMax - logMin)));
+          return {
+            val,
+            label: `${val} t/s`,
+            x: paddingLeft + ratio * width
+          };
+        });
+      } else {
+        minX = 0;
+        maxX = filterOutliers ? 600 : Math.max(...chartData.map(d => d.throughput || 0), 100);
+        ticks = [0, 0.25, 0.5, 0.75, 1.0].map(ratio => {
+          const val = maxX * ratio;
+          return {
+            val,
+            label: `${Math.round(val)} t/s`,
+            x: paddingLeft + ratio * width
+          };
+        });
+      }
+    }
+
+    const logMin = Math.log10(Math.max(minX, 0.001));
+    const logMax = Math.log10(Math.max(maxX, minX + 0.001));
+
+    // Map each point
+    const points = chartData.map(m => {
+      let xVal = xAxis === 'price' ? (m.blendedPrice || 0) : (m.throughput || 0);
       let yVal = 0;
-      if (yAxis === 'intelligence') yVal = m.intelligence_index;
-      else if (yAxis === 'coding') yVal = m.coding_index;
-      else if (yAxis === 'math') yVal = m.math_index;
-      else if (yAxis === 'gpqa') yVal = m.gpqa ? m.gpqa * 100 : 0;
-      else if (yAxis === 'hle') yVal = m.hle ? m.hle * 100 : 0;
+      if (yAxis === 'intelligence') yVal = m.intelligence_index || 0;
+      else if (yAxis === 'coding') yVal = m.coding_index || 0;
+      else if (yAxis === 'math') yVal = m.math_index || 0;
+      else if (yAxis === 'gpqa') yVal = m.gpqa ? (m.gpqa <= 1 ? m.gpqa * 100 : m.gpqa) : 0;
+      else if (yAxis === 'hle') yVal = m.hle ? (m.hle <= 1 ? m.hle * 100 : m.hle) : 0;
 
-      const x = paddingLeft + (xVal / maxScatterX) * width;
-      const y = 480 - paddingBottom - (yVal / 100) * height;
+      let xRatio = 0;
+      if (scaleMode === 'log') {
+        const safeVal = Math.max(xVal, minX);
+        xRatio = Math.max(0, Math.min(1, (Math.log10(safeVal) - logMin) / (logMax - logMin)));
+      } else {
+        xRatio = Math.max(0, Math.min(1, (xVal - minX) / (maxX - minX || 1)));
+      }
 
-      // Key models that are highly visible will have direct textual labels in the scatter plot
-      const isKeyModel = [
-        'claude-fable-5', 'gpt-5-5-pro', 'gemini-3-5-flash', 'claude-opus-4-8', 'gemini-3-1-pro', 'grok-4-20', 'gemini-3-pro', 'gpt-5-4', 'qwen3-7-max', 'muse-spark'
-      ].some(k => m.slug?.toLowerCase().includes(k));
+      const x = paddingLeft + xRatio * width;
+      const y = 500 - paddingBottom - (Math.max(0, Math.min(100, yVal)) / 100) * height;
 
-      return { x, y, model: m, xVal, yVal, isKeyModel };
+      return {
+        x,
+        y,
+        model: m,
+        xVal,
+        yVal,
+        isKeyModel: false
+      };
     });
-  }, [chartData, xAxis, yAxis, maxScatterX]);
+
+    // Compute Pareto Frontier Points
+    let frontierPoints = [];
+    if (xAxis === 'price') {
+      // Lower price is better -> sort by price ascending, find points with strictly higher quality
+      const sortedByPrice = [...points].sort((a, b) => a.xVal - b.xVal);
+      let runningMaxY = -1;
+      for (const pt of sortedByPrice) {
+        if (pt.yVal > runningMaxY + 0.3 && pt.xVal <= maxX && pt.xVal >= minX) {
+          runningMaxY = pt.yVal;
+          frontierPoints.push(pt);
+        }
+      }
+    } else {
+      // Higher speed is better -> sort by speed descending, find points with strictly higher quality
+      const sortedBySpeed = [...points].sort((a, b) => b.xVal - a.xVal);
+      let runningMaxY = -1;
+      for (const pt of sortedBySpeed) {
+        if (pt.yVal > runningMaxY + 0.3 && pt.xVal <= maxX && pt.xVal >= minX) {
+          runningMaxY = pt.yVal;
+          frontierPoints.push(pt);
+        }
+      }
+      frontierPoints.sort((a, b) => a.xVal - b.xVal);
+    }
+
+    // Build smooth path for Pareto frontier
+    let pathD = '';
+    if (frontierPoints.length > 0) {
+      pathD = `M ${frontierPoints[0].x} ${frontierPoints[0].y}`;
+      for (let i = 1; i < frontierPoints.length; i++) {
+        const prev = frontierPoints[i - 1];
+        const curr = frontierPoints[i];
+        const midX = (prev.x + curr.x) / 2;
+        pathD += ` C ${midX} ${prev.y}, ${midX} ${curr.y}, ${curr.x} ${curr.y}`;
+      }
+    }
+
+    // Mark key landmark models for de-duplicated labels:
+    const landmarkSet = new Set();
+    // Add top 4 frontier models
+    frontierPoints.slice(-4).forEach(pt => landmarkSet.add(pt.model.slug));
+    if (frontierPoints.length > 0) landmarkSet.add(frontierPoints[0].model.slug);
+
+    // Notable famous flagships
+    const topFamousSlugs = ['claude-opus-5', 'claude-fable-5', 'gpt-5-6-sol', 'gemini-3-5-flash', 'deepseek-v4-flash', 'grok-4-6'];
+    points.forEach(pt => {
+      if (topFamousSlugs.some(s => pt.model.slug?.includes(s)) && landmarkSet.size < 8) {
+        landmarkSet.add(pt.model.slug);
+      }
+    });
+
+    points.forEach(pt => {
+      pt.isKeyModel = landmarkSet.has(pt.model.slug);
+    });
+
+    return {
+      scatterPoints: points,
+      paretoFrontierPoints: frontierPoints,
+      paretoPathD: pathD,
+      xTicks: ticks,
+      chartBounds: { paddingLeft, paddingRight, paddingTop, paddingBottom, width, height }
+    };
+  }, [chartData, xAxis, yAxis, scaleMode, filterOutliers]);
 
   // Explorer Table sorting and pagination
   const handleSort = (key) => {
@@ -770,20 +872,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   const sortedExplorerData = useMemo(() => {
     if (!intelData) return [];
 
-    let list = [];
-    if (explorerCategory === 'llms') {
-      // Use filtered list for LLMs if user is searching/filtering
-      list = [...filteredLlms];
-    } else {
-      list = [...(intelData.media?.[explorerCategory] || [])];
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        list = list.filter(m =>
-          (m.name || '').toLowerCase().includes(q) ||
-          (m.creator || '').toLowerCase().includes(q)
-        );
-      }
-    }
+    let list = [...filteredLlms];
 
     list.sort((a, b) => {
       let aVal = a[sortConfig.key];
@@ -802,7 +891,23 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
     });
 
     return list;
-  }, [intelData, explorerCategory, filteredLlms, searchQuery, sortConfig]);
+  }, [intelData, filteredLlms, sortConfig]);
+
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setTablePage(1);
+  }, [deferredSearchQuery, selectedCreators, sortConfig]);
+
+  const paginatedExplorerData = useMemo(() => {
+    if (rowsPerPage === -1) return sortedExplorerData;
+    const start = (tablePage - 1) * rowsPerPage;
+    return sortedExplorerData.slice(start, start + rowsPerPage);
+  }, [sortedExplorerData, tablePage, rowsPerPage]);
+
+  const totalPages = useMemo(() => {
+    if (rowsPerPage === -1 || sortedExplorerData.length === 0) return 1;
+    return Math.ceil(sortedExplorerData.length / rowsPerPage);
+  }, [sortedExplorerData, rowsPerPage]);
 
   // Quick stats computed from current ranking
   const _avgThroughput = useMemo(() => {
@@ -914,7 +1019,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
             
 
             {/* Filter controls panel (Search, Providers) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '32px', alignItems: 'start', marginBottom: '40px' }}>
+            <div className="market-intel-layout" style={{ marginBottom: '40px' }}>
 
               {/* Sidebar Filters */}
               <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '24px', boxShadow: 'var(--shadow-sm)' }}>
@@ -1136,7 +1241,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             style={{
                               gridTemplateColumns: '30px 1fr'
                             }}
-                            onMouseEnter={() => {
+                            onMouseEnter={(e) => {
                               if (tooltipTimeoutRef.current) {
                                 clearTimeout(tooltipTimeoutRef.current);
                                 tooltipTimeoutRef.current = null;
@@ -1144,6 +1249,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                               setHoveredModel(model);
                               setActiveTooltipModel(model);
                               setIsTooltipVisible(true);
+                              handleRowMouseMove(e);
                             }}
                             onMouseMove={handleRowMouseMove}
                             onMouseLeave={() => {
@@ -1152,10 +1258,11 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                                 setIsTooltipVisible(false);
                               }, 60);
                             }}
-                            onFocus={() => {
+                            onFocus={(e) => {
                               setHoveredModel(model);
                               setActiveTooltipModel(model);
                               setIsTooltipVisible(true);
+                              handleRowMouseMove(e);
                             }}
                             onBlur={() => {
                               setHoveredModel(null);
@@ -1189,24 +1296,25 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                           position: 'fixed',
                           left: 0,
                           top: 0,
-                          transform: `translate3d(${tooltipPos.left}px, ${tooltipPos.top + (isTooltipVisible ? 0 : 8)}px, 0) scale(${isTooltipVisible ? 1 : 0.98})`,
+                          transform: `translate3d(${tooltipPos.left}px, ${tooltipPos.top + (isTooltipVisible ? 0 : 6)}px, 0) scale(${isTooltipVisible ? 1 : 0.98})`,
                           opacity: isTooltipVisible ? 1 : 0,
                           visibility: isTooltipVisible ? 'visible' : 'hidden',
                           pointerEvents: 'none',
                           width: 'min(420px, calc(100vw - 32px))',
-                          height: 'auto',
+                          maxHeight: 'min(520px, calc(100vh - 96px))',
+                          overflowY: 'auto',
                           zIndex: 9999,
-                          padding: '18px',
-                          background: 'rgba(255, 255, 255, 0.78)',
+                          padding: '18px 20px',
+                          background: 'rgba(255, 255, 255, 0.94)',
                           backdropFilter: 'blur(24px) saturate(180%)',
                           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-                          borderRadius: '24px',
+                          borderRadius: '20px',
                           color: '#0F172A',
-                          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.12)',
-                          border: '1px solid rgba(255, 255, 255, 0.55)',
+                          boxShadow: '0 24px 60px rgba(15, 23, 42, 0.16), 0 0 0 1px rgba(255, 255, 255, 0.9)',
+                          border: '1px solid rgba(226, 232, 240, 0.9)',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '10px',
+                          gap: '12px',
                           transition: 'transform 120ms cubic-bezier(0.25, 1, 0.5, 1), opacity 180ms cubic-bezier(0.16, 1, 0.3, 1), scale 180ms cubic-bezier(0.16, 1, 0.3, 1)',
                           boxSizing: 'border-box'
                         }}
@@ -1408,203 +1516,483 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                 {activeTab === 'scatter' && (
                   <div className="intel-chart-card">
 
-                    {/* Setup Toggles */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                    {/* Setup Toggles & Controls Bar */}
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '20px', backgroundColor: '#F8FAFC', padding: '16px 20px', borderRadius: '14px', border: '1px solid #E2E8F0' }}>
+                      
+                      {/* Y-Axis Selector */}
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>Y-Axis Quality metric</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: '750', textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                          <Activity size={13} style={{ color: 'var(--color-green-primary)' }} /> Y-Axis (Quality Metric)
+                        </label>
                         <select
                           value={yAxis}
                           onChange={(e) => setYAxis(e.target.value)}
                           style={{
                             width: '100%',
-                            padding: '10px 12px',
+                            padding: '9px 12px',
                             borderRadius: '8px',
-                            border: '1px solid var(--color-border)',
+                            border: '1.5px solid #CBD5E1',
                             fontFamily: 'var(--font-body)',
                             fontWeight: '600',
-                            fontSize: '13.5px'
+                            fontSize: '13px',
+                            backgroundColor: '#FFFFFF',
+                            color: '#0F172A',
+                            cursor: 'pointer'
                           }}
                         >
-                          <option value="intelligence">Intelligence Index</option>
-                          <option value="coding">Coding Index</option>
+                          <option value="intelligence">Intelligence Index (Overall)</option>
+                          <option value="coding">Coding Agent Index</option>
                           <option value="math">Math Index</option>
-                          <option value="gpqa">GPQA (Graduate Level Reasoning)</option>
+                          <option value="gpqa">GPQA (Graduate Reasoning)</option>
                           <option value="hle">HLE (Humanity Last Exam)</option>
                         </select>
                       </div>
+
+                      {/* X-Axis Selector */}
                       <div>
-                        <label style={{ display: 'block', fontSize: '12px', fontWeight: '700', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>X-Axis Performance metric</label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: '750', textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                          <TrendingUp size={13} style={{ color: 'var(--color-green-primary)' }} /> X-Axis (Efficiency Metric)
+                        </label>
                         <select
                           value={xAxis}
                           onChange={(e) => setXAxis(e.target.value)}
                           style={{
                             width: '100%',
-                            padding: '10px 12px',
+                            padding: '9px 12px',
                             borderRadius: '8px',
-                            border: '1px solid var(--color-border)',
+                            border: '1.5px solid #CBD5E1',
                             fontFamily: 'var(--font-body)',
                             fontWeight: '600',
-                            fontSize: '13.5px'
+                            fontSize: '13px',
+                            backgroundColor: '#FFFFFF',
+                            color: '#0F172A',
+                            cursor: 'pointer'
                           }}
                         >
                           <option value="price">Blended Cost per 1M tokens ($)</option>
                           <option value="speed">Throughput Speed (t/s)</option>
                         </select>
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', justifySelf: 'flex-start', gap: '16px', marginBottom: '16px' }}>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                        <input
-                          type="checkbox"
-                          checked={showScatterLabels}
-                          onChange={(e) => setShowScatterLabels(e.target.checked)}
-                          style={{ accentColor: 'var(--color-green-primary)' }}
-                        />
-                        Show direct name labels for top frontier models
-                      </label>
-                    </div>
-
-                    {/* White, report-style workspace keeps the data easy to print and compare. */}
-                    <div className="intel-scatter-workspace">
-
-                      <div className="intel-scatter-caption">
-                        <strong>Quality Index: {yAxis.toUpperCase()}</strong>
-                        <strong>Efficiency Index: {xAxis === 'price' ? 'Cost' : 'Speed'}</strong>
+                      {/* Scale Mode Switcher */}
+                      <div>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: '750', textTransform: 'uppercase', color: '#475569', marginBottom: '6px' }}>
+                          <Sliders size={13} style={{ color: 'var(--color-green-primary)' }} /> Distribution Scale
+                        </label>
+                        <div style={{ display: 'flex', backgroundColor: '#E2E8F0', padding: '3px', borderRadius: '8px', gap: '3px' }}>
+                          <button
+                            type="button"
+                            onClick={() => setScaleMode('log')}
+                            style={{
+                              flex: 1,
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              fontSize: '12px',
+                              fontWeight: scaleMode === 'log' ? '700' : '550',
+                              backgroundColor: scaleMode === 'log' ? '#FFFFFF' : 'transparent',
+                              color: scaleMode === 'log' ? 'var(--color-green-text)' : '#64748B',
+                              boxShadow: scaleMode === 'log' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '4px',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <Sparkle size={11} /> Log Scale (Best)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setScaleMode('linear')}
+                            style={{
+                              flex: 1,
+                              padding: '6px 10px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              fontSize: '12px',
+                              fontWeight: scaleMode === 'linear' ? '700' : '550',
+                              backgroundColor: scaleMode === 'linear' ? '#FFFFFF' : 'transparent',
+                              color: scaleMode === 'linear' ? 'var(--color-green-text)' : '#64748B',
+                              boxShadow: scaleMode === 'linear' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            Linear
+                          </button>
+                        </div>
                       </div>
 
-                      <svg viewBox="0 0 840 480" style={{ width: '100%', height: '100%', display: 'block' }}>
+                    </div>
 
-                        {/* Horizontal Ticks (Y) */}
-                        {Array.from({ length: 5 }).map((_, i) => {
-                          const val = 25 * i;
-                          const y = 420 - (val / 100) * 380;
+                    {/* Filter & View Toggles */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '16px', padding: '0 4px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', fontWeight: '600', color: '#334155', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={showFrontierLine}
+                            onChange={(e) => setShowFrontierLine(e.target.checked)}
+                            style={{ accentColor: 'var(--color-green-primary)', width: '15px', height: '15px' }}
+                          />
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <span style={{ width: '10px', height: '3px', backgroundColor: '#10B981', borderRadius: '2px', display: 'inline-block' }}></span>
+                            Pareto Frontier (Optimal Value Curve)
+                          </span>
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', fontWeight: '600', color: '#334155', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={showScatterLabels}
+                            onChange={(e) => setShowScatterLabels(e.target.checked)}
+                            style={{ accentColor: 'var(--color-green-primary)', width: '15px', height: '15px' }}
+                          />
+                          Show Landmark Model Badges
+                        </label>
+
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', fontWeight: '600', color: '#334155', cursor: 'pointer' }}>
+                          <input
+                            type="checkbox"
+                            checked={filterOutliers}
+                            onChange={(e) => setFilterOutliers(e.target.checked)}
+                            style={{ accentColor: 'var(--color-green-primary)', width: '15px', height: '15px' }}
+                          />
+                          Focus Mainstream ({xAxis === 'price' ? '≤ $30/M' : '≤ 600 t/s'})
+                        </label>
+                      </div>
+
+                      {/* Active points count badge */}
+                      <div style={{ fontSize: '12px', fontWeight: '650', color: '#64748B', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
+                        {scatterPoints.length} models mapped
+                      </div>
+                    </div>
+
+                    {/* Report-style interactive workspace */}
+                    <div className="intel-scatter-workspace" style={{ borderRadius: '18px', border: '1px solid #E2E8F0', padding: '20px 16px 12px 16px', background: '#FFFFFF', boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
+
+                      <div className="intel-scatter-caption" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 12px 12px 12px', borderBottom: '1px solid #F1F5F9', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: '750', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <span style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#3B82F6' }}></span>
+                          QUALITY: {yAxis.toUpperCase()} INDEX (0–100)
+                        </div>
+                        <div style={{ fontSize: '11px', color: '#64748B', fontWeight: '600', backgroundColor: '#F1F5F9', padding: '4px 10px', borderRadius: '20px' }}>
+                          {scaleMode === 'log' ? '⚡ Logarithmic Scale — Models distributed evenly across tiers' : 'Linear Scale'}
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11.5px', fontWeight: '750', color: '#334155', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          EFFICIENCY: {xAxis === 'price' ? 'BLENDED COST ($/1M)' : 'OUTPUT SPEED (T/S)'}
+                          <span style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#10B981' }}></span>
+                        </div>
+                      </div>
+
+                      <svg viewBox="0 0 880 500" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+                        <defs>
+                          {/* Frontier Curve Gradient */}
+                          <linearGradient id="frontierCurveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#10B981" />
+                            <stop offset="50%" stopColor="#06B6D4" />
+                            <stop offset="100%" stopColor="#3B82F6" />
+                          </linearGradient>
+
+                          {/* Optimal Value Zone Radial Aura */}
+                          <radialGradient id="optimalZoneAura" cx="15%" cy="20%" r="50%">
+                            <stop offset="0%" stopColor="rgba(16, 185, 129, 0.08)" />
+                            <stop offset="100%" stopColor="rgba(16, 185, 129, 0.0)" />
+                          </radialGradient>
+
+                          {/* Subtle Card Drop Shadow */}
+                          <filter id="pillShadow" x="-10%" y="-20%" width="130%" height="150%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0F172A" floodOpacity="0.08" />
+                          </filter>
+                        </defs>
+
+                        {/* Optimal Value Zone Watermark / Background tint */}
+                        <rect x="80" y="45" width="360" height="200" fill="url(#optimalZoneAura)" rx="14" />
+                        <text x="95" y="70" style={{ fill: '#059669', fontSize: '10.5px', fontWeight: '800', letterSpacing: '0.05em', opacity: 0.75 }}>
+                          ★ OPTIMAL VALUE ZONE (High Quality, Low Cost)
+                        </text>
+
+                        {/* Horizontal Gridlines & Y-Ticks */}
+                        {[0, 25, 50, 75, 100].map((val) => {
+                          const y = 500 - 65 - (val / 100) * (500 - 45 - 65);
                           return (
-                            <g key={i}>
-                              <line x1="70" y1={y} x2="800" y2={y} stroke="#E2E8F0" strokeDasharray="3 3" />
-                              <text x="55" y={y + 4} textAnchor="end" style={{ fill: '#64748B', fontSize: '11px', fontWeight: '600' }}>
+                            <g key={`y-${val}`}>
+                              <line x1="80" y1={y} x2="835" y2={y} stroke={val === 0 ? '#94A3B8' : '#F1F5F9'} strokeWidth={val === 0 ? 1.5 : 1} strokeDasharray={val === 0 ? 'none' : '4 4'} />
+                              <text x="68" y={y + 4} textAnchor="end" style={{ fill: '#64748B', fontSize: '11px', fontWeight: '650' }}>
                                 {val}
                               </text>
                             </g>
                           );
                         })}
 
-                        {/* Vertical Ticks (X) */}
-                        {Array.from({ length: 5 }).map((_, i) => {
-                          const val = (maxScatterX / 4) * i;
-                          const x = 70 + (i / 4) * 730;
+                        {/* Vertical Gridlines & X-Ticks */}
+                        {xTicks.map((tick, i) => (
+                          <g key={`x-${i}`}>
+                            <line x1={tick.x} y1="45" x2={tick.x} y2="435" stroke="#F1F5F9" strokeWidth="1" strokeDasharray="4 4" />
+                            <text x={tick.x} y="456" textAnchor="middle" style={{ fill: '#64748B', fontSize: '11px', fontWeight: '650' }}>
+                              {tick.label}
+                            </text>
+                          </g>
+                        ))}
+
+                        {/* Axis Base Border Lines */}
+                        <line x1="80" y1="45" x2="80" y2="435" stroke="#CBD5E1" strokeWidth="1.5" />
+                        <line x1="80" y1="435" x2="835" y2="435" stroke="#CBD5E1" strokeWidth="1.5" />
+
+                        {/* X-Axis Title Label */}
+                        <text x="457" y="488" textAnchor="middle" style={{ fill: '#475569', fontSize: '12px', fontWeight: '750' }}>
+                          {xAxis === 'price' ? 'Blended Cost per 1M Tokens (3:1 input:output ratio)' : 'Throughput Output Speed (median tokens / sec)'}
+                        </text>
+
+                        {/* Y-Axis Title Label */}
+                        <text x="24" y="240" textAnchor="middle" transform="rotate(-90, 24, 240)" style={{ fill: '#475569', fontSize: '12px', fontWeight: '750' }}>
+                          {yAxis.charAt(0).toUpperCase() + yAxis.slice(1)} Index Score (0–100)
+                        </text>
+
+                        {/* Pareto Frontier Curve */}
+                        {showFrontierLine && paretoPathD && (
+                          <g>
+                            <path
+                              d={paretoPathD}
+                              stroke="url(#frontierCurveGrad)"
+                              strokeWidth="3"
+                              fill="none"
+                              strokeLinecap="round"
+                              style={{ filter: 'drop-shadow(0 2px 4px rgba(16,185,129,0.25))' }}
+                            />
+                            {paretoFrontierPoints.map((pt, i) => (
+                              <circle
+                                key={`pareto-dot-${i}`}
+                                cx={pt.x}
+                                cy={pt.y}
+                                r="5.5"
+                                fill="#FFFFFF"
+                                stroke="#10B981"
+                                strokeWidth="2.5"
+                              />
+                            ))}
+                          </g>
+                        )}
+
+                        {/* Scatter Points */}
+                        {scatterPoints.map((pt, idx) => {
+                          const color = getDeveloperColor(pt.model.creator);
+                          const isHovered = hoveredChartPoint?.model.slug === pt.model.slug;
+                          const isSelected = selectedScatterPoint?.model.slug === pt.model.slug;
+                          const isFilteredOut = activeLegendProvider && !pt.model.creator?.toLowerCase().includes(activeLegendProvider.toLowerCase());
+
                           return (
-                            <g key={i}>
-                              <line x1={x} y1="40" x2={x} y2="420" stroke="#E2E8F0" strokeDasharray="3 3" />
-                              <text x={x} y="442" textAnchor="middle" style={{ fill: '#64748B', fontSize: '11px', fontWeight: '600' }}>
-                                {xAxis === 'price' ? `$${val.toFixed(1)}` : `${Math.round(val)}`}
+                            <g
+                              key={idx}
+                              onClick={() => setSelectedScatterPoint(pt)}
+                              onMouseEnter={() => setHoveredChartPoint(pt)}
+                              onMouseLeave={() => setHoveredChartPoint(null)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {/* Pulsing halo ring on hover/select */}
+                              {(isHovered || isSelected) && (
+                                <circle
+                                  cx={pt.x}
+                                  cy={pt.y}
+                                  r="16"
+                                  fill="none"
+                                  stroke={color}
+                                  strokeWidth="2"
+                                  opacity="0.45"
+                                />
+                              )}
+                              <circle
+                                cx={pt.x}
+                                cy={pt.y}
+                                r={isHovered || isSelected ? 9 : pt.isKeyModel ? 6.5 : 4.5}
+                                fill={color}
+                                stroke="#FFFFFF"
+                                strokeWidth={isHovered || isSelected ? 2.5 : 1.2}
+                                opacity={isFilteredOut ? 0.12 : 0.9}
+                                style={{ transition: 'r 0.18s ease, fill 0.18s ease' }}
+                              />
+                            </g>
+                          );
+                        })}
+
+                        {/* Smart Landmark Labels (De-duplicated & anti-collision badge pills) */}
+                        {showScatterLabels && scatterPoints.map((pt, idx) => {
+                          if (!pt.isKeyModel && hoveredChartPoint?.model.slug !== pt.model.slug && selectedScatterPoint?.model.slug !== pt.model.slug) {
+                            return null;
+                          }
+                          const isHighlighted = hoveredChartPoint?.model.slug === pt.model.slug || selectedScatterPoint?.model.slug === pt.model.slug;
+                          const cleanName = pt.model.name.replace(/^(Anthropic|OpenAI|Google|Meta|DeepSeek|Mistral|xAI|Qwen):\s*/i, '').slice(0, 22);
+
+                          const labelX = pt.x + 10;
+                          const labelY = pt.y - 12;
+
+                          return (
+                            <g key={`badge-${idx}`} style={{ pointerEvents: 'none' }}>
+                              <line
+                                x1={pt.x}
+                                y1={pt.y}
+                                x2={labelX}
+                                y2={labelY + 6}
+                                stroke="#94A3B8"
+                                strokeWidth="1"
+                                opacity="0.6"
+                              />
+                              <rect
+                                x={labelX}
+                                y={labelY - 6}
+                                width={cleanName.length * 6.6 + 14}
+                                height="18"
+                                rx="5"
+                                fill={isHighlighted ? '#0F172A' : 'rgba(255,255,255,0.96)'}
+                                stroke={isHighlighted ? '#0F172A' : '#CBD5E1'}
+                                strokeWidth="1"
+                                filter="url(#pillShadow)"
+                              />
+                              <text
+                                x={labelX + 7}
+                                y={labelY + 6}
+                                style={{
+                                  fill: isHighlighted ? '#FFFFFF' : '#1E293B',
+                                  fontSize: '9.5px',
+                                  fontWeight: '750',
+                                  fontFamily: 'var(--font-body)'
+                                }}
+                              >
+                                {cleanName}
                               </text>
                             </g>
                           );
                         })}
 
-                        {/* Title Labels */}
-                        <text x="435" y="470" textAnchor="middle" style={{ fill: '#94A3B8', fontSize: '12px', fontWeight: '700' }}>
-                          {xAxis === 'price' ? 'Cost per 1M Blended Tokens (3:1 input:output ratio)' : 'Median output tokens per second'}
-                        </text>
-                        <text x="20" y="230" textAnchor="middle" transform="rotate(-90, 20, 230)" style={{ fill: '#94A3B8', fontSize: '12px', fontWeight: '700' }}>
-                          {yAxis.charAt(0).toUpperCase() + yAxis.slice(1)} score
-                        </text>
-
-                        {/* Axis Base Lines */}
-                        <line x1="70" y1="40" x2="70" y2="420" stroke="#94A3B8" strokeWidth="1.5" />
-                        <line x1="70" y1="420" x2="800" y2="420" stroke="#94A3B8" strokeWidth="1.5" />
-
-                        {/* Direct Name Labels (Replicates the beautiful text labeling in AA) */}
-                        {showScatterLabels && scatterPoints.map((pt, idx) => {
-                          if (!pt.isKeyModel) return null;
-                          return (
-                            <text
-                              key={`lbl-${idx}`}
-                              x={pt.x + 8}
-                              y={pt.y - 4}
-                              style={{
-                                fill: '#334155',
-                                fontSize: '10px',
-                                fontWeight: '700',
-                                pointerEvents: 'none',
-                                textShadow: '0 1px 0 #fff'
-                              }}
-                            >
-                              {pt.model.name.replace(/(OpenAI|Anthropic|Google|Meta|DeepSeek):\s*/i, '')}
-                            </text>
-                          );
-                        })}
-
-                        {/* Points */}
-                        {scatterPoints.map((pt, idx) => {
-                          const color = getDeveloperColor(pt.model.creator);
-                          const isHovered = hoveredChartPoint?.model.slug === pt.model.slug;
-                          return (
-                            <circle
-                              key={idx}
-                              cx={pt.x}
-                              cy={pt.y}
-                              r={isHovered ? 12 : pt.isKeyModel ? 7 : 5.5}
-                              fill={color}
-                              stroke="#FFFFFF"
-                              strokeWidth={isHovered ? 2.5 : 1}
-                              style={{ cursor: 'pointer', transition: 'all 0.15s cubic-bezier(0.16, 1, 0.3, 1)' }}
-                              onMouseEnter={() => setHoveredChartPoint(pt)}
-                              onMouseLeave={() => setHoveredChartPoint(null)}
-                            />
-                          );
-                        })}
-
                       </svg>
 
-                      {/* Floating Chart Tooltip Overlay */}
-                      {hoveredChartPoint && (
+                      {/* Floating Chart Tooltip */}
+                      {hoveredChartPoint && !selectedScatterPoint && (
                         <div style={{
                           position: 'absolute',
                           bottom: '24px',
                           left: '24px',
-                          backgroundColor: '#FFFFFF',
+                          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+                          backdropFilter: 'blur(16px)',
+                          WebkitBackdropFilter: 'blur(16px)',
                           color: '#0F172A',
-                          padding: '16px',
-                          borderRadius: '12px',
-                          boxShadow: '0 10px 25px rgba(15,23,42,0.16)',
-                          maxWidth: '280px',
+                          padding: '16px 18px',
+                          borderRadius: '16px',
+                          boxShadow: '0 12px 36px rgba(15,23,42,0.18)',
+                          maxWidth: '310px',
                           fontSize: '13px',
                           zIndex: 10,
                           lineHeight: '1.5',
-                          border: '1px solid var(--color-border)'
+                          border: '1px solid #E2E8F0',
+                          pointerEvents: 'none',
+                          transition: 'all 0.15s ease'
                         }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getDeveloperColor(hoveredChartPoint.model.creator) }}></span>
-                            <strong style={{ fontSize: '14.5px' }}>{hoveredChartPoint.model.name}</strong>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                            <ProviderLogo provider={hoveredChartPoint.model.creator} size={20} />
+                            <strong style={{ fontSize: '14px', fontWeight: '800', color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {hoveredChartPoint.model.name}
+                            </strong>
                           </div>
-                          <div style={{ color: 'var(--color-text-muted)', fontSize: '11px', marginBottom: '8px' }}>Developer: {hoveredChartPoint.model.creator}</div>
-                          <div style={{ height: '1px', backgroundColor: 'var(--color-border)', margin: '8px 0' }}></div>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                            <div>
-                              <div style={{ color: 'var(--color-text-muted)', fontSize: '10px' }}>Quality score</div>
-                              <strong>{hoveredChartPoint.yVal.toFixed(1)}</strong>
+                          <div style={{ color: '#64748B', fontSize: '11px', marginBottom: '8px', fontWeight: '600' }}>
+                            Provider: {hoveredChartPoint.model.creator}
+                          </div>
+                          <div style={{ height: '1px', backgroundColor: '#E2E8F0', margin: '8px 0' }}></div>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                            <div style={{ backgroundColor: '#F8FAFC', padding: '6px 10px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                              <div style={{ color: '#64748B', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>Quality Score</div>
+                              <strong style={{ color: '#059669', fontSize: '15px' }}>{hoveredChartPoint.yVal.toFixed(1)}</strong>
                             </div>
-                            <div>
-                              <div style={{ color: 'var(--color-text-muted)', fontSize: '10px' }}>Blended Cost</div>
-                              <strong>${hoveredChartPoint.model.blendedPrice.toFixed(2)}/M</strong>
+                            <div style={{ backgroundColor: '#F8FAFC', padding: '6px 10px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                              <div style={{ color: '#64748B', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>Blended Cost</div>
+                              <strong style={{ color: '#D97706', fontSize: '15px' }}>${hoveredChartPoint.model.blendedPrice.toFixed(2)}/M</strong>
                             </div>
-                            <div>
-                              <div style={{ color: 'var(--color-text-muted)', fontSize: '10px' }}>Throughput</div>
-                              <strong>{hoveredChartPoint.model.throughput ? `${hoveredChartPoint.model.throughput} t/s` : 'N/A'}</strong>
+                            <div style={{ backgroundColor: '#F8FAFC', padding: '6px 10px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                              <div style={{ color: '#64748B', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>Throughput</div>
+                              <strong style={{ color: '#2563EB', fontSize: '13px' }}>{hoveredChartPoint.model.throughput ? `${Math.round(hoveredChartPoint.model.throughput)} t/s` : 'N/A'}</strong>
                             </div>
-                            <div>
-                              <div style={{ color: 'var(--color-text-muted)', fontSize: '10px' }}>Latency (TTFT)</div>
-                              <strong>{hoveredChartPoint.model.ttft ? `${hoveredChartPoint.model.ttft.toFixed(2)}s` : 'N/A'}</strong>
+                            <div style={{ backgroundColor: '#F8FAFC', padding: '6px 10px', borderRadius: '8px', border: '1px solid #F1F5F9' }}>
+                              <div style={{ color: '#64748B', fontSize: '10px', fontWeight: '700', textTransform: 'uppercase' }}>Latency (TTFT)</div>
+                              <strong style={{ color: '#7C3AED', fontSize: '13px' }}>{hoveredChartPoint.model.ttft ? `${hoveredChartPoint.model.ttft.toFixed(2)}s` : 'N/A'}</strong>
                             </div>
+                          </div>
+                          <div style={{ marginTop: '8px', fontSize: '10.5px', color: '#94A3B8', textAlign: 'center', fontStyle: 'italic' }}>
+                            Click dot to pin details & audit
                           </div>
                         </div>
                       )}
                     </div>
 
-                    {/* Scatter Legend */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', marginTop: '20px', justifyContent: 'center' }}>
+                    {/* Pinned Model Inspector Box (when user clicks a dot) */}
+                    {selectedScatterPoint && (
+                      <div style={{ marginTop: '16px', padding: '20px 24px', backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1.5px solid #CBD5E1', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '280px' }}>
+                          <ProviderLogo provider={selectedScatterPoint.model.creator} size={36} />
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <h4 style={{ margin: 0, fontSize: '16px', fontWeight: '800', color: '#0F172A' }}>
+                                {selectedScatterPoint.model.name}
+                              </h4>
+                              <span style={{ fontSize: '11px', fontWeight: '700', backgroundColor: '#E2E8F0', padding: '2px 8px', borderRadius: '12px', color: '#334155' }}>
+                                {selectedScatterPoint.model.creator}
+                              </span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '14px', marginTop: '6px', fontSize: '12px', color: '#475569', fontWeight: '600' }}>
+                              <span>Quality: <strong style={{ color: '#059669' }}>{selectedScatterPoint.yVal.toFixed(1)}/100</strong></span>
+                              <span>•</span>
+                              <span>Blended: <strong style={{ color: '#D97706' }}>${selectedScatterPoint.model.blendedPrice.toFixed(2)}/1M</strong></span>
+                              <span>•</span>
+                              <span>Speed: <strong style={{ color: '#2563EB' }}>{selectedScatterPoint.model.throughput ? `${Math.round(selectedScatterPoint.model.throughput)} t/s` : 'N/A'}</strong></span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px' }}>
+                          <button
+                            onClick={() => {
+                              if (onNavigateToView) onNavigateToView('auditor');
+                            }}
+                            className="btn btn-green"
+                            style={{ padding: '8px 16px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}
+                          >
+                            <Crosshair size={14} /> Audit in Model Auditor
+                          </button>
+                          <button
+                            onClick={() => setSelectedScatterPoint(null)}
+                            className="btn btn-outline"
+                            style={{ padding: '8px 14px', fontSize: '12px', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', backgroundColor: '#FFFFFF' }}
+                          >
+                            Close Inspector
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Interactive Provider Filter Legend */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '16px', justifyContent: 'center' }}>
+                      <button
+                        type="button"
+                        onClick={() => setActiveLegendProvider(null)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          padding: '5px 12px',
+                          borderRadius: '20px',
+                          border: activeLegendProvider === null ? '1.5px solid var(--color-green-primary)' : '1px solid #E2E8F0',
+                          backgroundColor: activeLegendProvider === null ? '#ECFDF5' : '#FFFFFF',
+                          color: activeLegendProvider === null ? 'var(--color-green-text)' : '#64748B',
+                          fontSize: '11.5px',
+                          fontWeight: '700',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
+                        }}
+                      >
+                        All Providers
+                      </button>
+
                       {[
                         { name: 'OpenAI', color: '#10B981' },
                         { name: 'Anthropic', color: '#F97316' },
@@ -1612,122 +2000,222 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                         { name: 'Meta', color: '#8B5CF6' },
                         { name: 'DeepSeek', color: '#06B6D4' },
                         { name: 'Mistral', color: '#EF4444' },
-                        { name: 'Qwen/Alibaba', color: '#14B8A6' }
-                      ].map(dev => (
-                        <div key={dev.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: '600', color: 'var(--color-text-secondary)' }}>
-                          <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dev.color }}></span>
-                          {dev.name}
-                        </div>
-                      ))}
+                        { name: 'Qwen/Alibaba', color: '#14B8A6' },
+                        { name: 'Cohere', color: '#D97706' }
+                      ].map(dev => {
+                        const isActive = activeLegendProvider === dev.name;
+                        return (
+                          <button
+                            key={dev.name}
+                            type="button"
+                            onClick={() => setActiveLegendProvider(isActive ? null : dev.name)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              padding: '5px 12px',
+                              borderRadius: '20px',
+                              border: isActive ? `1.5px solid ${dev.color}` : '1px solid #E2E8F0',
+                              backgroundColor: isActive ? `${dev.color}15` : '#FFFFFF',
+                              color: isActive ? '#0F172A' : '#64748B',
+                              fontSize: '11.5px',
+                              fontWeight: isActive ? '750' : '600',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dev.color }}></span>
+                            {dev.name}
+                          </button>
+                        );
+                      })}
                     </div>
 
                   </div>
                 )}
 
-                {/* 3. Explorer Tab (Rich Table Interface) */}
+                {/* 3. Explorer Tab (Frontier Text LLMs Table) */}
                 {activeTab === 'explorer' && (
-                  <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '32px', boxShadow: 'var(--shadow-sm)' }}>
+                  <div style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '16px', padding: '28px 32px', boxShadow: 'var(--shadow-sm)' }}>
 
-                    {/* Category Nav Selector */}
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-                      {[
-                        { id: 'llms', label: 'Frontier Text LLMs' },
-                        { id: 'text_to_image', label: 'Text-to-Image' },
-                        { id: 'text_to_video', label: 'Text-to-Video' },
-                        { id: 'text_to_speech', label: 'Text-to-Speech' }
-                      ].map(cat => (
-                        <button
-                          key={cat.id}
-                          onClick={() => {
-                            setExplorerCategory(cat.id);
-                            // Auto reset sorting keys depending on categories
-                            if (cat.id === 'llms') {
-                              setSortConfig({ key: 'intelligence_index', direction: 'descending' });
-                            } else {
-                              setSortConfig({ key: 'rank', direction: 'ascending' });
-                            }
+                    {/* Header Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <Database size={18} style={{ color: 'var(--color-green-primary)' }} /> Frontier Text LLMs Explorer
+                        </h3>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '12.5px', color: '#64748B' }}>
+                          Showing {sortedExplorerData.length} live benchmarked models. Click any column header to sort.
+                        </p>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '12px', color: '#64748B', fontWeight: '600' }}>Rows per page:</span>
+                        <select
+                          value={rowsPerPage}
+                          onChange={(e) => {
+                            setRowsPerPage(parseInt(e.target.value));
+                            setTablePage(1);
                           }}
                           style={{
-                            padding: '8px 16px',
+                            padding: '6px 10px',
                             borderRadius: '8px',
-                            border: '1px solid var(--color-border)',
-                            backgroundColor: explorerCategory === cat.id ? '#0F172A' : '#FFFFFF',
-                            color: explorerCategory === cat.id ? '#FFFFFF' : 'var(--color-text-secondary)',
-                            fontSize: '13px',
-                            fontWeight: '700',
-                            cursor: 'pointer',
-                            transition: 'all 0.15s ease'
+                            border: '1px solid #CBD5E1',
+                            fontSize: '12px',
+                            fontWeight: '600',
+                            backgroundColor: '#F8FAFC',
+                            cursor: 'pointer'
                           }}
                         >
-                          {cat.label}
-                        </button>
-                      ))}
+                          <option value={25}>25</option>
+                          <option value={50}>50</option>
+                          <option value={100}>100</option>
+                          <option value={-1}>All ({sortedExplorerData.length})</option>
+                        </select>
+                      </div>
                     </div>
 
                     {/* Table Render */}
                     <div style={{ overflowX: 'auto' }}>
-                      {explorerCategory === 'llms' ? (
-                        <table className="intel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '2px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>
-                              <th onClick={() => handleSort('name')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800' }}>Model Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('creator')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800' }}>Creator {sortConfig.key === 'creator' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('intelligence_index')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>Quality Index {sortConfig.key === 'intelligence_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('coding_index')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>Coding Index {sortConfig.key === 'coding_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('math_index')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>Math Index {sortConfig.key === 'math_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('throughput')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>Speed (t/s) {sortConfig.key === 'throughput' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('blendedPrice')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'right' }}>Cost / 1M {sortConfig.key === 'blendedPrice' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
+                      <table className="intel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                        <thead>
+                          <tr style={{ borderBottom: '2px solid #E2E8F0', color: '#475569', backgroundColor: '#F8FAFC' }}>
+                            <th onClick={() => handleSort('name')} style={{ padding: '12px 14px', cursor: 'pointer', fontWeight: '800' }}>
+                              Model Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('creator')} style={{ padding: '12px 14px', cursor: 'pointer', fontWeight: '800' }}>
+                              Developer {sortConfig.key === 'creator' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('intelligence_index')} style={{ padding: '12px 10px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>
+                              Quality Score {sortConfig.key === 'intelligence_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('coding_index')} style={{ padding: '12px 10px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>
+                              Coding Index {sortConfig.key === 'coding_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('math_index')} style={{ padding: '12px 10px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>
+                              Math Index {sortConfig.key === 'math_index' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('throughput')} style={{ padding: '12px 10px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>
+                              Speed (t/s) {sortConfig.key === 'throughput' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('ttft')} style={{ padding: '12px 10px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>
+                              Latency (TTFT) {sortConfig.key === 'ttft' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th onClick={() => handleSort('blendedPrice')} style={{ padding: '12px 14px', cursor: 'pointer', fontWeight: '800', textAlign: 'right' }}>
+                              Blended Cost/1M {sortConfig.key === 'blendedPrice' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}
+                            </th>
+                            <th style={{ padding: '12px 14px', textAlign: 'center', fontWeight: '800' }}>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedExplorerData.map((row, idx) => (
+                            <tr key={`${row.slug}-${idx}`} style={{ borderBottom: '1px solid #F1F5F9', transition: 'background-color 0.15s ease' }} className="table-row-hover">
+                              <td style={{ padding: '12px 14px', fontWeight: '750', color: '#0F172A' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <ProviderLogo provider={row.creator} size={18} />
+                                  <span>{row.name}</span>
+                                </div>
+                              </td>
+                              <td style={{ padding: '12px 14px', color: '#475569' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: getDeveloperColor(row.creator) }}></span>
+                                  <span>{row.creator}</span>
+                                </div>
+                              </td>
+                              <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: '800', color: row.intelligence_index ? '#059669' : '#94A3B8' }}>
+                                {row.intelligence_index !== null && row.intelligence_index !== undefined ? row.intelligence_index.toFixed(1) : '-'}
+                              </td>
+                              <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: '600', color: '#334155' }}>
+                                {row.coding_index !== null && row.coding_index !== undefined ? row.coding_index.toFixed(1) : '-'}
+                              </td>
+                              <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: '600', color: '#334155' }}>
+                                {row.math_index !== null && row.math_index !== undefined ? row.math_index.toFixed(1) : '-'}
+                              </td>
+                              <td style={{ padding: '12px 10px', textAlign: 'center', fontWeight: '750', color: '#2563EB' }}>
+                                {row.throughput !== null && row.throughput !== undefined && row.throughput > 0 ? `${Math.round(row.throughput)} t/s` : '-'}
+                              </td>
+                              <td style={{ padding: '12px 10px', textAlign: 'center', color: '#64748B', fontWeight: '600' }}>
+                                {row.ttft !== null && row.ttft !== undefined && row.ttft > 0 ? `${row.ttft.toFixed(2)}s` : '-'}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: '800', color: '#D97706' }}>
+                                ${row.blendedPrice.toFixed(2)}
+                              </td>
+                              <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                                <button
+                                  onClick={() => {
+                                    if (onNavigateToView) onNavigateToView('auditor');
+                                  }}
+                                  className="btn btn-outline"
+                                  style={{
+                                    padding: '5px 10px',
+                                    fontSize: '11.5px',
+                                    borderRadius: '6px',
+                                    border: '1px solid var(--color-green-primary)',
+                                    color: 'var(--color-green-text)',
+                                    backgroundColor: '#FFFFFF',
+                                    cursor: 'pointer',
+                                    fontWeight: '700'
+                                  }}
+                                >
+                                  Audit
+                                </button>
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {sortedExplorerData.map((row, idx) => (
-                              <tr key={`${row.slug}-${idx}`} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '12px 8px', fontWeight: '750' }}>{row.name}</td>
-                                <td style={{ padding: '12px 8px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getDeveloperColor(row.creator) }}></span>
-                                    {row.creator}
-                                  </div>
-                                </td>
-                                <td style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '700' }}>{row.intelligence_index !== null ? row.intelligence_index.toFixed(1) : '-'}</td>
-                                <td style={{ padding: '12px 8px', textAlign: 'center' }}>{row.coding_index !== null ? row.coding_index.toFixed(1) : '-'}</td>
-                                <td style={{ padding: '12px 8px', textAlign: 'center' }}>{row.math_index !== null ? row.math_index.toFixed(1) : '-'}</td>
-                                <td style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '700', color: 'var(--color-green-primary)' }}>{row.throughput !== null ? `${row.throughput} t/s` : '-'}</td>
-                                <td style={{ padding: '12px 8px', textAlign: 'right', fontWeight: '700' }}>${row.blendedPrice.toFixed(2)}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      ) : (
-                        <table className="intel-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13.5px' }}>
-                          <thead>
-                            <tr style={{ borderBottom: '2px solid var(--color-border)', color: 'var(--color-text-secondary)' }}>
-                              <th onClick={() => handleSort('rank')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800' }}>Rank {sortConfig.key === 'rank' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('name')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800' }}>Model Name {sortConfig.key === 'name' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('creator')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800' }}>Creator {sortConfig.key === 'creator' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('elo')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'center' }}>ELO Rating {sortConfig.key === 'elo' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                              <th onClick={() => handleSort('release_date')} style={{ padding: '12px 8px', cursor: 'pointer', fontWeight: '800', textAlign: 'right' }}>Release Date {sortConfig.key === 'release_date' ? (sortConfig.direction === 'ascending' ? '▲' : '▼') : ''}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sortedExplorerData.map((row, idx) => (
-                              <tr key={idx} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                                <td style={{ padding: '12px 8px', fontWeight: '800' }}>#{row.rank || idx + 1}</td>
-                                <td style={{ padding: '12px 8px', fontWeight: '750' }}>{row.name}</td>
-                                <td style={{ padding: '12px 8px' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: getDeveloperColor(row.creator) }}></span>
-                                    {row.creator}
-                                  </div>
-                                </td>
-                                <td style={{ padding: '12px 8px', textAlign: 'center', fontWeight: '700', color: 'var(--color-green-primary)' }}>{row.elo || '-'}</td>
-                                <td style={{ padding: '12px 8px', textAlign: 'right' }}>{row.release_date || '-'}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
+
+                    {/* Pagination Controls */}
+                    {rowsPerPage !== -1 && totalPages > 1 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid #E2E8F0', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '600' }}>
+                          Showing {((tablePage - 1) * rowsPerPage) + 1}–{Math.min(tablePage * rowsPerPage, sortedExplorerData.length)} of {sortedExplorerData.length} models
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            disabled={tablePage <= 1}
+                            onClick={() => setTablePage(p => Math.max(1, p - 1))}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              backgroundColor: tablePage <= 1 ? '#F1F5F9' : '#FFFFFF',
+                              color: tablePage <= 1 ? '#94A3B8' : '#0F172A',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              cursor: tablePage <= 1 ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            ← Previous
+                          </button>
+
+                          <span style={{ fontSize: '12px', fontWeight: '750', color: '#334155', padding: '0 8px' }}>
+                            Page {tablePage} of {totalPages}
+                          </span>
+
+                          <button
+                            type="button"
+                            disabled={tablePage >= totalPages}
+                            onClick={() => setTablePage(p => Math.min(totalPages, p + 1))}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: '1px solid #CBD5E1',
+                              backgroundColor: tablePage >= totalPages ? '#F1F5F9' : '#FFFFFF',
+                              color: tablePage >= totalPages ? '#94A3B8' : '#0F172A',
+                              fontSize: '12px',
+                              fontWeight: '700',
+                              cursor: tablePage >= totalPages ? 'not-allowed' : 'pointer'
+                            }}
+                          >
+                            Next →
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                   </div>
                 )}
