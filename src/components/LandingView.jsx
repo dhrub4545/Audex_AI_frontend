@@ -300,6 +300,11 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 }
                 .hero-card-wrapper {
                   transform: translateY(-20px);
+                  justify-content: flex-end !important;
+                }
+                .savings-preview-card {
+                  margin-left: auto !important;
+                  margin-right: 0 !important;
                 }
               }
               .hero-card-wrapper {
@@ -314,32 +319,45 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               .hero-turtle {
                 position: absolute;
                 top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
+                right: 56%;
+                transform: translateY(-50%);
                 height: auto;
-                width: 480px;
-                max-width: 110%;
-                opacity: 0.18;
-                filter: drop-shadow(0 20px 40px rgba(16, 185, 129, 0.25));
+                width: 440px;
+                max-width: 95%;
+                opacity: 1;
+                filter: drop-shadow(-10px 16px 30px rgba(16, 185, 129, 0.22));
                 z-index: 1;
                 pointer-events: none;
-                transition: opacity 0.3s ease, transform 0.3s ease;
+                transition: all 0.3s ease;
+              }
+              @media (max-width: 1200px) and (min-width: 992px) {
+                .hero-turtle {
+                  right: 48%;
+                  width: 380px;
+                }
               }
               @media (max-width: 991px) {
                 .hero-turtle {
-                  display: none;
+                  display: none !important;
+                }
+                .hero-card-wrapper {
+                  justify-content: center !important;
+                  width: 100% !important;
+                }
+                .savings-preview-card {
+                  margin: 0 auto !important;
+                  max-width: 500px !important;
+                  width: 100% !important;
                 }
               }
               .savings-preview-card {
                 position: relative;
                 z-index: 2;
-                background-color: rgba(255, 255, 255, 0.95);
-                backdrop-filter: blur(16px);
-                -webkit-backdrop-filter: blur(16px);
+                background-color: #FFFFFF;
                 border-radius: 22px;
                 border: 1.5px solid var(--color-border);
-                box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(226, 232, 240, 0.6);
-                padding: 26px 30px;
+                box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
+                padding: 24px 28px;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
@@ -350,7 +368,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 transition: box-shadow 0.25s ease, transform 0.25s ease;
               }
               .savings-preview-card:hover {
-                box-shadow: 0 30px 60px -12px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.3);
+                box-shadow: 0 25px 55px -10px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.25);
                 transform: translateY(-2px);
               }
               @media (max-width: 640px) {
