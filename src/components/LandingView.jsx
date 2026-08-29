@@ -320,11 +320,10 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               /* Dedicated Invisible Container for Turtle Mascot */
               .turtle-invisible-container {
                 position: absolute;
-                top: 50%;
-                right: 50%;
-                transform: translateY(-50%);
-                width: 440px;
-                height: 440px;
+                top: -35px;
+                left: -35px;
+                width: 250px;
+                height: 250px;
                 pointer-events: none;
                 z-index: 1;
                 display: flex;
@@ -337,32 +336,35 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 width: 100%;
                 height: 100%;
                 object-fit: contain;
-                filter: drop-shadow(-10px 18px 32px rgba(16, 185, 129, 0.25));
+                filter: drop-shadow(0 14px 28px rgba(16, 185, 129, 0.28));
                 opacity: 1;
                 pointer-events: none;
               }
 
               @media (min-width: 1400px) {
                 .turtle-invisible-container {
-                  right: 54%;
-                  width: 480px;
-                  height: 480px;
+                  top: -45px;
+                  left: -45px;
+                  width: 280px;
+                  height: 280px;
                 }
               }
 
               @media (min-width: 1200px) and (max-width: 1399px) {
                 .turtle-invisible-container {
-                  right: 52%;
-                  width: 440px;
-                  height: 440px;
+                  top: -35px;
+                  left: -35px;
+                  width: 250px;
+                  height: 250px;
                 }
               }
 
               @media (min-width: 992px) and (max-width: 1199px) {
                 .turtle-invisible-container {
-                  right: 44%;
-                  width: 380px;
-                  height: 380px;
+                  top: -30px;
+                  left: -20px;
+                  width: 220px;
+                  height: 220px;
                 }
               }
 

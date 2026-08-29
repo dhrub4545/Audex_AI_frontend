@@ -121,7 +121,15 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           .desktop-nav {
             display: flex;
             align-items: center;
-            gap: 24px;
+            gap: 22px;
+            margin-left: 36px;
+            margin-right: auto;
+          }
+          @media (max-width: 1180px) {
+            .desktop-nav {
+              gap: 14px !important;
+              margin-left: 18px !important;
+            }
           }
           .nav-link {
             position: relative;
