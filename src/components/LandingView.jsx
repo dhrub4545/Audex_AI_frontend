@@ -305,23 +305,19 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               .hero-turtle {
                 position: absolute;
                 top: 50%;
-                right: 60%;
+                right: 62%;
                 transform: translateY(-50%);
                 height: auto;
-                width: 400px;
+                width: 390px;
                 z-index: -1;
                 pointer-events: none;
               }
-              @media (max-width: 1200px) and (min-width: 992px) {
-                .hero-turtle {
-                  right: 48%;
-                  width: 360px;
-                }
-              }
-              @media (max-width: 991px) {
+              @media (max-width: 1280px) {
                 .hero-turtle {
                   display: none !important;
                 }
+              }
+              @media (max-width: 991px) {
                 .hero-content {
                   transform: none !important;
                 }
