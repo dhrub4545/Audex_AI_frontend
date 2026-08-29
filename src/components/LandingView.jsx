@@ -291,123 +291,70 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
             </div>
           </div>
 
-          {/* Savings preview card with invisible turtle stage */}
-          <div className="hero-card-wrapper">
+          {/* Savings preview card */}
+          <div className="hero-card-wrapper" style={{ position: 'relative', zIndex: 1 }}>
             <style>{`
               @media (min-width: 992px) {
                 .hero-content {
-                  transform: translateY(-40px);
+                  transform: translateY(-50px);
                 }
                 .hero-card-wrapper {
-                  transform: translateY(-20px);
-                  justify-content: flex-end !important;
-                }
-                .savings-preview-card {
-                  margin-left: auto !important;
-                  margin-right: 0 !important;
+                  transform: translateY(-30px);
                 }
               }
-              .hero-card-wrapper {
-                position: relative;
-                width: 100%;
-                max-width: 100%;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                box-sizing: border-box;
-              }
-
-              /* Dedicated Invisible Container for Turtle Mascot */
-              .turtle-invisible-container {
+              .hero-turtle {
                 position: absolute;
-                top: -35px;
-                left: -35px;
-                width: 250px;
-                height: 250px;
-                pointer-events: none;
-                z-index: 1;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-              }
-
-              .turtle-invisible-container .turtle-graphic {
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                filter: drop-shadow(0 14px 28px rgba(16, 185, 129, 0.28));
-                opacity: 1;
+                top: 50%;
+                right: 60%;
+                transform: translateY(-50%);
+                height: auto;
+                width: 400px;
+                z-index: -1;
                 pointer-events: none;
               }
-
-              @media (min-width: 1400px) {
-                .turtle-invisible-container {
-                  top: -45px;
-                  left: -45px;
-                  width: 280px;
-                  height: 280px;
+              @media (max-width: 1200px) and (min-width: 992px) {
+                .hero-turtle {
+                  right: 48%;
+                  width: 360px;
                 }
               }
-
-              @media (min-width: 1200px) and (max-width: 1399px) {
-                .turtle-invisible-container {
-                  top: -35px;
-                  left: -35px;
-                  width: 250px;
-                  height: 250px;
-                }
-              }
-
-              @media (min-width: 992px) and (max-width: 1199px) {
-                .turtle-invisible-container {
-                  top: -30px;
-                  left: -20px;
-                  width: 220px;
-                  height: 220px;
-                }
-              }
-
               @media (max-width: 991px) {
-                .turtle-invisible-container {
+                .hero-turtle {
                   display: none !important;
                 }
+                .hero-content {
+                  transform: none !important;
+                }
                 .hero-card-wrapper {
-                  justify-content: center !important;
+                  transform: none !important;
                   width: 100% !important;
+                  margin: 0 auto !important;
                 }
                 .savings-preview-card {
-                  margin: 0 auto !important;
-                  max-width: 500px !important;
                   width: 100% !important;
+                  max-width: 100% !important;
+                  margin: 0 auto !important;
+                  padding: 20px 16px !important;
+                  border-radius: 16px !important;
                 }
               }
               .savings-preview-card {
-                position: relative;
-                z-index: 2;
-                background-color: #FFFFFF;
-                border-radius: 22px;
-                border: 1.5px solid var(--color-border);
-                box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(0, 0, 0, 0.02);
-                padding: 24px 28px;
+                background-color: white;
+                border-radius: 20px;
+                border: 1px solid var(--color-border);
+                box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.02);
+                padding: 24px 30px;
                 display: flex;
                 flex-direction: column;
                 gap: 16px;
                 width: 100%;
                 max-width: 530px;
-                margin: 0 auto;
+                margin-left: auto;
                 box-sizing: border-box;
-                transition: box-shadow 0.25s ease, transform 0.25s ease;
+                transition: all 0.2s ease;
               }
               .savings-preview-card:hover {
-                box-shadow: 0 25px 55px -10px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(16, 185, 129, 0.25);
-                transform: translateY(-2px);
-              }
-              @media (max-width: 640px) {
-                .savings-preview-card {
-                  padding: 20px 16px !important;
-                  border-radius: 18px !important;
-                }
+                box-shadow: 0 24px 48px -10px rgba(0,0,0,0.1);
               }
               .savings-row {
                 display: flex;
@@ -425,12 +372,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 transform: translateY(-1px);
               }
             `}</style>
-            
-            {/* Invisible Responsive Container for the Turtle */}
-            <div className="turtle-invisible-container" aria-hidden="true">
-              <img src={turtleOutline} className="turtle-graphic" alt="" />
-            </div>
-
+            <img src={turtleOutline} className="hero-turtle" alt="" aria-hidden="true" />
             <div className="savings-preview-card">
               {/* Header: Unlocked Badge + Date + Monthly Savings */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
