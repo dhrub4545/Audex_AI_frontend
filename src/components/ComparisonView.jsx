@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 import { getCachedRawData } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
-import { Code2, Brain, Calculator, PenTool, Search, Link2, FileText, Image, Zap, Coins } from 'lucide-react';
+import { Code2, Brain, Calculator, PenTool, Search, Link2, FileText, Image, Zap, Coins, ArrowLeft } from 'lucide-react';
 
 // Category Definitions with Icons and descriptions
 const CATEGORIES = [
@@ -384,23 +384,23 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '64px' }}>
 
       {/* Sleek Sub-Header Navbar */}
-      <header className="navbar subpage-navbar">
-        <div className="container subpage-nav-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+      <header className="navbar">
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <button
               onClick={onNavigateBack}
               className="btn btn-outline nav-action-btn"
-              style={{ padding: '6px 10px', fontSize: '11.5px' }}
-              title="Go Back"
+              title="Back"
             >
-              ← <span className="btn-text-full">Back</span>
+              <ArrowLeft size={14} />
+              <span className="nav-action-btn-text">Back</span>
             </button>
-            <div className="brand subpage-brand" style={{ pointerEvents: 'none' }}>
+            <div className="nav-brand" style={{ pointerEvents: 'none' }}>
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>Spend Optimiser</span></span>
             </div>
           </div>
-          <div className="nav-links">
+          <div className="nav-links desktop-only">
             <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: '600' }}>
               Comparing: <strong>{baseline?.name?.replace(/^.*?:\s*/, '')}</strong> vs <strong>{recommended?.name?.replace(/^.*?:\s*/, '')}</strong>
             </span>

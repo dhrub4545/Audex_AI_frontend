@@ -230,106 +230,7 @@ p {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* Coin / Plan Dropdown Button Responsive System */
-.coin-dropdown-container {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  margin-right: 6px;
-  flex-shrink: 0;
-}
-
-.coin-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 9999px;
-  font-weight: 750;
-  font-size: 11.5px;
-  cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  line-height: 1;
-  box-sizing: border-box;
-  white-space: nowrap;
-  transition: all 150ms ease;
-  user-select: none;
-}
-
-.coin-btn-text-full {
-  display: inline;
-}
-
-.coin-btn-text-short {
-  display: none;
-}
-
-/* Subpage Navbar System */
-.subpage-navbar {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background-color: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--color-border);
-}
-
-.subpage-nav-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 60px;
-  height: 60px;
-  width: 100%;
-}
-
-.subpage-brand {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  flex-shrink: 0;
-}
-
-.subpage-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.nav-action-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 7px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 8px;
-  white-space: nowrap;
-  transition: all 150ms ease;
-  cursor: pointer;
-  line-height: 1;
-}
-
-.btn-text-full {
-  display: inline;
-}
-
-.btn-text-short {
-  display: none;
-}
-
-.nav-btn-mobile-icon {
-  display: none;
+  gap: 12px;
 }
 
 @media (max-width: 900px) {
@@ -338,144 +239,24 @@ p {
   }
 }
 
-@media (max-width: 768px) {
-  .subpage-nav-container {
-    min-height: 54px !important;
-    height: 54px !important;
-    padding: 0 12px !important;
+@media (max-width: 640px) {
+  .navbar .brand-name {
+    font-size: 16.5px !important;
+  }
+  .nav-actions {
     gap: 6px !important;
   }
-
-  .subpage-brand {
-    gap: 6px !important;
-  }
-
-  .subpage-brand .brand-logo {
-    height: 28px !important;
-    width: auto !important;
-  }
-
-  .subpage-brand .brand-name {
-    font-size: 16px !important;
-  }
-
-  .subpage-nav-actions {
-    gap: 6px !important;
-  }
-
-  .coin-dropdown-container {
-    margin-right: 0 !important;
-  }
-
-  .coin-btn {
-    padding: 4px 8px !important;
-    font-size: 10px !important;
-    border-radius: 6px !important;
-  }
-
-  .coin-btn-text-full {
-    display: none !important;
-  }
-
-  .coin-btn-text-short {
-    display: inline !important;
-  }
-
-  .nav-action-btn {
-    padding: 6px 9px !important;
+  .nav-actions .btn {
+    padding: 6px 10px !important;
     font-size: 11.5px !important;
     border-radius: 6px !important;
   }
-
-  .btn-text-full {
-    display: none !important;
-  }
-
-  .btn-text-short {
-    display: inline !important;
-  }
-
-  .nav-btn-mobile-icon {
-    display: inline !important;
-  }
-
   .history-user-greeting {
     display: none !important;
   }
 }
 
-@media (max-width: 480px) {
-  .navbar .brand-name {
-    font-size: 15px !important;
-  }
-  .subpage-brand .brand-name {
-    font-size: 15px !important;
-  }
-  .subpage-brand .brand-logo {
-    height: 25px !important;
-  }
-  .subpage-nav-container {
-    padding: 0 8px !important;
-    gap: 4px !important;
-    min-height: 52px !important;
-    height: 52px !important;
-  }
-  .subpage-nav-actions {
-    gap: 4px !important;
-  }
-  .coin-btn {
-    padding: 3px 6px !important;
-    font-size: 9.5px !important;
-  }
-  .nav-action-btn {
-    padding: 5px 7px !important;
-    font-size: 11px !important;
-  }
-}
-
-@media (max-width: 360px) {
-  .subpage-brand .brand-name {
-    font-size: 13.5px !important;
-  }
-  .coin-btn {
-    padding: 2px 5px !important;
-    font-size: 9px !important;
-  }
-  .nav-action-btn {
-    padding: 4px 6px !important;
-    font-size: 10.5px !important;
-  }
-}
-
-/* Detailed Analysis Report Header Responsive Rules */
-.detailed-report-header {
-  background-color: #FFFFFF;
-  border-radius: 16px;
-  padding: 24px 32px;
-  margin-bottom: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-  gap: 16px;
-}
-
-@media (max-width: 768px) {
-  .detailed-report-header {
-    padding: 16px 18px !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 14px !important;
-  }
-  .detailed-report-header > div:last-child {
-    width: 100% !important;
-  }
-  .detailed-report-header button {
-    width: 100% !important;
-    justify-content: center !important;
-  }
-}
+/* Footer */
 .footer {
   background-color: #FFFFFF;
   border-top: 1px solid var(--color-border);
@@ -887,6 +668,215 @@ p {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+}
+
+/* ==========================================================================
+   Global Navbar & Header Responsive System
+   ========================================================================== */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background-color: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--color-border);
+  width: 100%;
+}
+
+.navbar .container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 24px;
+  box-sizing: border-box;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.nav-brand .brand-logo {
+  height: 32px;
+  width: auto;
+  object-fit: contain;
+}
+
+.nav-brand .brand-name {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 18px;
+  color: #0F172A;
+  white-space: nowrap;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Coin / Plan Dropdown Button */
+.coin-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.coin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 9999px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: all 150ms ease;
+}
+
+.coin-btn-full {
+  display: inline;
+}
+
+.coin-btn-short {
+  display: none;
+}
+
+/* Responsive Nav Action Buttons */
+.nav-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 700;
+  border-radius: 8px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 150ms ease;
+  flex-shrink: 0;
+  line-height: 1.2;
+}
+
+.nav-action-btn-text {
+  display: inline;
+}
+
+/* Responsive Breakpoints for Navbars */
+@media (max-width: 768px) {
+  .navbar .container {
+    padding: 0 14px !important;
+    height: 58px !important;
+  }
+  
+  .nav-brand .brand-logo {
+    height: 28px !important;
+  }
+  
+  .nav-brand .brand-name {
+    font-size: 16px !important;
+  }
+
+  .nav-actions {
+    gap: 6px !important;
+  }
+
+  .coin-btn {
+    padding: 4px 8px !important;
+    font-size: 10px !important;
+  }
+
+  .coin-btn-full {
+    display: none !important;
+  }
+
+  .coin-btn-short {
+    display: inline !important;
+  }
+
+  .nav-action-btn {
+    padding: 6px 10px !important;
+    font-size: 11.5px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar .container {
+    padding: 0 10px !important;
+    height: 56px !important;
+  }
+
+  .nav-brand {
+    gap: 6px !important;
+  }
+
+  .nav-brand .brand-logo {
+    height: 25px !important;
+  }
+
+  .nav-brand .brand-name {
+    font-size: 15px !important;
+  }
+
+  .nav-actions {
+    gap: 5px !important;
+  }
+
+  .coin-btn {
+    padding: 3px 6px !important;
+    font-size: 9.5px !important;
+  }
+
+  .nav-action-btn {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    border-radius: 6px !important;
+  }
+
+  .nav-btn-home .nav-action-btn-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .coin-dropdown-container {
+    display: none !important;
+  }
+
+  .nav-brand .brand-name {
+    font-size: 14px !important;
+  }
+
+  .nav-action-btn {
+    padding: 4px 6px !important;
+    font-size: 10.5px !important;
+  }
+}
+
+.desktop-only {
+  display: flex;
+}
+
+@media (max-width: 991px) {
+  .desktop-only {
+    display: none !important;
+  }
 }
 
 /* Wizard Layout */

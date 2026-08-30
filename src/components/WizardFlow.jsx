@@ -29,7 +29,9 @@ import {
   BarChart3,
   Gem,
   Layers,
-  Bot
+  Bot,
+  Check,
+  X
 } from 'lucide-react';
 
 const PURPOSE_GROUPS = [
@@ -543,6 +545,7 @@ export default function WizardFlow({
   const [apiSearchQuery, setApiSearchQuery] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
   const [step1ViewMode, setStep1ViewMode] = useState('sub'); // 'sub', 'api'
+  const [apiProviderFilter, setApiProviderFilter] = useState('ALL');
   const [dbModels, setDbModels] = useState([
     { id: 'openai/gpt-5-6-sol', name: 'OpenAI: GPT-5.6 Sol', developer: 'OpenAI' },
     { id: 'anthropic/claude-opus-5', name: 'Anthropic: Claude Opus 5', developer: 'Anthropic' },
@@ -777,8 +780,25 @@ export default function WizardFlow({
     )
   );
 
+  const availableApiProviders = useMemo(() => {
+    const set = new Set();
+    dbModels.forEach(m => {
+      const p = getProviderName(m);
+      if (p && p !== 'Other' && p !== 'Unknown') set.add(p);
+    });
+    const sorted = Array.from(set).sort();
+    return ['ALL', ...sorted];
+  }, [dbModels]);
+
   const filteredDbModels = useMemo(() => {
-    const filtered = dbModels.filter(m => 
+    let list = dbModels;
+    if (apiProviderFilter !== 'ALL') {
+      list = list.filter(m => {
+        const p = getProviderName(m);
+        return p.toLowerCase() === apiProviderFilter.toLowerCase();
+      });
+    }
+    const filtered = list.filter(m => 
       (m.name || '').toLowerCase().includes(apiSearchQuery.toLowerCase()) ||
       (m.id || '').toLowerCase().includes(apiSearchQuery.toLowerCase())
     );
@@ -788,7 +808,7 @@ export default function WizardFlow({
     } else {
       return filtered.sort((a, b) => (a.name || a.id || '').localeCompare(b.name || b.id || ''));
     }
-  }, [dbModels, apiSearchQuery]);
+  }, [dbModels, apiSearchQuery, apiProviderFilter]);
 
   const subSelectedCount = useMemo(() => {
     return selectedToolIds.filter(id => tools.some(t => t.id === id && t.type === 'subscription')).length;
@@ -803,30 +823,33 @@ export default function WizardFlow({
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
       <style>{`
         .wizard-body-wide {
-          max-width: 1100px;
+          max-width: 1200px;
           width: 100%;
           padding: 32px 24px;
           margin: 0 auto;
           box-sizing: border-box;
+          overflow-x: hidden;
         }
         .step1-view-switcher {
           display: none;
           background: #F1F5F9;
           padding: 4px;
           border-radius: 14px;
-          margin-bottom: 18px;
+          margin-bottom: 16px;
           gap: 6px;
           width: 100%;
+          max-width: 100%;
           box-sizing: border-box;
           border: 1px solid #E2E8F0;
         }
         .step1-view-btn {
-          flex: 1;
+          flex: 1 1 0%;
+          min-width: 0;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 8px;
-          padding: 10px 14px;
+          gap: 6px;
+          padding: 9px 12px;
           border: none;
           background: transparent;
           border-radius: 10px;
@@ -836,11 +859,18 @@ export default function WizardFlow({
           cursor: pointer;
           transition: all 180ms ease;
           white-space: nowrap;
+          box-sizing: border-box;
         }
         .step1-view-btn.active {
           background: #FFFFFF;
           color: #0F172A;
           box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+        }
+        .step1-tab-text-full {
+          display: inline;
+        }
+        .step1-tab-text-short {
+          display: none;
         }
         .step1-tab-count {
           font-size: 11px;
@@ -850,6 +880,7 @@ export default function WizardFlow({
           background: #E2E8F0;
           color: #64748B;
           transition: all 180ms ease;
+          flex-shrink: 0;
         }
         .step1-tab-count.highlight-sub {
           background: #ECFDF5;
@@ -865,7 +896,21 @@ export default function WizardFlow({
           display: flex;
           justify-content: space-between;
           align-items: center;
-          margin-bottom: 14px;
+          margin-bottom: 12px;
+          gap: 8px;
+          width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+        .panel-count-badge {
+          font-size: 11.5px;
+          font-weight: 700;
+          color: #64748B;
+          background: #F1F5F9;
+          padding: 2px 7px;
+          border-radius: 8px;
+          border: 1px solid #E2E8F0;
+          flex-shrink: 0;
         }
         .panel-selected-pill {
           font-size: 11px;
@@ -875,6 +920,8 @@ export default function WizardFlow({
           background-color: #ECFDF5;
           color: #059669;
           border: 1px solid #A7F3D0;
+          white-space: nowrap;
+          flex-shrink: 0;
         }
         .panel-selected-pill.api {
           background-color: #EFF6FF;
@@ -883,35 +930,143 @@ export default function WizardFlow({
         }
         .split-workspace {
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           gap: 24px;
           margin-bottom: 18px;
           align-items: stretch;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
         .workspace-panel {
           background-color: #FFFFFF;
           border: 1px solid #E5E7EB;
           border-radius: 18px;
-          padding: 22px;
+          padding: 20px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
           display: flex;
           flex-direction: column;
-          height: clamp(520px, calc(100vh - 300px), 640px);
+          height: clamp(540px, calc(100vh - 280px), 720px);
           box-sizing: border-box;
           transition: all 200ms ease;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          overflow: hidden;
         }
         .panel-title {
-          font-size: 17px;
+          font-size: 16px;
           font-weight: 750;
           color: #1F2937;
           margin: 0;
           display: flex;
           align-items: center;
           gap: 8px;
+          white-space: nowrap;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .panel-search-wrapper {
           position: relative;
-          margin-bottom: 14px;
+          margin-bottom: 10px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
+        .panel-search-input {
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          height: 40px;
+          padding: 8px 36px 8px 36px;
+          border: 1.5px solid #E2E8F0;
+          border-radius: 10px;
+          font-size: 13px;
+          background-color: #FAFAFA;
+          color: #1E293B;
+          outline: none;
+          transition: all 150ms ease;
+        }
+        .panel-search-input:focus {
+          border-color: #3B82F6;
+          background-color: #FFFFFF;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+        }
+        .panel-search-icon {
+          color: #94A3B8;
+          position: absolute;
+          left: 12px;
+          top: 50%;
+          transform: translateY(-50%);
+          pointer-events: none;
+        }
+        .search-clear-btn {
+          position: absolute;
+          right: 10px;
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: #94A3B8;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 50%;
+        }
+        .search-clear-btn:hover {
+          color: #475569;
+          background-color: #E2E8F0;
+        }
+
+        /* Provider Filter Chips */
+        .api-provider-chips-row {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding-bottom: 8px;
+          margin-bottom: 8px;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+          flex-shrink: 0;
+        }
+        .api-provider-chips-row::-webkit-scrollbar {
+          display: none;
+        }
+        .api-provider-chip {
+          padding: 4px 10px;
+          border-radius: 9999px;
+          font-size: 11.5px;
+          font-weight: 700;
+          border: 1px solid #E2E8F0;
+          background: #F8FAFC;
+          color: #64748B;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: all 150ms ease;
+          flex-shrink: 0;
+          box-sizing: border-box;
+        }
+        .api-provider-chip:hover {
+          background: #F1F5F9;
+          color: #1E293B;
+          border-color: #CBD5E1;
+        }
+        .api-provider-chip.active {
+          background: #EFF6FF;
+          color: #2563EB;
+          border-color: #93C5FD;
+          box-shadow: 0 1px 3px rgba(37, 99, 235, 0.12);
         }
         
         /* Scroll Containers */
@@ -920,7 +1075,13 @@ export default function WizardFlow({
           flex: 1;
           min-height: 0;
           overflow-y: auto;
+          overflow-x: hidden;
           padding-right: 4px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+          -webkit-overflow-scrolling: touch;
         }
         .subscription-scroll-container::-webkit-scrollbar,
         .api-scroll-container::-webkit-scrollbar {
@@ -942,9 +1103,13 @@ export default function WizardFlow({
         
         .tool-grid {
           display: grid;
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           gap: 10px;
           margin-bottom: 0;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
         .tool-card {
           padding: 10px 12px;
@@ -957,6 +1122,10 @@ export default function WizardFlow({
           display: flex;
           align-items: center;
           justify-content: space-between;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
         }
         .tool-card:hover {
           background-color: #FFFFFF;
@@ -982,26 +1151,39 @@ export default function WizardFlow({
         }
 
         /* Direct API List */
+        .api-models-list {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          box-sizing: border-box;
+        }
         .api-model-row {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 12px;
-          border: 1.5px solid #F3F4F6;
+          padding: 8px 12px;
+          border: 1.5px solid #F1F5F9;
           background-color: #FAFAFA;
           border-radius: 12px;
           cursor: pointer;
           transition: all 180ms ease;
-          margin-bottom: 6px;
           box-sizing: border-box;
+          min-height: 48px;
+          width: 100%;
+          max-width: 100%;
+          min-width: 0;
         }
         .api-model-row:hover {
           background-color: #FFFFFF;
           border-color: #3B82F6;
+          box-shadow: 0 2px 8px rgba(59, 130, 246, 0.08);
           transform: translateY(-1px);
         }
         .api-model-row.selected {
-          background-color: #F0F7FF;
+          background-color: #EFF6FF;
           border-color: #3B82F6;
         }
         .api-row-left {
@@ -1010,11 +1192,27 @@ export default function WizardFlow({
           gap: 10px;
           min-width: 0;
           flex: 1;
+          overflow: hidden;
+        }
+        .api-logo-wrapper {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          min-width: 32px;
+          min-height: 32px;
+          border-radius: 8px;
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          flex-shrink: 0;
         }
         .api-row-info {
           display: flex;
           flex-direction: column;
           min-width: 0;
+          flex: 1;
+          overflow: hidden;
         }
         .api-model-name {
           font-size: 13px;
@@ -1023,11 +1221,69 @@ export default function WizardFlow({
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
+          line-height: 1.3;
+          width: 100%;
+        }
+        .api-row-meta {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          margin-top: 2px;
+          min-width: 0;
+          overflow: hidden;
         }
         .api-provider-name {
-          font-size: 10.5px;
+          font-size: 11px;
+          color: #64748B;
+          font-weight: 500;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .api-context-pill {
+          font-size: 9.5px;
+          font-weight: 700;
+          padding: 1px 5px;
+          border-radius: 4px;
+          background: #F1F5F9;
+          color: #475569;
+          border: 1px solid #E2E8F0;
+          flex-shrink: 0;
+        }
+        .api-check-badge {
+          width: 20px;
+          height: 20px;
+          min-width: 20px;
+          min-height: 20px;
+          border-radius: 50%;
+          border: 1.5px solid #D1D5DB;
+          background-color: #FFFFFF;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 180ms ease;
+          flex-shrink: 0;
+          margin-left: 8px;
+          font-size: 11px;
+          color: #FFFFFF;
+          font-weight: 800;
+        }
+        .api-check-badge.checked {
+          border-color: #3B82F6;
+          background-color: #3B82F6;
+        }
+        .api-empty-state {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100%;
           color: #6B7280;
-          margin-top: 1px;
+          gap: 6px;
+          padding: 32px 16px;
+          text-align: center;
+          width: 100%;
+          box-sizing: border-box;
         }
         
         /* Bottom CTA Success Container */
@@ -1040,7 +1296,11 @@ export default function WizardFlow({
           border: 1.5px solid #A7F3D0;
           border-radius: 14px;
           color: #065F46;
-          margin-top: 0;
+          margin-top: 16px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          gap: 12px;
         }
         .bottom-cta-text {
           font-size: 14px;
@@ -1048,47 +1308,83 @@ export default function WizardFlow({
           display: flex;
           align-items: center;
           gap: 6px;
+          min-width: 0;
         }
         
+        /* Responsive Breakpoints */
+        @media (max-width: 1080px) {
+          .split-workspace {
+            gap: 16px !important;
+          }
+          .workspace-panel {
+            padding: 18px 16px !important;
+          }
+          .tool-grid {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+        }
+
         @media (max-width: 900px) {
+          .wizard-body-wide {
+            padding: 16px 14px !important;
+            overflow-x: hidden !important;
+          }
           .step1-view-switcher {
             display: flex !important;
           }
           .split-workspace {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: minmax(0, 1fr) !important;
             gap: 0 !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
           }
           .workspace-panel {
             height: auto !important;
             max-height: none !important;
             padding: 16px 14px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
           }
           .workspace-panel.hide-on-mobile {
             display: none !important;
           }
           .subscription-scroll-container,
           .api-scroll-container {
-            max-height: 380px !important;
-            min-height: 240px !important;
-          }
-          .wizard-body-wide {
-            padding: 16px 14px !important;
+            max-height: clamp(340px, calc(100dvh - 380px), 520px) !important;
+            min-height: 280px !important;
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
           }
           .tool-grid {
-            grid-template-columns: 1fr !important;
+            grid-template-columns: minmax(0, 1fr) !important;
             gap: 8px !important;
+            width: 100% !important;
+            min-width: 0 !important;
           }
           .tool-card {
             padding: 10px 12px !important;
+            width: 100% !important;
+            min-width: 0 !important;
           }
         }
+
         @media (max-width: 640px) {
+          .wizard-body-wide {
+            padding: 14px 10px !important;
+          }
+          .workspace-panel {
+            padding: 14px 12px !important;
+            border-radius: 14px !important;
+          }
           .wizard-title {
-            font-size: 20px !important;
+            font-size: 19px !important;
             margin-bottom: 6px !important;
           }
           .wizard-desc {
-            font-size: 12.5px !important;
+            font-size: 12px !important;
             margin-bottom: 10px !important;
           }
           .wizard-progress-meta {
@@ -1097,8 +1393,27 @@ export default function WizardFlow({
           }
           .step1-view-btn {
             font-size: 12px !important;
+            padding: 8px 6px !important;
+            gap: 4px !important;
+          }
+          .step1-tab-text-full {
+            display: none !important;
+          }
+          .step1-tab-text-short {
+            display: inline !important;
+          }
+          .api-model-row {
             padding: 8px 10px !important;
-            gap: 6px !important;
+            min-height: 44px !important;
+          }
+          .api-logo-wrapper {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+          }
+          .api-model-name {
+            font-size: 12.5px !important;
           }
           .bottom-cta-banner {
             flex-direction: column !important;
@@ -1125,11 +1440,43 @@ export default function WizardFlow({
             width: 12px !important;
           }
         }
+
+        @media (max-width: 420px) {
+          .wizard-body-wide {
+            padding: 10px 8px !important;
+          }
+          .workspace-panel {
+            padding: 12px 8px !important;
+            border-radius: 12px !important;
+          }
+          .step1-view-btn {
+            font-size: 11px !important;
+            padding: 6px 4px !important;
+          }
+          .panel-title {
+            font-size: 15px !important;
+          }
+          .panel-search-input {
+            font-size: 12px !important;
+            height: 36px !important;
+            padding: 6px 30px 6px 32px !important;
+          }
+          .api-provider-chip {
+            font-size: 10px !important;
+            padding: 3px 7px !important;
+          }
+          .api-scroll-container {
+            max-height: clamp(260px, calc(100dvh - 330px), 400px) !important;
+          }
+          .api-model-row {
+            padding: 7px 8px !important;
+          }
+        }
       `}</style>
 
       <header className="wizard-header">
         <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
@@ -1244,7 +1591,8 @@ export default function WizardFlow({
             onClick={() => setStep1ViewMode('sub')}
           >
             <Sparkles size={14} style={{ color: step1ViewMode === 'sub' ? '#059669' : '#64748B' }} />
-            <span>Subscription Tools</span>
+            <span className="step1-tab-text-full">Subscription Tools</span>
+            <span className="step1-tab-text-short">Subscriptions</span>
             <span className={`step1-tab-count ${subSelectedCount > 0 ? 'highlight-sub' : ''}`}>
               {subSelectedCount}
             </span>
@@ -1255,7 +1603,8 @@ export default function WizardFlow({
             onClick={() => setStep1ViewMode('api')}
           >
             <Code2 size={14} style={{ color: step1ViewMode === 'api' ? '#2563EB' : '#64748B' }} />
-            <span>Direct API Models</span>
+            <span className="step1-tab-text-full">Direct API Models</span>
+            <span className="step1-tab-text-short">Direct API</span>
             <span className={`step1-tab-count ${apiSelectedCount > 0 ? 'highlight-api' : ''}`}>
               {apiSelectedCount}
             </span>
@@ -1407,11 +1756,14 @@ export default function WizardFlow({
           </div>
 
           {/* Right Panel: Direct API Models */}
-          <div className={`workspace-panel ${step1ViewMode === 'sub' ? 'hide-on-mobile' : ''}`}>
+          <div className={`workspace-panel api-panel ${step1ViewMode === 'sub' ? 'hide-on-mobile' : ''}`}>
             <div className="panel-header-row">
-              <h3 className="panel-title">
-                <Code2 size={17} style={{ color: '#3B82F6' }} /> Direct API Models
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h3 className="panel-title">
+                  <Code2 size={17} style={{ color: '#3B82F6' }} /> Direct API Models
+                </h3>
+                <span className="panel-count-badge">{filteredDbModels.length}</span>
+              </div>
               {apiSelectedCount > 0 && (
                 <span className="panel-selected-pill api">{apiSelectedCount} selected</span>
               )}
@@ -1420,59 +1772,92 @@ export default function WizardFlow({
             <div className="panel-search-wrapper">
               <input 
                 type="text"
-                placeholder="Search GPT-5.5, Claude Opus 4.8, Gemini 3.1 Pro..."
-                className="search-input"
+                placeholder="Search models (e.g. GPT-4o, Claude 3.7, Gemini 2.5, DeepSeek)..."
+                className="panel-search-input"
                 value={apiSearchQuery}
                 onChange={(e) => setApiSearchQuery(e.target.value)}
-                style={{ width: '100%', boxSizing: 'border-box' }}
               />
-              <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+              <Search size={16} className="panel-search-icon" />
+              {apiSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setApiSearchQuery('')}
+                  className="search-clear-btn"
+                  title="Clear search"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            {/* Provider Filter Chips Row */}
+            <div className="api-provider-chips-row" data-lenis-prevent>
+              {availableApiProviders.map(p => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`api-provider-chip ${apiProviderFilter === p ? 'active' : ''}`}
+                  onClick={() => setApiProviderFilter(p)}
+                >
+                  {p === 'ALL' ? 'All Providers' : p}
+                </button>
+              ))}
             </div>
 
             <div className="api-scroll-container" data-lenis-prevent>
               {filteredDbModels.length === 0 ? (
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
-                  <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
+                <div className="api-empty-state">
+                  <Search size={32} style={{ color: '#94A3B8', marginBottom: '6px' }} />
                   <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#1F2937' }}>No API models found</span>
-                  <span style={{ fontSize: '12px', color: '#6B7280' }}>Try another search.</span>
+                  <span style={{ fontSize: '12px', color: '#6B7280' }}>
+                    {apiSearchQuery ? `No matches for "${apiSearchQuery}"` : 'No models available in this category.'}
+                  </span>
+                  {(apiSearchQuery || apiProviderFilter !== 'ALL') && (
+                    <button
+                      type="button"
+                      onClick={() => { setApiSearchQuery(''); setApiProviderFilter('ALL'); }}
+                      className="btn btn-outline"
+                      style={{ padding: '5px 12px', fontSize: '11.5px', marginTop: '8px', borderRadius: '8px' }}
+                    >
+                      Reset Filters
+                    </button>
+                  )}
                 </div>
               ) : (
-                filteredDbModels.map(model => {
-                  const isSelected = selectedToolIds.includes(model.id);
-                  return (
-                    <div 
-                      key={model.id}
-                      className={`api-model-row ${isSelected ? 'selected' : ''}`}
-                      onClick={() => toggleApiModelSelection(model.id)}
-                    >
-                      <div className="api-row-left">
-                        <ProviderLogo provider={model.developer || model.creator || model.id} size={22} />
-                        <div className="api-row-info">
-                          <span className="api-model-name">{getCleanModelName(model)}</span>
-                          <span className="api-provider-name">{getProviderName(model)}</span>
+                <div className="api-models-list">
+                  {filteredDbModels.map(model => {
+                    const isSelected = selectedToolIds.includes(model.id);
+                    const cleanName = getCleanModelName(model);
+                    const providerName = getProviderName(model);
+                    return (
+                      <div 
+                        key={model.id}
+                        className={`api-model-row ${isSelected ? 'selected' : ''}`}
+                        onClick={() => toggleApiModelSelection(model.id)}
+                      >
+                        <div className="api-row-left">
+                          <div className="api-logo-wrapper">
+                            <ProviderLogo provider={model.developer || model.creator || model.id} size={22} />
+                          </div>
+                          <div className="api-row-info">
+                            <span className="api-model-name" title={cleanName}>{cleanName}</span>
+                            <div className="api-row-meta">
+                              <span className="api-provider-name">{providerName}</span>
+                              {model.context_length ? (
+                                <span className="api-context-pill">{Math.round(model.context_length / 1000)}k ctx</span>
+                              ) : null}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Checkbox badge Selection Indicator */}
+                        <div className={`api-check-badge ${isSelected ? 'checked' : ''}`}>
+                          {isSelected && <span>✓</span>}
                         </div>
                       </div>
-                      
-                      {/* Checkbox badge Selection Indicator */}
-                      <div style={{
-                        width: '18px',
-                        height: '18px',
-                        borderRadius: '50%',
-                        border: isSelected ? '1.5px solid #3B82F6' : '1.5px solid #D1D5DB',
-                        backgroundColor: isSelected ? '#3B82F6' : '#FFFFFF',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        transition: 'all 180ms ease',
-                        flexShrink: 0
-                      }}>
-                        {isSelected && (
-                          <span style={{ color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
+                    );
+                  })}
+                </div>
               )}
             </div>
           </div>
@@ -1589,7 +1974,7 @@ export default function WizardFlow({
       `}</style>
       <header className="wizard-header">
         <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
@@ -1806,7 +2191,7 @@ export default function WizardFlow({
       <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
         <header className="wizard-header">
           <div className="container">
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
+            <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand">
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
             </a>

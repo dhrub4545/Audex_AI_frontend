@@ -431,10 +431,13 @@ export default function App() {
 
   const renderCoinDropdown = () => {
     if (!user) return null;
-    const planName = user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan');
-    const shortPlan = user.plan === 'enterprise' ? 'ENT' : (user.plan === 'pro' ? 'PRO' : 'FREE');
-    const badgeColor = user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B');
-    const bgColor = user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9');
+    const plan = (user.plan || 'free').toLowerCase();
+    const isEnterprise = plan === 'enterprise' || plan === 'promax' || (user.credits && user.credits.proMax > 0);
+    const isPro = plan === 'pro' || (user.credits && user.credits.pro > 0);
+    const planName = isEnterprise ? 'Enterprise Plan' : (isPro ? 'Pro Plan' : 'Free Plan');
+    const shortPlanName = isEnterprise ? 'ENT' : (isPro ? 'PRO' : 'FREE');
+    const badgeColor = isEnterprise ? '#8B5CF6' : (isPro ? '#10B981' : '#64748B');
+    const bgColor = isEnterprise ? '#F5F3FF' : (isPro ? '#ECFDF5' : '#F1F5F9');
 
     return (
       <div className="coin-dropdown-container">
@@ -445,10 +448,10 @@ export default function App() {
             border: `1px solid ${badgeColor}`,
             color: badgeColor
           }}
-          title={`Active Tier: ${planName}`}
+          title={`Active Subscription: ${planName}`}
         >
-          <span className="coin-btn-text-full">✦ {planName}</span>
-          <span className="coin-btn-text-short">✦ {shortPlan}</span>
+          <span className="coin-btn-full">✦ {planName}</span>
+          <span className="coin-btn-short">✦ {shortPlanName}</span>
         </button>
       </div>
     );

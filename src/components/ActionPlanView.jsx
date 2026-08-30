@@ -345,9 +345,9 @@ export default function ActionPlanView({
       {/* Header with Step Progress */}
       <header className="wizard-header">
         <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '12px' }}>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
-            <img src={logoImg} alt="Audex AI Logo" className="brand-logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
-            <span className="brand-name" style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand">
+            <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
+            <span className="brand-name">
               Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span>
             </span>
           </a>

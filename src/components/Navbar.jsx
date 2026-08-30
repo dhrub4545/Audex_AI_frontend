@@ -109,9 +109,9 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
       <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '70px', position: 'relative' }}>
         
         {/* Brand Logo */}
-        <a href="/" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToLanding(); }} className="brand" title="Audex AI Home" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
-          <img src={logoImg} alt="Audex AI Logo" className="brand-logo" style={{ height: '36px', width: 'auto' }} />
-          <span className="brand-name" style={{ fontFamily: 'var(--font-title)', fontWeight: 800, fontSize: '20px', color: '#0F172A' }}>
+        <a href="/" onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToLanding(); }} className="nav-brand" title="Audex AI Home">
+          <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
+          <span className="brand-name">
             Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span>
           </span>
         </a>
@@ -294,7 +294,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           /* Mobile Slide Down Menu */
           .mobile-nav-panel {
             position: absolute;
-            top: 70px;
+            top: 100%;
             left: 0;
             right: 0;
             background: rgba(255, 255, 255, 0.98);
@@ -307,6 +307,8 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             flex-direction: column;
             gap: 16px;
             z-index: 1000;
+            max-height: calc(100vh - 65px);
+            overflow-y: auto;
             animation: slideDownMobile 0.22s cubic-bezier(0.16, 1, 0.3, 1);
           }
 

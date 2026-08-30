@@ -14,7 +14,9 @@ import {
   Sparkles,
   Trash2,
   Lock,
-  ShieldCheck
+  ShieldCheck,
+  LogOut,
+  Home
 } from 'lucide-react';
 
 export default function HistoryView({
@@ -52,22 +54,21 @@ export default function HistoryView({
         }
       `}} />
       {/* Header */}
-      <header className="navbar subpage-navbar">
-        <div className="container subpage-nav-container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand subpage-brand">
+      <header className="navbar">
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '8px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand" title="Audex AI Home">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions subpage-nav-actions">
+          <div className="nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
-            {user && <span className="history-user-greeting" style={{ fontSize: '13px', color: 'var(--color-text-secondary)', whiteSpace: 'nowrap' }}>Hi, {user.name}</span>}
-            <button onClick={onLogout} className="btn btn-outline nav-action-btn" title="Sign out">
-              <span className="btn-text-full">Sign out</span>
-              <span className="btn-text-short">Sign out</span>
+            <button onClick={onLogout} className="btn btn-outline nav-action-btn" title="Sign Out">
+              <LogOut size={14} />
+              <span className="nav-action-btn-text">Sign out</span>
             </button>
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start New Audit">
-              <span className="btn-text-full">New Audit</span>
-              <span className="btn-text-short">New</span>
+              <Sparkles size={14} />
+              <span>New Audit</span>
             </button>
           </div>
         </div>

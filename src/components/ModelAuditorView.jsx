@@ -25,7 +25,9 @@ import {
   Bot,
   Brain,
   ChevronDown,
-  Check
+  Check,
+  Home,
+  Sparkles
 } from 'lucide-react';
 
 const getNormalizedProvider = (provOrId) => {
@@ -893,26 +895,26 @@ export default function ModelAuditorView({
       `}</style>
 
       {/* Header */}
-      <header className="navbar subpage-navbar">
-        <div className="container subpage-nav-container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand subpage-brand">
+      <header className="navbar">
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '8px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand" title="Audex AI Home">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-links">
-            <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-link">Home</a>
+          <div className="nav-links desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-link" style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)' }}>Home</a>
             <span style={{ color: '#CBD5E1' }}>|</span>
-            <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '14px' }}>Two-API Model Spend Engine</span>
+            <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '13.5px' }}>Model Auditor Engine</span>
           </div>
-          <div className="nav-actions subpage-nav-actions">
+          <div className="nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn" title="Back to Home">
-              <span className="btn-text-full">Back to Home</span>
-              <span className="btn-text-short">Home</span>
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn nav-btn-home" title="Back to Home">
+              <Home size={14} />
+              <span className="nav-action-btn-text">Home</span>
             </button>
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Run Stack Audit">
-              <span className="btn-text-full">Run Stack Audit</span>
-              <span className="btn-text-short">Audit</span>
+              <Sparkles size={14} />
+              <span>Stack Audit</span>
             </button>
           </div>
         </div>

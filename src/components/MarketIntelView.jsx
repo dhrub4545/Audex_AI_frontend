@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useDeferredValue, useRef } from 'react';
 import { API_BASE_URL } from '../config';
 import { getCachedRawData } from '../utils/dataCache';
-import { Trophy, TrendingUp, Database, Zap, Sparkles, Image, Video, Check, ChevronDown, Info, Sliders, Eye, ArrowRight, Search, Crosshair, Activity, Sparkle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
+import { Trophy, TrendingUp, Database, Zap, Sparkles, Image, Video, Check, ChevronDown, Info, Sliders, Eye, ArrowRight, ArrowLeft, Home, Search, Crosshair, Activity, Sparkle, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import {
   OpenAI,
   Claude,
@@ -1029,27 +1029,27 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
       `}</style>
 
       {/* Sleek Sub-Header Navbar */}
-      <header className="navbar subpage-navbar">
-        <div className="container subpage-nav-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+      <header className="navbar">
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
             <button
               onClick={() => onNavigateToView('landing')}
               className="btn btn-outline nav-action-btn"
-              style={{ padding: '6px 10px', fontSize: '11.5px' }}
               title="Back to Home"
             >
-              ← <span className="btn-text-full">Back</span>
+              <ArrowLeft size={14} />
+              <span className="nav-action-btn-text">Back</span>
             </button>
-            <div className="brand subpage-brand" style={{ pointerEvents: 'none' }}>
+            <div className="nav-brand" style={{ pointerEvents: 'none' }}>
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>Market Intel</span></span>
             </div>
           </div>
-          <div className="nav-actions subpage-nav-actions">
+          <div className="nav-actions">
             {renderCoinDropdown ? renderCoinDropdown() : null}
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start Free Audit">
-              <span className="btn-text-full">Start Free Audit</span>
-              <span className="btn-text-short">Audit</span>
+              <Sparkles size={14} />
+              <span>Free Audit</span>
             </button>
           </div>
         </div>

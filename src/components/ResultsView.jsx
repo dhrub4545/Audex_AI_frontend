@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 import { getCachedRawData } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
-import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, FileText, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, FileText, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft, Home } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
 import { ProviderLogo } from './MarketIntelView';
 
@@ -574,21 +574,21 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
         </div>
       )}
       {/* ── Navbar ── */}
-      <header className="navbar subpage-navbar">
-        <div className="container subpage-nav-container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand subpage-brand">
+      <header className="navbar">
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '8px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-brand" title="Audex AI Home">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions subpage-nav-actions">
+          <div className="nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn" title="Back to Home">
-              <span className="btn-text-full">Back to Home</span>
-              <span className="btn-text-short">Home</span>
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn nav-btn-home" title="Back to Home">
+              <Home size={14} />
+              <span className="nav-action-btn-text">Home</span>
             </button>
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start New Audit">
-              <span className="btn-text-full">New Audit</span>
-              <span className="btn-text-short">New</span>
+              <Sparkles size={14} />
+              <span>New Audit</span>
             </button>
           </div>
         </div>
@@ -1114,7 +1114,17 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
             <div id="detailed-report-section" style={{ width: '100%' }}>
 
               {/* Report Header */}
-              <div className="detailed-report-header">
+              <div style={{
+                backgroundColor: '#FFFFFF',
+                borderRadius: '16px',
+                padding: '24px 32px',
+                marginBottom: '24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                border: '1px solid var(--color-border)',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
+              }}>
                 <div>
                   <h2 style={{ fontSize: '24px', fontWeight: '850', color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
                     Detailed Analysis Report
