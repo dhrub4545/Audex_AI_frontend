@@ -578,9 +578,9 @@ export default function WizardFlow({
 
   const maxAllowedTools = useMemo(() => {
     if (!user) return 2;
-    const plan = (user.plan || '').toLowerCase();
-    if (plan === 'enterprise' || plan === 'promax' || (user.credits && user.credits.proMax > 0)) return Infinity;
-    if (plan === 'pro' || (user.credits && user.credits.pro > 0)) return 15;
+    const plan = (user.plan || 'free').toLowerCase();
+    if (plan === 'enterprise') return Infinity;
+    if (plan === 'pro') return 15;
     return 2;
   }, [user]);
 
@@ -1514,7 +1514,7 @@ export default function WizardFlow({
           }}>
             <span>{maxAllowedTools === Infinity ? '⚡' : maxAllowedTools > 2 ? '💎' : '🛡️'}</span>
             <span>
-              {user?.plan ? (user.plan.charAt(0).toUpperCase() + user.plan.slice(1)) : 'Free'} Plan: Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools} Tools
+              {user?.plan ? (user.plan.toLowerCase() === 'enterprise' ? 'Enterprise' : user.plan.toLowerCase() === 'pro' ? 'Professional' : 'Free') : 'Free'} Plan: Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools} Tools
             </span>
           </span>
         </div>

@@ -16,6 +16,7 @@ const ModelAuditorView = lazy(() => import('./components/ModelAuditorView'));
 const MarketIntelView = lazy(() => import('./components/MarketIntelView'));
 const ComparisonView = lazy(() => import('./components/ComparisonView'));
 const ActionPlanView = lazy(() => import('./components/ActionPlanView'));
+const ProfileView = lazy(() => import('./components/ProfileView'));
 const SignInView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignInView })));
 const SignUpView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignUpView })));
 
@@ -60,6 +61,7 @@ const getViewFromUrl = () => {
     if (normalized === 'history') return 'history';
     if (normalized === 'signin' || normalized === 'login') return 'signin';
     if (normalized === 'signup' || normalized === 'register') return 'signup';
+    if (normalized === 'profile' || normalized === 'account') return 'profile';
     if (normalized === 'pricing') return 'pricing_scroll';
     return 'landing';
   } catch {
@@ -77,6 +79,7 @@ const getViewUrlParam = (view) => {
     case 'step4': return 'step4';
     case 'sample_report': return 'sample';
     case 'history': return 'history';
+    case 'profile': return 'profile';
     case 'signin': return 'signin';
     case 'signup': return 'signup';
     default: return '';
@@ -87,6 +90,7 @@ const getViewTitle = (view) => {
   switch (view) {
     case 'model_auditor': return 'Audex AI — Live AI Model Auditor & Benchmark Comparison';
     case 'market_intel': return 'Audex AI — Enterprise AI Market Intelligence & Leaderboard';
+    case 'profile': return 'Audex AI — Account & Subscription Management';
     case 'step1': return 'Audex AI — AI Subscription Audit Wizard & Spend Calculator';
     case 'step2': return 'Audex AI — Configure AI Tool Allocations';
     case 'step3': return 'Audex AI — Set AI Optimization Goals';
@@ -142,6 +146,11 @@ export default function App() {
   const [purchasedPlanName, setPurchasedPlanName] = useState('');
   const [purchasedCreditsCount, setPurchasedCreditsCount] = useState(0);
 
+  // UPI Checkout Modal States
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
+  const [checkoutPlanType, setCheckoutPlanType] = useState('pro');
+  const [checkoutAuditId, setCheckoutAuditId] = useState(null);
+
   const [auditResult, setAuditResult] = useState(null);
   const [pastAudits, setPastAudits] = useState([]);
   const [apiError, setApiError] = useState(null);
@@ -158,11 +167,11 @@ export default function App() {
         if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
           setTools(dynamicTools);
           
-          // Determine allowed tools limit based on user subscription (2 for Free tier)
+          // Determine allowed tools limit based on user subscription (2 for Free tier, 15 for Pro, Unlimited for Enterprise)
           const plan = (user?.plan || '').toLowerCase();
-          const maxTools = (plan === 'enterprise' || plan === 'promax' || (user?.credits && user?.credits?.proMax > 0))
+          const maxTools = plan === 'enterprise'
             ? Infinity
-            : (plan === 'pro' || (user?.credits && user?.credits?.pro > 0))
+            : plan === 'pro'
               ? 15
               : 2;
 
@@ -281,6 +290,34 @@ export default function App() {
     }
   }, []);
 
+  // Synchronize authenticated user state & subscription entitlements with authoritative backend
+  useEffect(() => {
+    if (!token) return;
+    fetch(`${API_BASE_URL}/auth/me`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+      .then(res => {
+        if (!res.ok) {
+          if (res.status === 401) {
+            handleLogout();
+          }
+          return null;
+        }
+        return res.json();
+      })
+      .then(data => {
+        if (data && data.user) {
+          setUser(data.user);
+          localStorage.setItem('audex_user', JSON.stringify(data.user));
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to sync user entitlements with backend:', err.message);
+      });
+  }, [token]);
+
   useEffect(() => {
     if (auditResult && auditResult.savings && auditResult.savings.recommendations) {
       const initial = {};
@@ -362,79 +399,42 @@ export default function App() {
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);
 
-  const handlePurchase = async (planOrType, auditId = null) => {
+  const handlePurchase = (planOrType, auditId = null) => {
     if (!user) {
-      setAuthMessage(`Please sign in or create an account to upgrade.`);
+      setAuthMessage(`Please sign in or create an account to upgrade via UPI.`);
       setCurrentView('signin');
       return;
     }
     setApiError(null);
-    try {
-      if (planOrType === 'unlock') {
-        const response = await fetch(`${BACKEND_URL}/auth/unlock-audit`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ auditId })
-        });
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to unlock report.');
-        }
-        const data = await response.json();
-        
-        const updatedUser = { ...user, plan: data.plan, unlockedAudits: data.unlockedAudits };
-        setUser(updatedUser);
-        localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+    setCheckoutPlanType(planOrType || 'pro');
+    setCheckoutAuditId(auditId);
+    setShowCheckoutModal(true);
+  };
 
-        setPurchasedPlanName('unlock');
-        setPurchasedCreditsCount(19);
-        setShowPurchaseSuccess(true);
+  const handleCheckoutSuccess = async (updatedUser, planOrType) => {
+    setShowCheckoutModal(false);
+    if (updatedUser) {
+      setUser(updatedUser);
+      localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+    }
 
-        await loadPastAuditDetail(auditId, 'results');
-      } else {
-        const response = await fetch(`${BACKEND_URL}/auth/subscribe`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ plan: planOrType })
-        });
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          throw new Error(errData.error || 'Failed to subscribe.');
-        }
-        const data = await response.json();
-        
-        const updatedUser = { ...user, plan: data.plan, unlockedAudits: data.unlockedAudits };
-        setUser(updatedUser);
-        localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+    setPurchasedPlanName(planOrType);
+    setPurchasedCreditsCount(planOrType === 'enterprise' ? 99 : (planOrType === 'pro' ? 29 : 19));
+    setShowPurchaseSuccess(true);
 
-        setPurchasedPlanName(planOrType);
-        setPurchasedCreditsCount(planOrType === 'enterprise' ? 99 : 29);
-        setShowPurchaseSuccess(true);
-        
-        if (currentView === 'free_results' && auditResult?._id) {
-          await loadPastAuditDetail(auditResult._id, 'results');
-        } else {
-          setCurrentView('landing');
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      alert(err.message);
+    if (checkoutAuditId) {
+      await loadPastAuditDetail(checkoutAuditId, 'results');
+    } else if (currentView === 'free_results' && auditResult?._id) {
+      await loadPastAuditDetail(auditResult._id, 'results');
     }
   };
 
   const renderCoinDropdown = () => {
     if (!user) return null;
     const plan = (user.plan || 'free').toLowerCase();
-    const isEnterprise = plan === 'enterprise' || plan === 'promax' || (user.credits && user.credits.proMax > 0);
-    const isPro = plan === 'pro' || (user.credits && user.credits.pro > 0);
-    const planName = isEnterprise ? 'Enterprise Plan' : (isPro ? 'Pro Plan' : 'Free Plan');
+    const isEnterprise = plan === 'enterprise';
+    const isPro = plan === 'pro';
+    const planName = isEnterprise ? 'Enterprise Plan' : (isPro ? 'Professional Plan' : 'Free Plan');
     const shortPlanName = isEnterprise ? 'ENT' : (isPro ? 'PRO' : 'FREE');
     const badgeColor = isEnterprise ? '#8B5CF6' : (isPro ? '#10B981' : '#64748B');
     const bgColor = isEnterprise ? '#F5F3FF' : (isPro ? '#ECFDF5' : '#F1F5F9');
@@ -443,12 +443,14 @@ export default function App() {
       <div className="coin-dropdown-container">
         <button 
           className="coin-btn" 
+          onClick={() => setCurrentView('profile')}
           style={{
             backgroundColor: bgColor,
             border: `1px solid ${badgeColor}`,
-            color: badgeColor
+            color: badgeColor,
+            cursor: 'pointer'
           }}
-          title={`Active Subscription: ${planName}`}
+          title={`Active Subscription: ${planName} (Click to manage)`}
         >
           <span className="coin-btn-full">✦ {planName}</span>
           <span className="coin-btn-short">✦ {shortPlanName}</span>
@@ -823,6 +825,7 @@ export default function App() {
               onNavigateToLanding={() => setCurrentView('landing')} 
               onNavigateToStep1={() => setCurrentView('step1')} 
               onNavigateToSignIn={() => setCurrentView('signin')}
+              onNavigateToProfile={() => setCurrentView('profile')}
               activeView={currentView}
             />
             <LandingView 
@@ -983,7 +986,11 @@ export default function App() {
 
       case 'model_auditor': {
         const plan = (user?.plan || '').toLowerCase();
-        const isEnterprise = plan === 'enterprise' || plan === 'promax' || (user?.credits && user?.credits?.proMax > 0);
+        let isSubscriptionExpired = false;
+        if (user?.subscription?.expiresAt) {
+          isSubscriptionExpired = new Date(user.subscription.expiresAt) < new Date();
+        }
+        const isEnterprise = plan === 'enterprise' && !isSubscriptionExpired;
 
         if (!isEnterprise) {
           return (
@@ -998,6 +1005,7 @@ export default function App() {
                 onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
                 onNavigateToSignIn={() => setCurrentView('signin')}
                 onNavigateToSignUp={() => setCurrentView('signup')}
+                onNavigateToProfile={() => setCurrentView('profile')}
                 renderCoinDropdown={renderCoinDropdown}
                 activeSection="model_auditor"
               />
@@ -1030,11 +1038,11 @@ export default function App() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <button
-                      onClick={() => handlePurchase('enterprise', 99)}
+                      onClick={() => handlePurchase('enterprise')}
                       className="btn btn-black"
                       style={{ width: '100%', padding: '14px', borderRadius: '10px', fontSize: '14.5px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)' }}
                     >
-                      <Sparkles size={16} /> Upgrade to Enterprise ($99/mo)
+                      <Sparkles size={16} /> Upgrade to Enterprise (₹8,499 / $99 via UPI)
                     </button>
                     <button
                       onClick={() => setCurrentView('market_intel')}
@@ -1055,6 +1063,8 @@ export default function App() {
           <ModelAuditorView 
             onNavigateToView={(view) => setCurrentView(view)}
             user={user}
+            token={token}
+            onPurchase={handlePurchase}
             renderCoinDropdown={renderCoinDropdown}
             onCompareModels={(base, rec) => {
               setComparisonBaseline(base);
@@ -1097,6 +1107,24 @@ export default function App() {
           />
         );
 
+      case 'profile':
+        return (
+          <ProfileView 
+            user={user}
+            token={token}
+            onNavigateToView={(view) => setCurrentView(view)}
+            onNavigateToLanding={() => setCurrentView('landing')}
+            onNavigateToStep1={() => setCurrentView('step1')}
+            onNavigateToHistory={() => fetchPastAudits()}
+            onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+            onNavigateToMarketIntel={() => setCurrentView('market_intel')}
+            onNavigateToSignIn={() => setCurrentView('signin')}
+            onLogout={handleLogout}
+            onPurchase={handlePurchase}
+            renderCoinDropdown={renderCoinDropdown}
+          />
+        );
+
       case 'signin':
         return (
           <SignInView 
@@ -1135,6 +1163,7 @@ export default function App() {
               onNavigateToLanding={() => setCurrentView('landing')} 
               onNavigateToStep1={() => setCurrentView('step1')} 
               onNavigateToSignIn={() => setCurrentView('signin')}
+              onNavigateToProfile={() => setCurrentView('profile')}
               activeView={currentView}
             />
             <LandingView 
@@ -1155,6 +1184,14 @@ export default function App() {
       <Suspense fallback={<LoadingIndicator />}>
         {renderActiveView()}
       </Suspense>
+      <CheckoutModal
+        show={showCheckoutModal}
+        type={checkoutPlanType}
+        auditId={checkoutAuditId}
+        token={token}
+        onConfirm={handleCheckoutSuccess}
+        onClose={() => setShowCheckoutModal(false)}
+      />
       <PurchaseSuccessModal 
         show={showPurchaseSuccess} 
         planName={purchasedPlanName} 

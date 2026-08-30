@@ -381,7 +381,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                   </span>
                 </div>
                 <span style={{ fontSize: '24px', fontWeight: '850', color: '#059669', letterSpacing: '-0.02em', lineHeight: 1 }}>
-                  +$140.74/mo
+                  +$116.99/mo
                 </span>
               </div>
 
@@ -2350,9 +2350,14 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Pro</div>
                 <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For scaling teams and growing saving targets.</div>
 
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$29</span>
-                  <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$29</span>
+                    <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#047857', backgroundColor: '#ECFDF5', padding: '3px 8px', borderRadius: '6px', width: 'fit-content', fontWeight: '750' }}>
+                    <span>₹2,499 / mo via UPI</span>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
@@ -2368,8 +2373,8 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13.5px' }}>
                     <Check size={16} color="#22C55E" strokeWidth={3} /> PDF exports and downloads
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12.5px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
-                    * Or unlock individual reports for $19 one-time.
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--color-text-secondary)', fontStyle: 'italic' }}>
+                    * Or unlock individual reports for $19 (₹1,599) one-time via UPI.
                   </div>
                 </div>
               </div>
@@ -2379,7 +2384,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 className="btn btn-green"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
-                Upgrade to Pro ($29/mo)
+                Upgrade to Pro (₹2,499 / $29)
               </button>
             </div>
 
@@ -2390,9 +2395,14 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 <div style={{ fontSize: '24px', fontWeight: '800', marginBottom: '8px', fontFamily: 'var(--font-title)' }}>Enterprise</div>
                 <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)', marginBottom: '24px' }}>For large teams requiring continuous auditing.</div>
 
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px', marginBottom: '24px' }}>
-                  <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$99</span>
-                  <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                    <span style={{ fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-title)' }}>$99</span>
+                    <span style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>/ month</span>
+                  </div>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', color: '#6D28D9', backgroundColor: '#F5F3FF', padding: '3px 8px', borderRadius: '6px', width: 'fit-content', fontWeight: '750' }}>
+                    <span>₹8,499 / mo via UPI</span>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '32px' }}>
@@ -2419,7 +2429,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 className="btn btn-black"
                 style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
               >
-                Upgrade to Enterprise ($99/mo)
+                Upgrade to Enterprise (₹8,499 / $99)
               </button>
             </div>
           </div>

@@ -1,5 +1,7 @@
 // Hardcoded Canonical Sample Audit Report
-// Matches exact user specifications: 21 July 2026, 11:13 pm, +$140.74/mo savings, 11 seats, Performance Preservation Mode, 7 tools.
+// Strictly adheres to Performance Preservation Mode:
+// - Only models with better/equal rank (<= baselineRank) and lower cost (< currentCost) are recommended.
+// - Allocations with no rank-preserving cheaper alternatives are marked as "Already Optimized" ($0 savings).
 
 export const SAMPLE_AUDIT_DATA = {
   _id: 'sample_audit_2026',
@@ -10,13 +12,13 @@ export const SAMPLE_AUDIT_DATA = {
   optimizationGoal: 'performance',
   costCutPercentage: 50,
   isUnlocked: true,
-  totalCurrentCost: 319.97,
+  totalCurrentCost: 319.96,
   tierUsed: 'pro',
   selectedOptions: {
-    '0': 'api',
-    '1': 'api',
-    '2': 'api',
-    '3': 'api',
+    '0': 'subscription',
+    '1': 'subscription',
+    '2': 'subscription',
+    '3': 'subscription',
     '4': 'subscription',
     '5': 'subscription',
     '6': 'subscription'
@@ -43,7 +45,7 @@ export const SAMPLE_AUDIT_DATA = {
       purpose: 'Mixed',
       pricePerSeat: 25.00,
       currentCost: 125.00,
-      baselineModels: ['Claude Opus 5', 'Claude Sonnet 3.7', 'Claude Haiku 3.5'],
+      baselineModels: ['Claude Opus 5', 'Claude 3.7 Sonnet', 'Claude 3.5 Haiku'],
       baselineModelId: 'anthropic/claude-opus-5'
     },
     {
@@ -55,8 +57,8 @@ export const SAMPLE_AUDIT_DATA = {
       purpose: 'Mixed',
       pricePerSeat: 19.99,
       currentCost: 19.99,
-      baselineModels: ['Gemini 3.5 Flash', 'Gemini 3.0 Pro'],
-      baselineModelId: 'google/gemini-3-5-flash'
+      baselineModels: ['Gemini 3.0 Pro', 'Gemini 3.5 Flash'],
+      baselineModelId: 'google/gemini-3-0-pro'
     },
     {
       _id: 'alloc_claude_fable',
@@ -109,17 +111,18 @@ export const SAMPLE_AUDIT_DATA = {
     }
   ],
   savings: {
-    totalMonthly: 140.74,
-    totalAnnual: 1688.88,
-    totalOptimizedSpend: 179.23,
-    percentageSavings: 44.0,
+    totalMonthly: 116.99,
+    totalAnnual: 1403.88,
+    totalOptimizedSpend: 202.97,
+    percentageSavings: 36.6,
     recommendations: [
       {
         _id: 'rec_openai',
         tool: 'OpenAI (1 seat for Mixed)',
         issue: 'Paying $20.00/mo for 1 ChatGPT Plus subscription license',
-        action: 'Transition active users to direct API keys using DeepSeek V4 Flash (Reasoning).',
-        monthlySavings: 12.50,
+        action: 'Migrate to OpenAI ChatGPT Go ($8.00/mo) to preserve GPT-5.6 Sol access with $12.00/mo savings.',
+        monthlySavings: 12.00,
+        isAlreadyOptimized: false,
         originalAlloc: {
           type: 'subscription',
           toolName: 'OpenAI',
@@ -131,26 +134,30 @@ export const SAMPLE_AUDIT_DATA = {
           modelName: 'ChatGPT Plus'
         },
         apiOption: {
-          name: 'DeepSeek V4 Flash (Reasoning, Max Effort)',
-          modelId: 'deepseek/deepseek-v4-flash',
-          cost: 7.50,
-          savings: 12.50,
-          action: 'Transition active users to direct API keys using DeepSeek V4 Flash.',
-          limits: 'Pay-as-you-go rates: $0.14/1M input, $0.28/1M output. Context: 1M tokens.',
-          recommendedModel: 'DeepSeek V4 Flash',
-          recommendedProvider: 'DeepSeek',
-          inputCostPerM: 0.14,
-          outputCostPerM: 0.28,
-          defaultInputTokens: 10000000,
-          defaultOutputTokens: 2500000
-        },
-        subscriptionOption: {
-          planName: 'ChatGPT Plus',
+          name: 'GPT-5.6 Sol (max)',
+          modelId: 'openai/gpt-5-6-sol',
           cost: 20.00,
           savings: 0.00,
-          action: 'Maintain current ChatGPT Plus subscription.',
-          limits: 'Standard Plus rate limits apply.',
-          recommendedModel: 'ChatGPT Plus',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Transition to direct API keys offers no rank-preserving cost advantage. Keep current OpenAI setup.',
+          limits: 'Pay-as-you-go rates: $15.00/1M input, $75.00/1M output. Context: 1M tokens.',
+          recommendedModel: 'GPT-5.6 Sol (max)',
+          recommendedProvider: 'OpenAI',
+          inputCostPerM: 15.00,
+          outputCostPerM: 75.00,
+          defaultInputTokens: 5000000,
+          defaultOutputTokens: 1250000
+        },
+        subscriptionOption: {
+          planName: 'OpenAI ChatGPT Go',
+          cost: 8.00,
+          savings: 12.00,
+          isAlreadyOptimized: false,
+          action: 'Migrate to the OpenAI ChatGPT Go subscription.',
+          limits: '160 messages every 3 hours; includes GPT-5.6 Sol (max); 32K context window.',
+          includedModels: ['GPT-5.6 Sol (max)', 'GPT-5.6 Sol (xhigh)', "GPT-4o mini Realtime (Dec '24)"],
+          recommendedModel: 'ChatGPT Go',
           recommendedProvider: 'OpenAI'
         }
       },
@@ -158,8 +165,10 @@ export const SAMPLE_AUDIT_DATA = {
         _id: 'rec_anthropic',
         tool: 'Anthropic (5 seats for Mixed)',
         issue: 'Paying $125.00/mo across 5 Claude Pro subscription seats',
-        action: 'Transition active developers to Claude 3.7 Sonnet direct API with prompt caching.',
-        monthlySavings: 68.50,
+        action: 'Your current Anthropic Claude Pro subscription is already the highest-ranked option with optimal cost. Keep using it.',
+        monthlySavings: 0.00,
+        isAlreadyOptimized: true,
+        statusText: 'Optimized',
         originalAlloc: {
           type: 'subscription',
           toolName: 'Anthropic',
@@ -171,26 +180,31 @@ export const SAMPLE_AUDIT_DATA = {
           modelName: 'Claude Pro'
         },
         apiOption: {
-          name: 'Claude 3.7 Sonnet (Hybrid Reasoning)',
-          modelId: 'anthropic/claude-3-7-sonnet',
-          cost: 56.50,
-          savings: 68.50,
-          action: 'Transition to Claude 3.7 Sonnet API with prompt caching.',
-          limits: 'Pay-as-you-go rates: $3.00/1M input, $15.00/1M output. Prompt caching saves up to 90%.',
-          recommendedModel: 'Claude 3.7 Sonnet',
-          recommendedProvider: 'Anthropic',
-          inputCostPerM: 3.00,
-          outputCostPerM: 15.00,
-          defaultInputTokens: 10000000,
-          defaultOutputTokens: 2500000
-        },
-        subscriptionOption: {
-          planName: 'Claude Team',
+          name: 'Claude Opus 5 (Adaptive Reasoning, Max Effort)',
+          modelId: 'anthropic/claude-opus-5',
           cost: 125.00,
           savings: 0.00,
-          action: 'Maintain Anthropic subscription seats.',
-          limits: 'Standard Team seats.',
-          recommendedModel: 'Claude Team',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Transition to direct API keys offers no rank-preserving cost advantage. Keep current Anthropic setup.',
+          limits: 'Pay-as-you-go rates: $15.00/1M input, $75.00/1M output. Context: 200K tokens.',
+          recommendedModel: 'Claude Opus 5',
+          recommendedProvider: 'Anthropic',
+          inputCostPerM: 15.00,
+          outputCostPerM: 75.00,
+          defaultInputTokens: 25000000,
+          defaultOutputTokens: 6250000
+        },
+        subscriptionOption: {
+          planName: 'Anthropic Claude Pro',
+          cost: 125.00,
+          savings: 0.00,
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current subscription is already the highest-ranked option with optimal cost. Keep using it.',
+          limits: 'Includes Claude Opus 5 (Rank 1 overall & coding leader), Claude 3.7 Sonnet, and Claude 3.5 Haiku.',
+          includedModels: ['Claude Opus 5', 'Claude 3.7 Sonnet', 'Claude 3.5 Haiku'],
+          recommendedModel: 'Claude Pro',
           recommendedProvider: 'Anthropic'
         }
       },
@@ -198,8 +212,10 @@ export const SAMPLE_AUDIT_DATA = {
         _id: 'rec_google',
         tool: 'Google (1 seat for Mixed)',
         issue: 'Paying $19.99/mo for Gemini Advanced subscription',
-        action: 'Transition to Gemini 3.5 Flash API with 1M context cache.',
-        monthlySavings: 14.20,
+        action: 'Your current Google Gemini Advanced subscription is already optimal. Keep using it.',
+        monthlySavings: 0.00,
+        isAlreadyOptimized: true,
+        statusText: 'Optimized',
         originalAlloc: {
           type: 'subscription',
           toolName: 'Google',
@@ -211,25 +227,30 @@ export const SAMPLE_AUDIT_DATA = {
           modelName: 'Gemini Advanced'
         },
         apiOption: {
-          name: 'Gemini 3.5 Flash (Thinking)',
-          modelId: 'google/gemini-3-5-flash',
-          cost: 5.79,
-          savings: 14.20,
-          action: 'Transition to Gemini 3.5 Flash direct API.',
-          limits: 'Pay-as-you-go rates: $0.10/1M input, $0.40/1M output. Context: 1M tokens.',
-          recommendedModel: 'Gemini 3.5 Flash',
-          recommendedProvider: 'Google',
-          inputCostPerM: 0.10,
-          outputCostPerM: 0.40,
-          defaultInputTokens: 10000000,
-          defaultOutputTokens: 2500000
-        },
-        subscriptionOption: {
-          planName: 'Gemini Advanced',
+          name: 'Gemini 3.0 Pro (Thinking)',
+          modelId: 'google/gemini-3-0-pro',
           cost: 19.99,
           savings: 0.00,
-          action: 'Maintain Gemini Advanced subscription.',
-          limits: 'Standard limits.',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Transition to direct API keys offers no rank-preserving cost advantage. Keep current Google setup.',
+          limits: 'Pay-as-you-go rates: $1.25/1M input, $5.00/1M output. Context: 1M tokens.',
+          recommendedModel: 'Gemini 3.0 Pro',
+          recommendedProvider: 'Google',
+          inputCostPerM: 1.25,
+          outputCostPerM: 5.00,
+          defaultInputTokens: 5000000,
+          defaultOutputTokens: 1250000
+        },
+        subscriptionOption: {
+          planName: 'Google Gemini Advanced',
+          cost: 19.99,
+          savings: 0.00,
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current Google Gemini Advanced subscription is already optimal. Keep using it.',
+          limits: 'Includes Gemini 3.0 Pro and Gemini 3.5 Flash with 1M context.',
+          includedModels: ['Gemini 3.0 Pro', 'Gemini 3.5 Flash'],
           recommendedModel: 'Gemini Advanced',
           recommendedProvider: 'Google'
         }
@@ -238,8 +259,9 @@ export const SAMPLE_AUDIT_DATA = {
         _id: 'rec_claude_fable',
         tool: 'Anthropic: Claude Fable 5 API (12.5M tokens for Coding)',
         issue: 'Paying $124.99/mo for direct Claude Fable 5 API tokens',
-        action: 'Route routine code queries to Claude 3.7 Sonnet API and reserve Fable for complex architecture.',
-        monthlySavings: 45.54,
+        action: 'Migrate to Anthropic Claude Pro subscription ($20.00/mo) for full Claude Opus 5 (Rank 1) & Claude Fable 5 access with +$104.99/mo savings.',
+        monthlySavings: 104.99,
+        isAlreadyOptimized: false,
         originalAlloc: {
           type: 'api',
           toolName: 'Anthropic: Claude Fable 5',
@@ -251,25 +273,29 @@ export const SAMPLE_AUDIT_DATA = {
           modelName: 'Claude Fable 5'
         },
         apiOption: {
-          name: 'Claude 3.7 Sonnet (Hybrid Reasoning)',
-          modelId: 'anthropic/claude-3-7-sonnet',
-          cost: 79.45,
-          savings: 45.54,
-          action: 'Route routine code queries to Claude 3.7 Sonnet API.',
-          limits: 'Pay-as-you-go rates: $3.00/1M input, $15.00/1M output.',
-          recommendedModel: 'Claude 3.7 Sonnet',
+          name: 'Claude Fable 5 (Adaptive Reasoning, Max Effort)',
+          modelId: 'anthropic/claude-fable-5',
+          cost: 124.99,
+          savings: 0.00,
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current model API is already the highest-ranked option with optimal cost. No migration required.',
+          limits: 'Pay-as-you-go rates: $6.00/1M input, $26.00/1M output.',
+          recommendedModel: 'Claude Fable 5',
           recommendedProvider: 'Anthropic',
-          inputCostPerM: 3.00,
-          outputCostPerM: 15.00,
+          inputCostPerM: 6.00,
+          outputCostPerM: 26.00,
           defaultInputTokens: 10000000,
           defaultOutputTokens: 2500000
         },
         subscriptionOption: {
-          planName: 'Claude Pro',
+          planName: 'Anthropic Claude Pro',
           cost: 20.00,
           savings: 104.99,
-          action: 'Migrate to Claude Pro subscription.',
-          limits: 'Standard rate limits.',
+          isAlreadyOptimized: false,
+          action: 'Migrate to the Anthropic Claude Pro subscription.',
+          limits: 'Includes Claude Opus 5 (Rank 1 Coding) and Claude Fable 5 (Rank 3 Coding).',
+          includedModels: ['Claude Opus 5', 'Claude Fable 5', 'Claude 3.7 Sonnet'],
           recommendedModel: 'Claude Pro',
           recommendedProvider: 'Anthropic'
         }
@@ -278,8 +304,10 @@ export const SAMPLE_AUDIT_DATA = {
         _id: 'rec_mistral',
         tool: 'Mistral (2 seats for Coding)',
         issue: 'Paying $29.98/mo for 2 Le Chat Pro seats',
-        action: 'Current deployment is optimal for multilingual code assistance.',
+        action: 'Your current deployment is already optimal. No changes required.',
         monthlySavings: 0.00,
+        isAlreadyOptimized: true,
+        statusText: 'Optimized',
         originalAlloc: {
           type: 'subscription',
           toolName: 'Mistral',
@@ -296,8 +324,9 @@ export const SAMPLE_AUDIT_DATA = {
           cost: 29.98,
           savings: 0.00,
           statusText: 'Optimized',
-          action: 'Current deployment is cost-optimal.',
-          limits: 'Standard API rates.',
+          isAlreadyOptimized: true,
+          action: 'Transition to direct API keys offers no rank-preserving cost advantage. Keep current Mistral setup.',
+          limits: 'Pay-as-you-go rates: $0.30/1M input, $0.90/1M output.',
           recommendedModel: 'Codestral 25.01',
           recommendedProvider: 'Mistral',
           inputCostPerM: 0.30,
@@ -306,11 +335,14 @@ export const SAMPLE_AUDIT_DATA = {
           defaultOutputTokens: 2500000
         },
         subscriptionOption: {
-          planName: 'Le Chat Pro',
+          planName: 'Mistral Le Chat Pro',
           cost: 29.98,
           savings: 0.00,
-          action: 'Keep active Le Chat Pro seats.',
-          limits: 'Standard limits.',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current subscription is already the highest-ranked option with optimal cost. Keep using it.',
+          limits: 'Includes Codestral 25.01, Mistral Large, and Pixtral 12B.',
+          includedModels: ['Codestral 25.01', 'Mistral Large', 'Pixtral 12B'],
           recommendedModel: 'Le Chat Pro',
           recommendedProvider: 'Mistral'
         }
@@ -318,9 +350,11 @@ export const SAMPLE_AUDIT_DATA = {
       {
         _id: 'rec_meta',
         tool: 'Meta (1 seat for Research)',
-        issue: 'Using Meta AI free tier (0/mo spend)',
-        action: 'Current setup is free and optimized.',
+        issue: 'Using Meta AI free tier ($0.00/mo spend)',
+        action: 'Your current deployment is already optimal. No changes required.',
         monthlySavings: 0.00,
+        isAlreadyOptimized: true,
+        statusText: 'Optimized',
         originalAlloc: {
           type: 'subscription',
           toolName: 'Meta',
@@ -332,22 +366,30 @@ export const SAMPLE_AUDIT_DATA = {
           modelName: 'Meta One'
         },
         apiOption: {
-          name: 'Llama 4 Maverick (Open Source)',
+          name: 'Llama 4 Maverick (Open Weights)',
           modelId: 'meta-llama/llama-4-maverick',
           cost: 0.00,
           savings: 0.00,
           statusText: 'Optimized',
+          isAlreadyOptimized: true,
           action: 'Current open model access is fully optimal.',
-          limits: 'Free / self-hosted.',
+          limits: 'Free / self-hosted open weights.',
           recommendedModel: 'Llama 4 Maverick',
-          recommendedProvider: 'Meta'
+          recommendedProvider: 'Meta',
+          inputCostPerM: 0.00,
+          outputCostPerM: 0.00,
+          defaultInputTokens: 5000000,
+          defaultOutputTokens: 1250000
         },
         subscriptionOption: {
-          planName: 'Meta One',
+          planName: 'Meta Meta One',
           cost: 0.00,
           savings: 0.00,
-          action: 'Continue free tier.',
-          limits: 'Standard limits.',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current subscription is already optimal. Keep using it.',
+          limits: 'Free access tier.',
+          includedModels: ['Llama 4 Maverick', 'Llama 3.3 70B'],
           recommendedModel: 'Meta One',
           recommendedProvider: 'Meta'
         }
@@ -355,9 +397,11 @@ export const SAMPLE_AUDIT_DATA = {
       {
         _id: 'rec_deepseek',
         tool: 'DeepSeek (1 seat for Data)',
-        issue: 'Using DeepSeek free access tier (0/mo spend)',
-        action: 'Current data analysis setup is free and optimized.',
+        issue: 'Using DeepSeek free access tier ($0.00/mo spend)',
+        action: 'Your current deployment is already optimal. No changes required.',
         monthlySavings: 0.00,
+        isAlreadyOptimized: true,
+        statusText: 'Optimized',
         originalAlloc: {
           type: 'subscription',
           toolName: 'DeepSeek',
@@ -374,17 +418,25 @@ export const SAMPLE_AUDIT_DATA = {
           cost: 0.00,
           savings: 0.00,
           statusText: 'Optimized',
-          action: 'Keep using DeepSeek V4.',
-          limits: 'Standard access.',
+          isAlreadyOptimized: true,
+          action: 'Current data analysis setup is free and optimal.',
+          limits: 'Standard access tier.',
           recommendedModel: 'DeepSeek V4 Pro',
-          recommendedProvider: 'DeepSeek'
+          recommendedProvider: 'DeepSeek',
+          inputCostPerM: 0.00,
+          outputCostPerM: 0.00,
+          defaultInputTokens: 5000000,
+          defaultOutputTokens: 1250000
         },
         subscriptionOption: {
-          planName: 'Consumer',
+          planName: 'DeepSeek Consumer',
           cost: 0.00,
           savings: 0.00,
-          action: 'Continue free tier.',
-          limits: 'Standard limits.',
+          statusText: 'Optimized',
+          isAlreadyOptimized: true,
+          action: 'Your current subscription is already optimal. Keep using it.',
+          limits: 'Standard access tier.',
+          includedModels: ['DeepSeek V4 Pro', 'DeepSeek V3.2'],
           recommendedModel: 'Consumer',
           recommendedProvider: 'DeepSeek'
         }

@@ -2,7 +2,7 @@ import React from 'react';
 import { Zap, Coins, ShoppingCart, ArrowRight, User, FileText, DollarSign, LogOut, Menu, X, ShieldCheck } from 'lucide-react';
 import logoImg from '../assets/audex-ai-logo.png';
 
-export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigateToModelAuditor, onNavigateToMarketIntel, onNavigateToLanding, onNavigateToStep1, onNavigateToSignIn, activeView }) {
+export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigateToModelAuditor, onNavigateToMarketIntel, onNavigateToLanding, onNavigateToStep1, onNavigateToSignIn, onNavigateToProfile, activeView }) {
   const [activeSection, setActiveSection] = React.useState('');
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
@@ -100,9 +100,10 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     }, 100);
   };
 
-  const planName = user ? (user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan')) : '';
-  const badgeColor = user ? (user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B')) : '';
-  const bgColor = user ? (user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9')) : '';
+  const userPlan = (user?.plan || '').toLowerCase();
+  const planName = user ? (userPlan === 'enterprise' ? 'Enterprise Plan' : (userPlan === 'pro' ? 'Professional Plan' : 'Free Plan')) : '';
+  const badgeColor = user ? (userPlan === 'enterprise' ? '#8B5CF6' : (userPlan === 'pro' ? '#10B981' : '#64748B')) : '';
+  const bgColor = user ? (userPlan === 'enterprise' ? '#F5F3FF' : (userPlan === 'pro' ? '#ECFDF5' : '#F1F5F9')) : '';
 
   return (
     <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
@@ -366,20 +367,26 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           {/* Plan Badge (Desktop Only) */}
           {user && (
             <div className="desktop-plan-badge" style={{ display: 'inline-flex', alignItems: 'center' }}>
-              <span style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                backgroundColor: bgColor,
-                border: `1px solid ${badgeColor}`,
-                color: badgeColor,
-                padding: '4px 10px',
-                borderRadius: '9999px',
-                fontWeight: '700',
-                fontSize: '11px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-                userSelect: 'none'
-              }}>
+              <span 
+                onClick={() => onNavigateToProfile ? onNavigateToProfile() : null}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  backgroundColor: bgColor,
+                  border: `1px solid ${badgeColor}`,
+                  color: badgeColor,
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                  fontWeight: '700',
+                  fontSize: '11px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.04em',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                  transition: 'opacity 0.15s ease'
+                }}
+                title="View Subscription & Account Details"
+              >
                 ✦ {planName}
               </span>
             </div>
@@ -410,17 +417,17 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
                   <span>Hi, {user.name}</span>
                 </div>
                 <div className="user-menu-divider"></div>
+                <button onClick={() => { setIsUserMenuOpen(false); onNavigateToProfile ? onNavigateToProfile() : null; }} className="user-menu-item">
+                  <ShieldCheck size={14} color="#10B981" />
+                  <span style={{ fontWeight: '600', color: '#0F172A' }}>Account &amp; Plan</span>
+                </button>
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToHistory(); }} className="user-menu-item">
                   <FileText size={14} />
                   <span>Reports History</span>
                 </button>
                 <button onClick={(e) => { setIsUserMenuOpen(false); handlePricingScroll(e); }} className="user-menu-item">
-                  <Coins size={14} />
-                  <span>Credits</span>
-                </button>
-                <button onClick={(e) => { setIsUserMenuOpen(false); handlePricingScroll(e); }} className="user-menu-item">
                   <DollarSign size={14} />
-                  <span>Pricing</span>
+                  <span>Pricing &amp; UPI</span>
                 </button>
                 <div className="user-menu-divider"></div>
                 <button onClick={() => { setIsUserMenuOpen(false); onLogout(); }} className="user-menu-item logout-item">
@@ -484,6 +491,20 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
 
           {/* Navigation Links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            {user && (
+              <a 
+                href="/?view=profile" 
+                onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToProfile ? onNavigateToProfile() : null; }} 
+                className={`mobile-link-item ${activeSection === 'profile' ? 'active' : ''}`}
+                style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0' }}
+              >
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#0F172A', fontWeight: '750' }}>
+                  <ShieldCheck size={16} color="#10B981" /> My Account &amp; Plan
+                </span>
+                <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+              </a>
+            )}
+
             <a 
               href="#how-it-works" 
               onClick={handleHowItWorksScroll} 

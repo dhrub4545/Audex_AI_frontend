@@ -406,7 +406,10 @@ export default function ModelAuditorView({
   costCutPercentage: propCostCutPercentage,
   setCostCutPercentage: propSetCostCutPercentage,
   targetUseCase: propTargetUseCase,
-  setTargetUseCase: propSetTargetUseCase
+  setTargetUseCase: propSetTargetUseCase,
+  token,
+  user,
+  onPurchase
 }) {
 
   const [currentModelId, setCurrentModelId] = useState('anthropic/claude-fable-5');
@@ -418,6 +421,7 @@ export default function ModelAuditorView({
   const [monthlyOutputTokens, setMonthlyOutputTokens] = useState(5000000); // 5M completion tokens
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [upgradeRequired, setUpgradeRequired] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
   const [availableModels, setAvailableModels] = useState(POPULAR_MODELS);
@@ -589,11 +593,16 @@ export default function ModelAuditorView({
       setLoading(true);
       setError(null);
       try {
+        const reqHeaders = {
+          'Content-Type': 'application/json'
+        };
+        if (token) {
+          reqHeaders['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${API_BASE_URL}/audits/audit-recommendation`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: reqHeaders,
           body: JSON.stringify({
             currentModelId,
             targetUseCase,
@@ -607,18 +616,26 @@ export default function ModelAuditorView({
         if (!response.ok) {
           const errText = await response.text();
           let errMsg = 'Failed to compute recommendations from backend.';
+          let isUpgrade = response.status === 401 || response.status === 403;
           try {
             const parsed = JSON.parse(errText);
             if (parsed && parsed.error) {
               errMsg = parsed.error;
             }
+            if (parsed && parsed.upgradeRequired) {
+              isUpgrade = true;
+            }
           } catch (err) {
             console.error(err);
+          }
+          if (isUpgrade) {
+            setUpgradeRequired(true);
           }
           throw new Error(errMsg);
         }
 
         const data = await response.json();
+        setUpgradeRequired(false);
         setResults(data);
         if (data.recommendations && data.recommendations.length > 0) {
           setSelectedRecommendation(data.recommendations[0]);
@@ -638,7 +655,7 @@ export default function ModelAuditorView({
     }, 250); // debounce API requests while sliding
 
     return () => clearTimeout(delayDebounce);
-  }, [currentModelId, targetUseCase, monthlyInputTokens, monthlyOutputTokens, optimizationGoal, costCutPercentage]);
+  }, [currentModelId, targetUseCase, monthlyInputTokens, monthlyOutputTokens, optimizationGoal, costCutPercentage, token]);
 
   const handleApplyMigration = (rec) => {
     alert(`🎉 Migration Plan Initiated!\n\nTo transition from ${results?.currentBaseline?.name} to ${rec.name}:\n1. Obtain direct API keys from the provider (${rec.developer}).\n2. Initialize your client SDK and replace the model parameter with "${rec.modelId}".\n3. Projected annual savings: $${rec.projected_annual_savings.toLocaleString()}!`);
@@ -1043,8 +1060,14 @@ export default function ModelAuditorView({
           </a>
           <div className="nav-links desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-link" style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)' }}>Home</a>
-            <span style={{ color: '#CBD5E1' }}>|</span>
-            <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '13.5px' }}>Model Auditor Engine</span>
+            <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              Model Auditor Engine
+              {user && (user.plan || '').toLowerCase() === 'enterprise' && (
+                <span style={{ fontSize: '10px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '2px 8px', borderRadius: '9999px', fontWeight: '800' }}>
+                  ENTERPRISE
+                </span>
+              )}
+            </span>
           </div>
           <div className="nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
@@ -1302,7 +1325,29 @@ export default function ModelAuditorView({
 
             {/* Right Column: Recommendations & Calculations */}
             <div style={{ minWidth: 0 }}>
-              {error && (
+              {upgradeRequired ? (
+                <div style={{ padding: '44px 32px', backgroundColor: '#FFFFFF', border: '1.5px solid #E2E8F0', borderRadius: '20px', textAlign: 'center', boxShadow: '0 12px 32px rgba(15, 23, 42, 0.06)', marginBottom: '24px' }}>
+                  <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#7C3AED' }}>
+                    <ShieldCheck size={28} strokeWidth={2.2} />
+                  </div>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
+                    ⚡ Enterprise Subscription Required
+                  </span>
+                  <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '10px' }}>
+                    Unlock Live AI Model Auditor
+                  </h3>
+                  <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, maxWidth: '480px', margin: '0 auto 24px auto' }}>
+                    Live AI Model Auditing, dynamic token burn calculations, and Pareto frontier optimization require an active <strong>Enterprise</strong> subscription.
+                  </p>
+                  <button
+                    onClick={() => onPurchase ? onPurchase('enterprise') : onNavigateToView('landing')}
+                    className="btn btn-black"
+                    style={{ padding: '14px 28px', borderRadius: '10px', fontSize: '14.5px', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)' }}
+                  >
+                    <Sparkles size={16} /> Upgrade to Enterprise Plan
+                  </button>
+                </div>
+              ) : error && (
                 error.includes('Database is empty') ||
                 error.includes('403') ||
                 error.includes('Key is missing') ||
@@ -1570,10 +1615,45 @@ export default function ModelAuditorView({
                   )}
                 </div>
               ) : (
-                <div style={{ textAlign: 'center', padding: '48px 0', border: '1px dashed var(--color-border)', borderRadius: '12px' }}>
-                  {optimizationGoal === 'cost'
-                    ? `No alternative models found that cut cost by ${costCutPercentage}% from this baseline. Try selecting a lower savings target or a more expensive baseline model.`
-                    : "No alternative models found that match or exceed the baseline quality. Try selecting a different baseline model or use-case."}
+                <div style={{
+                  textAlign: 'center',
+                  padding: '48px 32px',
+                  backgroundColor: optimizationGoal === 'performance' ? '#F0FDF4' : '#F8FAFC',
+                  border: optimizationGoal === 'performance' ? '1.5px solid #BBF7D0' : '1px dashed var(--color-border)',
+                  borderRadius: '16px',
+                  boxShadow: optimizationGoal === 'performance' ? '0 4px 16px rgba(16, 185, 129, 0.06)' : 'none'
+                }}>
+                  {optimizationGoal === 'performance' ? (
+                    <div style={{ maxWidth: '440px', margin: '0 auto' }}>
+                      <div style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        backgroundColor: '#DCFCE7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '0 auto 16px auto',
+                        color: '#16A34A'
+                      }}>
+                        <BadgeCheck size={26} strokeWidth={2.2} />
+                      </div>
+                      <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#166534', marginBottom: '8px' }}>
+                        Already Optimized
+                      </h4>
+                      <p style={{ fontSize: '13.5px', color: '#15803D', lineHeight: 1.5, margin: 0 }}>
+                        Your baseline model (<strong>{results?.currentBaseline?.name || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
+                      </p>
+                    </div>
+                  ) : optimizationGoal === 'cost' ? (
+                    <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', margin: 0 }}>
+                      No alternative models found that cut cost by {costCutPercentage}% from this baseline. Try selecting a lower savings target or a more expensive baseline model.
+                    </p>
+                  ) : (
+                    <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', margin: 0 }}>
+                      No alternative models found that exceed the baseline quality. Your current model is at the top of the quality rankings.
+                    </p>
+                  )}
                 </div>
               )}
             </div>{/* end right column */}

@@ -21,7 +21,6 @@ import {
 
 export default function HistoryView({
   pastAudits,
-  user,
   token,
   backendUrl = API_BASE_URL,
   onLogout,

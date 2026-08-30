@@ -9,6 +9,32 @@ const memoryCache = {
 };
 
 /**
+ * Safe browser storage accessor that catches QuotaExceededError and quota overflows.
+ */
+function safeGetStorage(key) {
+  if (typeof window === 'undefined' || !window.sessionStorage) return null;
+  try {
+    const item = window.sessionStorage.getItem(key);
+    if (!item) return null;
+    return JSON.parse(item);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetStorage(key, data) {
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
+  try {
+    const serialized = JSON.stringify(data);
+    // Don't attempt to store payloads larger than 2.5MB in sessionStorage to avoid quota errors
+    if (serialized.length > 2.5 * 1024 * 1024) return;
+    window.sessionStorage.setItem(key, serialized);
+  } catch {
+    // Gracefully ignore storage quota limits
+  }
+}
+
+/**
  * Get raw market data with request deduplication and in-memory/session storage caching
  */
 export async function getCachedRawData(forceRefresh = false) {
@@ -16,19 +42,12 @@ export async function getCachedRawData(forceRefresh = false) {
     return memoryCache.rawData;
   }
 
-  // Check sessionStorage for fast warm starts across page navigation
-  if (!forceRefresh && typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const cached = sessionStorage.getItem('audex_raw_data');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed && (parsed.llms || parsed.sources)) {
-          memoryCache.rawData = parsed;
-          return parsed;
-        }
-      }
-    } catch {
-      // Ignore sessionStorage parsing errors
+  // Check storage for fast warm starts across page navigation
+  if (!forceRefresh) {
+    const cached = safeGetStorage('audex_raw_data');
+    if (cached && (cached.llms || cached.sources)) {
+      memoryCache.rawData = cached;
+      return cached;
     }
   }
 
@@ -43,13 +62,7 @@ export async function getCachedRawData(forceRefresh = false) {
       if (!res.ok) throw new Error(`Failed to fetch raw market data: ${res.statusText}`);
       const data = await res.json();
       memoryCache.rawData = data;
-      try {
-        if (typeof window !== 'undefined' && window.sessionStorage) {
-          sessionStorage.setItem('audex_raw_data', JSON.stringify(data));
-        }
-      } catch {
-        // Ignore sessionStorage write errors
-      }
+      safeSetStorage('audex_raw_data', data);
       return data;
     } finally {
       delete memoryCache.promises.rawData;
@@ -67,18 +80,11 @@ export async function getCachedModelsList(forceRefresh = false) {
     return memoryCache.modelsList;
   }
 
-  if (!forceRefresh && typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const cached = sessionStorage.getItem('audex_models_list');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          memoryCache.modelsList = parsed;
-          return parsed;
-        }
-      }
-    } catch {
-      // Ignore sessionStorage parsing errors
+  if (!forceRefresh) {
+    const cached = safeGetStorage('audex_models_list');
+    if (Array.isArray(cached) && cached.length > 0) {
+      memoryCache.modelsList = cached;
+      return cached;
     }
   }
 
@@ -93,13 +99,7 @@ export async function getCachedModelsList(forceRefresh = false) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         memoryCache.modelsList = data;
-        try {
-          if (typeof window !== 'undefined' && window.sessionStorage) {
-            sessionStorage.setItem('audex_models_list', JSON.stringify(data));
-          }
-        } catch {
-          // Ignore sessionStorage write errors
-        }
+        safeSetStorage('audex_models_list', data);
       }
       return data;
     } finally {
@@ -118,18 +118,11 @@ export async function getCachedSubscriptionTiers(forceRefresh = false) {
     return memoryCache.subscriptionTiers;
   }
 
-  if (!forceRefresh && typeof window !== 'undefined' && window.sessionStorage) {
-    try {
-      const cached = sessionStorage.getItem('audex_sub_tiers');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          memoryCache.subscriptionTiers = parsed;
-          return parsed;
-        }
-      }
-    } catch {
-      // Ignore sessionStorage parsing errors
+  if (!forceRefresh) {
+    const cached = safeGetStorage('audex_sub_tiers');
+    if (Array.isArray(cached) && cached.length > 0) {
+      memoryCache.subscriptionTiers = cached;
+      return cached;
     }
   }
 
@@ -144,13 +137,7 @@ export async function getCachedSubscriptionTiers(forceRefresh = false) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         memoryCache.subscriptionTiers = data;
-        try {
-          if (typeof window !== 'undefined' && window.sessionStorage) {
-            sessionStorage.setItem('audex_sub_tiers', JSON.stringify(data));
-          }
-        } catch {
-          // Ignore sessionStorage write errors
-        }
+        safeSetStorage('audex_sub_tiers', data);
       }
       return data;
     } finally {

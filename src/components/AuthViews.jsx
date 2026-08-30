@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../config';
 import audexLogoImg from '../assets/Audex-outline.jpg';
-import audexLogoIcon from '../assets/audex-ai-logo.png'
+import audexLogoIcon from '../assets/audex-ai-logo.png';
 import {
   Mail,
   Lock,
@@ -84,7 +84,7 @@ export function SignInView({
               <div className="auth-input-group">
                 <div className="auth-label-row">
                   <label className="auth-label">Password</label>
-                  <button type="button" onClick={() => alert('Password reset is not configured.')} className="auth-link">Forgot password?</button>
+                  <button type="button" onClick={() => setAuthMessage('For security, password reset links are sent by our support team or you can use Google / GitHub single sign-on.')} className="auth-link">Forgot password?</button>
                 </div>
                 <div style={{ position: 'relative' }}>
                   <Lock className="auth-input-icon" size={18} />

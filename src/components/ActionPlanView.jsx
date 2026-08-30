@@ -812,19 +812,22 @@ export default function ActionPlanView({
                                 const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
                                 const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                                 const cleanSugModelName = sugApiModel.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                const isSameApi = details.type === 'api' && 
-                                                  (
-                                                    uiChoiceLabelsMatch(
-                                                      currentDisplayName,
-                                                      sugApiModel,
-                                                      [details.provider, details.toolName],
-                                                      [rec.apiOption.recommendedProvider]
-                                                    ) ||
-                                                    (cleanBaseModelName && cleanSugModelName && (
-                                                      cleanBaseModelName === cleanSugModelName ||
-                                                      cleanSugModelName.includes(cleanBaseModelName) ||
-                                                      cleanBaseModelName.includes(cleanSugModelName)
-                                                    ))
+                                const isSameApi = rec.apiOption?.isAlreadyOptimized ||
+                                                  (rec.apiOption?.savings !== undefined && rec.apiOption.savings <= 0) ||
+                                                  (details.type === 'api' && 
+                                                    (
+                                                      uiChoiceLabelsMatch(
+                                                        currentDisplayName,
+                                                        sugApiModel,
+                                                        [details.provider, details.toolName],
+                                                        [rec.apiOption.recommendedProvider]
+                                                      ) ||
+                                                      (cleanBaseModelName && cleanSugModelName && (
+                                                        cleanBaseModelName === cleanSugModelName ||
+                                                        cleanSugModelName.includes(cleanBaseModelName) ||
+                                                        cleanBaseModelName.includes(cleanSugModelName)
+                                                      ))
+                                                    )
                                                   );
 
                                 if (isSameApi) {
@@ -1078,14 +1081,17 @@ export default function ActionPlanView({
                                 const sugModel = rec.subscriptionOption.recommendedModel || rec.subscriptionOption.planName || 'Claude Pro';
                                 const currentContext = [details.provider, details.toolName];
                                 const suggestedContext = [sugProvider];
-                                const isSameSub = details.type === 'subscription' &&
-                                  (
-                                    uiChoiceLabelsMatch(currentDisplayName, sugModel, currentContext, suggestedContext) ||
-                                    uiChoiceLabelsMatch(
-                                      `${details.toolName || ''} ${details.plan || ''}`,
-                                      rec.subscriptionOption.planName || sugModel,
-                                      currentContext,
-                                      suggestedContext
+                                const isSameSub = rec.subscriptionOption?.isAlreadyOptimized ||
+                                  (rec.subscriptionOption?.savings !== undefined && rec.subscriptionOption.savings <= 0) ||
+                                  (details.type === 'subscription' &&
+                                    (
+                                      uiChoiceLabelsMatch(currentDisplayName, sugModel, currentContext, suggestedContext) ||
+                                      uiChoiceLabelsMatch(
+                                        `${details.toolName || ''} ${details.plan || ''}`,
+                                        rec.subscriptionOption.planName || sugModel,
+                                        currentContext,
+                                        suggestedContext
+                                      )
                                     )
                                   );
 
