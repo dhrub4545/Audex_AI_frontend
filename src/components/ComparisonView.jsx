@@ -381,7 +381,310 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
   const speedup = baselineScores.speedVal > 0 ? (recommendedScores.speedVal / baselineScores.speedVal).toFixed(1) : '1.0';
 
   return (
-    <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '64px' }}>
+    <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
+      <style>{`
+        .comparison-main-container {
+          max-width: 1100px;
+          width: 100%;
+          padding: 24px 20px 64px;
+          margin: 0 auto;
+          box-sizing: border-box;
+          overflow-x: hidden;
+        }
+
+        /* Metric KPI Widgets */
+        .comparison-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 24px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .comparison-kpi-card {
+          background-color: #FFFFFF;
+          padding: 20px 18px;
+          border-radius: 16px;
+          border: 1px solid var(--color-border);
+          box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+          display: flex;
+          flex-direction: column;
+          box-sizing: border-box;
+          min-width: 0;
+        }
+        .comparison-kpi-label {
+          font-size: 11px;
+          text-transform: uppercase;
+          color: var(--color-text-muted);
+          font-weight: 750;
+          letter-spacing: 0.05em;
+        }
+        .comparison-kpi-value {
+          font-size: clamp(22px, 2.8vw, 28px);
+          font-weight: 850;
+          font-family: var(--font-title);
+          margin-top: 6px;
+          line-height: 1.15;
+        }
+        .comparison-kpi-sub {
+          font-size: 12px;
+          color: var(--color-text-muted);
+          margin-top: 4px;
+        }
+
+        /* Main Benchmark Card */
+        .comparison-benchmark-card {
+          background-color: #FFFFFF;
+          border-radius: 20px;
+          padding: 24px;
+          color: var(--color-text-primary);
+          box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
+          border: 1px solid var(--color-border);
+          position: relative;
+          width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .comparison-benchmark-title {
+          font-size: clamp(17px, 2.5vw, 22px);
+          font-weight: 800;
+          color: var(--color-text-primary);
+          margin-bottom: 4px;
+          line-height: 1.25;
+        }
+        .comparison-benchmark-subtitle {
+          font-size: 13px;
+          color: var(--color-text-secondary);
+          margin: 0;
+        }
+
+        /* Benchmark Split Grid (Legend + Chart) */
+        .comparison-spend-grid {
+          display: grid;
+          grid-template-columns: 240px minmax(0, 1fr);
+          gap: 24px;
+          align-items: center;
+          width: 100%;
+          box-sizing: border-box;
+          margin-top: 18px;
+        }
+        .comparison-legend-col {
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+          justify-content: center;
+          min-width: 0;
+        }
+        .comparison-legend-item {
+          display: flex;
+          gap: 12px;
+          align-items: flex-start;
+          min-width: 0;
+        }
+        .comparison-legend-logo {
+          width: 34px;
+          height: 34px;
+          min-width: 34px;
+          min-height: 34px;
+          border-radius: 10px;
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+        }
+        .comparison-legend-info {
+          display: flex;
+          flex-direction: column;
+          min-width: 0;
+          flex: 1;
+        }
+        .comparison-legend-name {
+          font-size: 13.5px;
+          font-weight: 750;
+          color: var(--color-text-primary);
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .comparison-legend-provider {
+          font-size: 11px;
+          color: var(--color-text-secondary);
+          margin-top: 1px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+
+        /* SVG Chart Wrapper */
+        .comparison-chart-wrapper {
+          position: relative;
+          width: 100%;
+          min-width: 0;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: 6px;
+        }
+        .comparison-chart-svg {
+          width: 100%;
+          height: auto;
+          min-width: 560px;
+          display: block;
+          overflow: visible;
+        }
+
+        /* Benchmark Comparison Table */
+        .comparison-table-wrapper {
+          margin-top: 24px;
+          border: 1px solid var(--color-border);
+          border-radius: 14px;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          background-color: #F8FAFC;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .comparison-table {
+          width: 100%;
+          min-width: 720px;
+          border-collapse: collapse;
+          font-size: 13px;
+          text-align: center;
+        }
+        .comparison-table th,
+        .comparison-table td {
+          padding: 10px 12px;
+          box-sizing: border-box;
+        }
+        .comparison-table th {
+          background-color: #F1F5F9;
+          font-weight: 750;
+          color: #475569;
+          border-bottom: 1px solid var(--color-border);
+        }
+        .comparison-table th.model-col-header,
+        .comparison-table td.model-col-cell {
+          text-align: left;
+          width: 220px;
+          min-width: 200px;
+          position: sticky;
+          left: 0;
+          background: #F8FAFC;
+          z-index: 2;
+          box-shadow: 2px 0 6px rgba(0, 0, 0, 0.04);
+        }
+        .comparison-table th.model-col-header {
+          background: #F1F5F9;
+          z-index: 3;
+        }
+
+        /* Bottom Grid (Gemini Insights & Migration Steps) */
+        .comparison-bottom-grid {
+          display: grid;
+          grid-template-columns: 1.2fr 1fr;
+          gap: 24px;
+          margin-top: 28px;
+          width: 100%;
+          box-sizing: border-box;
+        }
+        .comparison-card {
+          padding: 24px;
+          border: 1px solid var(--color-border);
+          background-color: #FFFFFF;
+          border-radius: 16px;
+          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+          box-sizing: border-box;
+        }
+
+        /* Responsive Media Queries */
+        @media (max-width: 900px) {
+          .comparison-kpi-grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 12px !important;
+          }
+          .comparison-spend-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .comparison-legend-col {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 16px !important;
+            justify-content: flex-start !important;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #F1F5F9;
+          }
+          .comparison-bottom-grid {
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+            margin-top: 20px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .comparison-main-container {
+            padding: 16px 12px 48px !important;
+          }
+          .comparison-kpi-grid {
+            grid-template-columns: 1fr !important;
+            gap: 10px !important;
+            margin-bottom: 16px !important;
+          }
+          .comparison-kpi-card {
+            padding: 14px 16px !important;
+            border-radius: 12px !important;
+          }
+          .comparison-benchmark-card {
+            padding: 16px 12px !important;
+            border-radius: 16px !important;
+          }
+          .comparison-card {
+            padding: 18px 14px !important;
+            border-radius: 14px !important;
+          }
+          .comparison-legend-col {
+            flex-direction: column !important;
+            gap: 10px !important;
+          }
+          .comparison-table th.model-col-header,
+          .comparison-table td.model-col-cell {
+            width: 160px !important;
+            min-width: 150px !important;
+          }
+          .comparison-table {
+            font-size: 12px !important;
+          }
+          .comparison-table th,
+          .comparison-table td {
+            padding: 8px 10px !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .comparison-main-container {
+            padding: 12px 8px 40px !important;
+          }
+          .comparison-benchmark-card {
+            padding: 14px 10px !important;
+          }
+          .comparison-table th.model-col-header,
+          .comparison-table td.model-col-cell {
+            width: 140px !important;
+            min-width: 130px !important;
+          }
+          .comparison-legend-logo {
+            width: 28px !important;
+            height: 28px !important;
+            min-width: 28px !important;
+            min-height: 28px !important;
+          }
+          .comparison-legend-name {
+            font-size: 12.5px !important;
+          }
+        }
+      `}</style>
 
       {/* Sleek Sub-Header Navbar */}
       <header className="navbar">
@@ -409,57 +712,49 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
       </header>
 
       {/* Main Container */}
-      <main className="container" style={{ marginTop: '20px', maxWidth: '1100px' }}>
+      <main className="comparison-main-container">
 
         {/* Spend Comparison Widget Panel */}
-        <div className="grid-auto-fit-sm" style={{ gap: '16px', marginBottom: '20px' }}>
-          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Spend Impact</div>
-            <div style={{ fontSize: '26px', fontWeight: '850', color: isMoreExpensive ? '#EF4444' : '#10B981', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
+        <div className="comparison-kpi-grid">
+          <div className="comparison-kpi-card">
+            <div className="comparison-kpi-label">Spend Impact</div>
+            <div className="comparison-kpi-value" style={{ color: isMoreExpensive ? '#EF4444' : '#10B981' }}>
               {isMoreExpensive ? `+$${Math.abs(monthlySavings).toLocaleString()}` : `-$${Math.abs(monthlySavings).toLocaleString()}`}<span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>/mo</span>
             </div>
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="comparison-kpi-sub">
               {isMoreExpensive ? 'Increases spends' : 'Saves ' + `$${Math.abs(annualSavings).toLocaleString()}/year`}
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Inference speedup</div>
-            <div style={{ fontSize: '26px', fontWeight: '850', color: '#3B82F6', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
+          <div className="comparison-kpi-card">
+            <div className="comparison-kpi-label">Inference speedup</div>
+            <div className="comparison-kpi-value" style={{ color: '#3B82F6' }}>
               {speedup}x
             </div>
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="comparison-kpi-sub">
               {recommendedScores.speedVal} t/s vs {baselineScores.speedVal} t/s baseline
             </div>
           </div>
 
-          <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '14px', border: '1px solid var(--color-border)', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: '750', letterSpacing: '0.05em' }}>Blended token pricing</div>
-            <div style={{ fontSize: '26px', fontWeight: '850', color: 'var(--color-text-primary)', fontFamily: 'var(--font-title)', marginTop: '6px' }}>
+          <div className="comparison-kpi-card">
+            <div className="comparison-kpi-label">Blended token pricing</div>
+            <div className="comparison-kpi-value" style={{ color: 'var(--color-text-primary)' }}>
               ${recommendedScores.blendedCost?.toFixed(2)}<span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--color-text-secondary)' }}>/1M</span>
             </div>
-            <div style={{ fontSize: '12.5px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+            <div className="comparison-kpi-sub">
               Baseline cost: ${baselineScores.blendedCost?.toFixed(2)}/1M tokens
             </div>
           </div>
         </div>
 
         {/* 1. Sleek Dashboard Card */}
-        <div style={{
-          backgroundColor: '#FFFFFF',
-          borderRadius: '20px',
-          padding: '24px',
-          color: 'var(--color-text-primary)',
-          boxShadow: 'var(--shadow-md)',
-          border: '1px solid var(--color-border)',
-          position: 'relative'
-        }}>
+        <div className="comparison-benchmark-card">
 
           <div style={{ marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-text-primary)', marginBottom: '4px' }}>
+            <h2 className="comparison-benchmark-title">
               AI Model Benchmarks Across Key Categories
             </h2>
-            <p style={{ fontSize: '13px', color: 'var(--color-text-secondary)', margin: 0 }}>
+            <p className="comparison-benchmark-subtitle">
               Normalized score (0–100) across major benchmark categories
             </p>
           </div>
@@ -467,33 +762,33 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           {/* Graphic Section with Legend & SVG */}
           <div className="comparison-spend-grid">
             {/* Legend Column */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', justifyContent: 'center' }}>
+            <div className="comparison-legend-col">
 
               {/* Recommended Model Legend item */}
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ flexShrink: 0, marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ProviderLogo provider={recommended?.provider || recommended?.developer || resolvedRecommended?.developer || 'Anthropic'} size={22} />
+              <div className="comparison-legend-item">
+                <div className="comparison-legend-logo">
+                  <ProviderLogo provider={recommended?.provider || recommended?.developer || resolvedRecommended?.developer || 'Anthropic'} size={20} />
                 </div>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '750', color: 'var(--color-text-primary)' }}>
+                <div className="comparison-legend-info">
+                  <div className="comparison-legend-name" title={recommended?.name || resolvedRecommended?.name}>
                     {(recommended?.name || resolvedRecommended?.name || 'Recommended Alternative').replace(/^.*?:\s*/, '')}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
+                  <div className="comparison-legend-provider">
                     {recommended?.developer || recommended?.creator || resolvedRecommended?.developer || 'Recommended'}
                   </div>
                 </div>
               </div>
 
               {/* Baseline Model Legend item */}
-              <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
-                <div style={{ flexShrink: 0, marginTop: '2px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <ProviderLogo provider={baseline?.provider || baseline?.developer || resolvedBaseline?.developer || 'OpenAI'} size={22} />
+              <div className="comparison-legend-item">
+                <div className="comparison-legend-logo">
+                  <ProviderLogo provider={baseline?.provider || baseline?.developer || resolvedBaseline?.developer || 'OpenAI'} size={20} />
                 </div>
-                <div>
-                  <div style={{ fontSize: '14px', fontWeight: '750', color: 'var(--color-text-primary)' }}>
+                <div className="comparison-legend-info">
+                  <div className="comparison-legend-name" title={baseline?.name || resolvedBaseline?.name}>
                     {(baseline?.name || resolvedBaseline?.name || 'Baseline Model').replace(/^.*?:\s*/, '')}
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginTop: '1px' }}>
+                  <div className="comparison-legend-provider">
                     {baseline?.developer || baseline?.creator || resolvedBaseline?.developer || 'Baseline'}
                   </div>
                 </div>
@@ -502,10 +797,10 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </div>
 
             {/* SVG Graph Workspace */}
-            <div style={{ position: 'relative', overflow: 'visible' }}>
+            <div className="comparison-chart-wrapper">
               <svg
+                className="comparison-chart-svg"
                 viewBox="0 0 900 340"
-                style={{ width: '100%', height: '100%', display: 'block', overflow: 'visible' }}
                 onMouseMove={handleSvgMouseMove}
                 onMouseLeave={() => setHoveredCategoryIndex(null)}
               >
@@ -739,20 +1034,13 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           </div>
 
           {/* 2. Structured comparison grid table */}
-          <div style={{
-            marginTop: '20px',
-            border: '1px solid var(--color-border)',
-            borderRadius: '12px',
-            overflowX: 'auto',
-            WebkitOverflowScrolling: 'touch',
-            backgroundColor: '#F8FAFC'
-          }}>
-            <table style={{ width: '100%', minWidth: '700px', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'center' }}>
+          <div className="comparison-table-wrapper">
+            <table className="comparison-table">
               <thead>
-                <tr style={{ backgroundColor: '#F1F5F9', borderBottom: '1px solid var(--color-border)' }}>
-                  <th style={{ padding: '10px 12px', fontWeight: '800', color: '#64748B', textAlign: 'left', width: '220px' }}>Model</th>
+                <tr>
+                  <th className="model-col-header">Model</th>
                   {CATEGORIES.map((cat, idx) => (
-                    <th key={idx} style={{ padding: '8px 10px', fontWeight: '750', color: '#475569', verticalAlign: 'middle' }}>
+                    <th key={idx}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
                         <cat.icon size={16} style={{ color: cat.color }} />
                         <span style={{ fontSize: '11px' }}>{cat.name}</span>
@@ -764,14 +1052,18 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
               <tbody>
                 {/* Recommended Model Row */}
                 <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
-                  <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <td className="model-col-cell" style={{ fontWeight: '700' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ProviderLogo provider={recommended?.provider || recommended?.developer || resolvedRecommended?.developer || 'Anthropic'} size={20} />
                       </div>
-                      <div style={{ display: 'inline-block' }}>
-                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13.5px' }}>{(recommended?.name || resolvedRecommended?.name || 'Recommended Alternative').replace(/^.*?:\s*/, '')}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{recommended?.developer || recommended?.creator || resolvedRecommended?.developer || 'Recommended'}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={recommended?.name || resolvedRecommended?.name}>
+                          {(recommended?.name || resolvedRecommended?.name || 'Recommended Alternative').replace(/^.*?:\s*/, '')}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {recommended?.developer || recommended?.creator || resolvedRecommended?.developer || 'Recommended'}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -784,7 +1076,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                       : (score != null ? score : 'N/A');
 
                     return (
-                      <td key={idx} style={{ padding: '10px 12px', color: isWinner ? '#10B981' : '#475569', fontWeight: isWinner ? '800' : '500' }}>
+                      <td key={idx} style={{ color: isWinner ? '#10B981' : '#475569', fontWeight: isWinner ? '800' : '500' }}>
                         {displayVal}
                       </td>
                     );
@@ -793,14 +1085,18 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
                 {/* Baseline Model Row */}
                 <tr>
-                  <td style={{ padding: '10px 12px', textAlign: 'left', fontWeight: '700' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <td className="model-col-cell" style={{ fontWeight: '700' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                       <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <ProviderLogo provider={baseline?.provider || baseline?.developer || resolvedBaseline?.developer || 'OpenAI'} size={20} />
                       </div>
-                      <div style={{ display: 'inline-block' }}>
-                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13.5px' }}>{(baseline?.name || resolvedBaseline?.name || 'Baseline Model').replace(/^.*?:\s*/, '')}</div>
-                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)' }}>{baseline?.developer || baseline?.creator || resolvedBaseline?.developer || 'Baseline'}</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
+                        <div style={{ color: 'var(--color-text-primary)', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={baseline?.name || resolvedBaseline?.name}>
+                          {(baseline?.name || resolvedBaseline?.name || 'Baseline Model').replace(/^.*?:\s*/, '')}
+                        </div>
+                        <div style={{ fontSize: '10px', color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {baseline?.developer || baseline?.creator || resolvedBaseline?.developer || 'Baseline'}
+                        </div>
                       </div>
                     </div>
                   </td>
@@ -813,7 +1109,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                       : (score != null ? score : 'N/A');
 
                     return (
-                      <td key={idx} style={{ padding: '10px 12px', color: isWinner ? '#F97316' : '#64748B', fontWeight: isWinner ? '800' : '500' }}>
+                      <td key={idx} style={{ color: isWinner ? '#F97316' : '#64748B', fontWeight: isWinner ? '800' : '500' }}>
                         {displayVal}
                       </td>
                     );
@@ -832,20 +1128,20 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             justifyContent: 'center',
             alignItems: 'center',
             minHeight: '220px',
-            marginTop: '36px',
+            marginTop: '28px',
             backgroundColor: '#FEF2F2',
-            borderRadius: '12px',
+            borderRadius: '16px',
             border: '1.5px solid #FCA5A5',
-            padding: '40px',
+            padding: '32px 20px',
             flexDirection: 'column',
-            gap: '16px',
+            gap: '14px',
             textAlign: 'center'
           }}>
             <span style={{ fontSize: '32px' }}>❌</span>
             <div style={{ fontSize: '16px', color: '#B91C1C', fontWeight: '700' }}>
               Failed to Generate Report
             </div>
-            <div style={{ fontSize: '14px', color: '#7F1D1D', maxWidth: '500px' }}>
+            <div style={{ fontSize: '13.5px', color: '#7F1D1D', maxWidth: '500px' }}>
               {errorMsg}
             </div>
             <button onClick={onNavigateBack} className="btn btn-outline" style={{ marginTop: '8px', color: '#B91C1C', borderColor: '#FCA5A5' }}>
@@ -858,20 +1154,20 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             justifyContent: 'center',
             alignItems: 'center',
             minHeight: '220px',
-            marginTop: '36px',
+            marginTop: '28px',
             backgroundColor: '#FFFFFF',
-            borderRadius: '12px',
+            borderRadius: '16px',
             border: '1px solid var(--color-border)',
-            padding: '40px',
+            padding: '32px 20px',
             flexDirection: 'column',
-            gap: '16px',
+            gap: '14px',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
           }}>
             <div className="spinner" style={{
-              width: '40px',
-              height: '40px',
-              border: '4px solid rgba(16, 185, 129, 0.1)',
-              borderTop: '4px solid var(--color-green-primary)',
+              width: '36px',
+              height: '36px',
+              border: '3px solid rgba(16, 185, 129, 0.1)',
+              borderTop: '3px solid var(--color-green-primary)',
               borderRadius: '50%',
               animation: 'spin 1s linear infinite'
             }}></div>
@@ -881,7 +1177,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 100% { transform: rotate(360deg); }
               }
             `}</style>
-            <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', fontWeight: '600' }}>
+            <div style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', fontWeight: '600', textAlign: 'center' }}>
               Gemini AI is analyzing models and compiling migration checklist...
             </div>
           </div>
@@ -889,27 +1185,27 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           <div className="comparison-bottom-grid">
 
             {/* Analysis breakdown */}
-            <div className="wizard-card" style={{ padding: '28px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>
+            <div className="comparison-card">
               <h4 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '14px', color: 'var(--color-text-primary)' }}>
                 {geminiReport?.architectural_insight?.title || '🧠 Architectural Spend Decision Insight'}
               </h4>
-              <div style={{ fontSize: '14px', color: 'var(--color-text-secondary)', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)', lineHeight: '1.6', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {geminiReport?.architectural_insight?.paragraphs ? (
                   geminiReport.architectural_insight.paragraphs.map((p, i) => (
-                    <p key={i}>{p}</p>
+                    <p key={i} style={{ margin: 0 }}>{p}</p>
                   ))
                 ) : (
                   <>
-                    <p>
+                    <p style={{ margin: 0 }}>
                       By switching from <strong>{baseline?.name || resolvedBaseline?.name || 'Baseline Model'}</strong> to <strong>{recommended?.name || resolvedRecommended?.name || 'Recommended Alternative'}</strong>, you optimize your spend by targeting models with comparable capability boundaries but substantially lower cost points.
                     </p>
-                    <p>
+                    <p style={{ margin: 0 }}>
                       This comparison chart highlights standard evaluations compiled from the live Artificial Analysis index. Values are scaled relatively. The recommended model outperforms the baseline in latency efficiency due to its lighter model weight and highly optimized context pipeline.
                     </p>
                   </>
                 )}
 
-                <div style={{ borderLeft: '4px solid var(--color-green-primary)', paddingLeft: '14px', margin: '8px 0', backgroundColor: 'var(--color-green-light)', padding: '10px 14px', borderRadius: '4px' }}>
+                <div style={{ borderLeft: '4px solid var(--color-green-primary)', paddingLeft: '14px', margin: '6px 0', backgroundColor: 'var(--color-green-light)', padding: '10px 14px', borderRadius: '6px' }}>
                   <strong>{geminiReport?.architectural_insight?.quality_analysis_box ? geminiReport.architectural_insight.quality_analysis_box.split(':')[0] + ':' : 'Quality Analysis:'}</strong>{' '}
                   <span style={{ color: 'var(--color-green-text)', fontWeight: 'bold' }}>
                     {geminiReport?.architectural_insight?.quality_analysis_box
@@ -921,31 +1217,31 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
             </div>
 
             {/* Migration Checklist card */}
-            <div className="wizard-card" style={{ padding: '28px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF' }}>
+            <div className="comparison-card">
               <h4 style={{ fontSize: '16px', fontWeight: '800', marginBottom: '14px', color: 'var(--color-text-primary)' }}>
                 {geminiReport?.route_migration_checklist?.title || '🚀 Route Migration Checklist'}
               </h4>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13.5px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
                 {geminiReport?.route_migration_checklist?.steps ? (
                   geminiReport.route_migration_checklist.steps.map((step, i) => (
                     <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', flexShrink: 0 }}>✓</span>
                       <span><strong>{step.bold_text}:</strong> {step.detail}</span>
                     </div>
                   ))
                 ) : (
                   <>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', flexShrink: 0 }}>✓</span>
                       <span><strong>API Keys:</strong> Secure key pairs for <strong>{recommended?.developer || resolvedRecommended?.developer || 'the provider'}</strong> from their developer portal.</span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', flexShrink: 0 }}>✓</span>
                       <span><strong>Endpoint Update:</strong> Modify your API clients config setting the target model ID parameter to <code>"{recommended?.modelId || resolvedRecommended?.modelId || 'model-id'}"</code>.</span>
                     </div>
                     <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold' }}>✓</span>
+                      <span style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', flexShrink: 0 }}>✓</span>
                       <span><strong>Fallback Buffer:</strong> Implement simple retry routers to fall back to the baseline model if rate limits are exceeded.</span>
                     </div>
                   </>
@@ -960,7 +1256,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     alert(`🎉 Route Migration Initiated!\n\n${scriptText}`);
                   }}
                   className="btn btn-green"
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: '700' }}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' }}
                 >
                   Download Migration Script ⬇
                 </button>
