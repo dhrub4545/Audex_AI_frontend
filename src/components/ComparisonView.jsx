@@ -384,32 +384,18 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     <div className="app-container" style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', paddingBottom: '64px' }}>
 
       {/* Sleek Sub-Header Navbar */}
-      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <header className="navbar subpage-navbar">
+        <div className="container subpage-nav-container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <button
               onClick={onNavigateBack}
-              style={{
-                background: 'none',
-                border: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                fontSize: '12.5px',
-                color: 'var(--color-text-secondary)',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontWeight: '700',
-                backgroundColor: 'var(--color-bg-accent)',
-                transition: 'all 0.15s ease'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#E2E8F0'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--color-bg-accent)'}
+              className="btn btn-outline nav-action-btn"
+              style={{ padding: '6px 10px', fontSize: '11.5px' }}
+              title="Go Back"
             >
-              ← Back
+              ← <span className="btn-text-full">Back</span>
             </button>
-            <div className="brand" style={{ pointerEvents: 'none' }}>
+            <div className="brand subpage-brand" style={{ pointerEvents: 'none' }}>
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>Spend Optimiser</span></span>
             </div>

@@ -542,7 +542,7 @@ export default function WizardFlow({
   const [subSearchQuery, setSubSearchQuery] = useState('');
   const [apiSearchQuery, setApiSearchQuery] = useState('');
   const [isAddingCustom, setIsAddingCustom] = useState(false);
-  const [step1ViewMode, setStep1ViewMode] = useState('both'); // 'both', 'sub', 'api'
+  const [step1ViewMode, setStep1ViewMode] = useState('sub'); // 'sub', 'api'
   const [dbModels, setDbModels] = useState([
     { id: 'openai/gpt-5-6-sol', name: 'OpenAI: GPT-5.6 Sol', developer: 'OpenAI' },
     { id: 'anthropic/claude-opus-5', name: 'Anthropic: Claude Opus 5', developer: 'Anthropic' },
@@ -813,33 +813,53 @@ export default function WizardFlow({
           display: none;
           background: #F1F5F9;
           padding: 4px;
-          border-radius: 12px;
-          margin-bottom: 16px;
-          gap: 4px;
+          border-radius: 14px;
+          margin-bottom: 18px;
+          gap: 6px;
           width: 100%;
           box-sizing: border-box;
+          border: 1px solid #E2E8F0;
         }
         .step1-view-btn {
           flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
-          padding: 8px 10px;
+          gap: 8px;
+          padding: 10px 14px;
           border: none;
           background: transparent;
-          border-radius: 8px;
-          font-size: 12px;
+          border-radius: 10px;
+          font-size: 13px;
           font-weight: 700;
           color: #64748B;
           cursor: pointer;
-          transition: all 150ms ease;
+          transition: all 180ms ease;
           white-space: nowrap;
         }
         .step1-view-btn.active {
           background: #FFFFFF;
           color: #0F172A;
-          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+        }
+        .step1-tab-count {
+          font-size: 11px;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 12px;
+          background: #E2E8F0;
+          color: #64748B;
+          transition: all 180ms ease;
+        }
+        .step1-tab-count.highlight-sub {
+          background: #ECFDF5;
+          color: #059669;
+          border: 1px solid #A7F3D0;
+        }
+        .step1-tab-count.highlight-api {
+          background: #EFF6FF;
+          color: #2563EB;
+          border: 1px solid #BFDBFE;
         }
         .panel-header-row {
           display: flex;
@@ -936,6 +956,7 @@ export default function WizardFlow({
           transition: all 180ms ease;
           display: flex;
           align-items: center;
+          justify-content: space-between;
         }
         .tool-card:hover {
           background-color: #FFFFFF;
@@ -1035,7 +1056,7 @@ export default function WizardFlow({
           }
           .split-workspace {
             grid-template-columns: 1fr !important;
-            gap: 16px !important;
+            gap: 0 !important;
           }
           .workspace-panel {
             height: auto !important;
@@ -1045,38 +1066,52 @@ export default function WizardFlow({
           .workspace-panel.hide-on-mobile {
             display: none !important;
           }
-          .subscription-scroll-container.mode-both,
-          .api-scroll-container.mode-both {
-            max-height: 250px !important;
-            min-height: 160px !important;
-          }
-          .subscription-scroll-container.mode-single,
-          .api-scroll-container.mode-single {
-            max-height: 440px !important;
-            min-height: 260px !important;
+          .subscription-scroll-container,
+          .api-scroll-container {
+            max-height: 380px !important;
+            min-height: 240px !important;
           }
           .wizard-body-wide {
-            padding: 20px 14px !important;
+            padding: 16px 14px !important;
           }
           .tool-grid {
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)) !important;
+            grid-template-columns: 1fr !important;
             gap: 8px !important;
           }
           .tool-card {
-            padding: 9px 10px !important;
+            padding: 10px 12px !important;
           }
         }
         @media (max-width: 640px) {
+          .wizard-title {
+            font-size: 20px !important;
+            margin-bottom: 6px !important;
+          }
+          .wizard-desc {
+            font-size: 12.5px !important;
+            margin-bottom: 10px !important;
+          }
+          .wizard-progress-meta {
+            font-size: 11px !important;
+            margin-bottom: 4px !important;
+          }
+          .step1-view-btn {
+            font-size: 12px !important;
+            padding: 8px 10px !important;
+            gap: 6px !important;
+          }
           .bottom-cta-banner {
             flex-direction: column !important;
             text-align: center !important;
-            gap: 14px !important;
-            padding: 16px 14px !important;
+            gap: 12px !important;
+            padding: 14px 12px !important;
             align-items: stretch !important;
           }
           .bottom-cta-banner button {
             width: 100% !important;
             justify-content: center !important;
+            padding: 10px 16px !important;
+            font-size: 13px !important;
           }
           .wizard-steps-indicator {
             gap: 3px !important;
@@ -1088,16 +1123,6 @@ export default function WizardFlow({
           }
           .wizard-step-line {
             width: 12px !important;
-          }
-        }
-        @media (max-width: 440px) {
-          .tool-grid {
-            grid-template-columns: 1fr !important;
-          }
-          .step1-view-btn {
-            font-size: 11px !important;
-            padding: 6px 6px !important;
-            gap: 3px !important;
           }
         }
       `}</style>
@@ -1124,17 +1149,17 @@ export default function WizardFlow({
       <main className="main-content wizard-body-wide">
         <div className="wizard-progress-meta">✦ Step 1 of 4 - 25% Complete</div>
         <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '8px' }}>Which AI tools does your team use?</h2>
-        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '14px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
+        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '12px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
         
         {/* Dynamic Subscription Limit Badge */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
           <span style={{
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            padding: '4px 14px',
+            padding: '3px 12px',
             borderRadius: '20px',
-            fontSize: '12px',
+            fontSize: '11.5px',
             fontWeight: '700',
             backgroundColor: maxAllowedTools === Infinity ? '#F5F3FF' : maxAllowedTools > 2 ? '#ECFDF5' : '#F1F5F9',
             color: maxAllowedTools === Infinity ? '#7C3AED' : maxAllowedTools > 2 ? '#059669' : '#475569',
@@ -1215,24 +1240,25 @@ export default function WizardFlow({
         <div className="step1-view-switcher">
           <button
             type="button"
-            className={`step1-view-btn ${step1ViewMode === 'both' ? 'active' : ''}`}
-            onClick={() => setStep1ViewMode('both')}
-          >
-            <Layers size={13} /> View Both ({selectedToolIds.length})
-          </button>
-          <button
-            type="button"
             className={`step1-view-btn ${step1ViewMode === 'sub' ? 'active' : ''}`}
             onClick={() => setStep1ViewMode('sub')}
           >
-            <Sparkles size={13} /> Subscriptions ({subSelectedCount})
+            <Sparkles size={14} style={{ color: step1ViewMode === 'sub' ? '#059669' : '#64748B' }} />
+            <span>Subscription Tools</span>
+            <span className={`step1-tab-count ${subSelectedCount > 0 ? 'highlight-sub' : ''}`}>
+              {subSelectedCount}
+            </span>
           </button>
           <button
             type="button"
             className={`step1-view-btn ${step1ViewMode === 'api' ? 'active' : ''}`}
             onClick={() => setStep1ViewMode('api')}
           >
-            <Code2 size={13} /> Direct API ({apiSelectedCount})
+            <Code2 size={14} style={{ color: step1ViewMode === 'api' ? '#2563EB' : '#64748B' }} />
+            <span>Direct API Models</span>
+            <span className={`step1-tab-count ${apiSelectedCount > 0 ? 'highlight-api' : ''}`}>
+              {apiSelectedCount}
+            </span>
           </button>
         </div>
 
@@ -1260,7 +1286,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className={`subscription-scroll-container ${step1ViewMode === 'both' ? 'mode-both' : 'mode-single'}`} data-lenis-prevent>
+            <div className="subscription-scroll-container" data-lenis-prevent>
               {subscriptionTools.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />
@@ -1277,14 +1303,33 @@ export default function WizardFlow({
                         className={`tool-card ${isSelected ? 'selected' : ''}`}
                         onClick={() => toggleToolSelection(tool.id)}
                       >
-                        <div className="tool-card-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <ProviderLogo provider={tool.id} size={22} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                          <div className="tool-card-icon" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <ProviderLogo provider={tool.id} size={22} />
+                          </div>
+                          <div className="tool-card-info" style={{ minWidth: 0, flex: 1 }}>
+                            <span className="tool-card-name">{tool.name}</span>
+                            <span className="tool-card-desc">{tool.desc}</span>
+                          </div>
                         </div>
-                        <div className="tool-card-info" style={{ minWidth: 0, flex: 1 }}>
-                          <span className="tool-card-name">{tool.name}</span>
-                          <span className="tool-card-desc">{tool.desc}</span>
+                        
+                        {/* Checkbox badge Selection Indicator */}
+                        <div style={{
+                          width: '18px',
+                          height: '18px',
+                          borderRadius: '50%',
+                          border: isSelected ? '1.5px solid #10B981' : '1.5px solid #D1D5DB',
+                          backgroundColor: isSelected ? '#10B981' : '#FFFFFF',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 180ms ease',
+                          flexShrink: 0
+                        }}>
+                          {isSelected && (
+                            <span style={{ color: '#FFFFFF', fontSize: '10px', fontWeight: 'bold' }}>✓</span>
+                          )}
                         </div>
-                        <div className="tool-card-select-badge"></div>
                       </div>
                     );
                   })}
@@ -1384,7 +1429,7 @@ export default function WizardFlow({
               <Search size={16} style={{ color: '#94A3B8', position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
             </div>
 
-            <div className={`api-scroll-container ${step1ViewMode === 'both' ? 'mode-both' : 'mode-single'}`} data-lenis-prevent>
+            <div className="api-scroll-container" data-lenis-prevent>
               {filteredDbModels.length === 0 ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#6B7280', gap: '8px', padding: '40px 0', textAlign: 'center' }}>
                   <Search size={32} style={{ color: '#94A3B8', marginBottom: '4px' }} />

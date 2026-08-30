@@ -574,16 +574,22 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
         </div>
       )}
       {/* ── Navbar ── */}
-      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
+      <header className="navbar subpage-navbar">
+        <div className="container subpage-nav-container">
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand subpage-brand">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="nav-actions subpage-nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>Back to Home</button>
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>New Audit</button>
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn" title="Back to Home">
+              <span className="btn-text-full">Back to Home</span>
+              <span className="btn-text-short">Home</span>
+            </button>
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start New Audit">
+              <span className="btn-text-full">New Audit</span>
+              <span className="btn-text-short">New</span>
+            </button>
           </div>
         </div>
       </header>
@@ -1108,17 +1114,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
             <div id="detailed-report-section" style={{ width: '100%' }}>
 
               {/* Report Header */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                borderRadius: '16px',
-                padding: '24px 32px',
-                marginBottom: '24px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                border: '1px solid var(--color-border)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
-              }}>
+              <div className="detailed-report-header">
                 <div>
                   <h2 style={{ fontSize: '24px', fontWeight: '850', color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
                     Detailed Analysis Report
@@ -2613,18 +2609,24 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               </div>
 
               {/* Navigation back actions */}
-              <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', marginTop: '32px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', marginTop: '32px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => onNavigateToView('step4')}
+                  style={{ padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#1E293B', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}
+                >
+                  <ArrowLeft size={14} /> Edit Action Plan (Step 4)
+                </button>
                 {fromHistory && (
                   <button
                     onClick={() => onNavigateToView('history')}
-                    style={{ padding: '10px 28px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ padding: '10px 24px', borderRadius: '10px', border: '1px solid var(--color-border)', backgroundColor: '#FFFFFF', color: '#64748B', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <ArrowLeft size={14} /> Back to Reports History
                   </button>
                 )}
                 <button
                   onClick={() => onNavigateToView('step1')}
-                  style={{ padding: '10px 28px', borderRadius: '10px', border: 'none', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  style={{ padding: '10px 24px', borderRadius: '10px', border: 'none', backgroundColor: '#0F172A', color: '#FFFFFF', fontSize: '13px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                 >
                   Run Another Audit <BarChart3 size={14} />
                 </button>

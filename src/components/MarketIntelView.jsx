@@ -1029,40 +1029,27 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
       `}</style>
 
       {/* Sleek Sub-Header Navbar */}
-      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <header className="navbar subpage-navbar">
+        <div className="container subpage-nav-container">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
             <button
               onClick={() => onNavigateToView('landing')}
-              style={{
-                background: 'none',
-                border: '1px solid var(--color-border)',
-                cursor: 'pointer',
-                fontSize: '12.5px',
-                fontWeight: '700',
-                color: 'var(--color-text-secondary)',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '5px',
-                transition: 'all 0.15s ease',
-                backgroundColor: 'var(--color-bg-accent)'
-              }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#E2E8F0'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = 'var(--color-bg-accent)'}
+              className="btn btn-outline nav-action-btn"
+              style={{ padding: '6px 10px', fontSize: '11.5px' }}
+              title="Back to Home"
             >
-              ← Back
+              ← <span className="btn-text-full">Back</span>
             </button>
-            <div className="brand" style={{ pointerEvents: 'none' }}>
+            <div className="brand subpage-brand" style={{ pointerEvents: 'none' }}>
               <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>Market Intel</span></span>
             </div>
           </div>
-          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="nav-actions subpage-nav-actions">
             {renderCoinDropdown ? renderCoinDropdown() : null}
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>
-              Start Free Audit
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start Free Audit">
+              <span className="btn-text-full">Start Free Audit</span>
+              <span className="btn-text-short">Audit</span>
             </button>
           </div>
         </div>

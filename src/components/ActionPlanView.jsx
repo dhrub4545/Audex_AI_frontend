@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Circle,
   CircleCheckBig,
@@ -14,10 +14,15 @@ import {
   Info,
   BadgeCheck,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  Zap
 } from 'lucide-react';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
+
 const getNormalizedProvider = (prov) => {
   const p = (prov || '').toLowerCase().trim();
   if (p.includes('gpt') || p.includes('openai') || p.includes('chatgpt')) {
@@ -253,6 +258,8 @@ export default function ActionPlanView({
   tokenAdjustments,
   setTokenAdjustments
 }) {
+  const [guideExpanded, setGuideExpanded] = useState(true);
+
   if (!auditResult || !auditResult.savings) return null;
   const recs = auditResult.savings.recommendations || [];
 
@@ -299,7 +306,6 @@ export default function ActionPlanView({
     ? Math.abs((dynamicSavings / totalCurrentCost) * 100).toFixed(1) 
     : '0.0';
 
-
   const handleSelectOption = (idx, option) => {
     setSelectedOptions(prev => ({
       ...prev,
@@ -311,14 +317,13 @@ export default function ActionPlanView({
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '6px',
+    gap: '5px',
     whiteSpace: 'nowrap',
     width: 'fit-content',
-    minWidth: '120px',
-    padding: '6px 16px',
+    padding: '5px 12px',
     borderRadius: '9999px',
     lineHeight: 1,
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: '700',
     color: savings < 0 ? '#DC2626' : '#047857',
     backgroundColor: savings < 0 ? '#FEF2F2' : '#ECFDF5',
@@ -328,33 +333,58 @@ export default function ActionPlanView({
 
   return (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD', minHeight: '100vh' }}>
+      {/* Dynamic Keyframes for pulsing status indicator */}
+      <style>{`
+        @keyframes pulse {
+          0% { transform: scale(0.95); opacity: 0.65; }
+          50% { transform: scale(1.15); opacity: 1; }
+          100% { transform: scale(0.95); opacity: 0.65; }
+        }
+      `}</style>
+
+      {/* Header with Step Progress */}
       <header className="wizard-header">
-        <div className="container">
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand">
-            <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
-            <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
+        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '64px', gap: '12px' }}>
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
+            <img src={logoImg} alt="Audex AI Logo" className="brand-logo" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            <span className="brand-name" style={{ fontSize: '18px', fontWeight: '800', color: '#0F172A' }}>
+              Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span>
+            </span>
           </a>
+
           <div className="wizard-steps-indicator" style={{ display: 'flex', alignItems: 'center' }}>
-            <span className="wizard-step-dot completed">1</span>
+            <span className="wizard-step-dot completed" title="Step 1: AI Tools Selection">1</span>
             <span className="wizard-step-line completed"></span>
-            <span className="wizard-step-dot completed">2</span>
+            <span className="wizard-step-dot completed" title="Step 2: Team Allocations">2</span>
             <span className="wizard-step-line completed"></span>
-            <span className="wizard-step-dot completed">3</span>
+            <span className="wizard-step-dot completed" title="Step 3: Optimization Goals">3</span>
             <span className="wizard-step-line completed"></span>
-            <span className="wizard-step-dot active">4</span>
+            <span className="wizard-step-dot active" title="Step 4: Action Plan & Pathways">4</span>
           </div>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="wizard-close" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+
+          <a 
+            href="#" 
+            onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} 
+            className="wizard-close" 
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '36px', height: '36px', borderRadius: '8px', color: '#64748B', transition: 'all 150ms' }}
+            title="Exit to Dashboard"
+          >
             <X size={18} />
           </a>
         </div>
       </header>
  
-      <main className="main-content wizard-body" style={{ paddingBottom: '60px', maxWidth: '1200px' }}>
+      {/* Main Container */}
+      <main className="main-content wizard-body action-plan-container" style={{ paddingBottom: '80px' }}>
+        
+        {/* Step Progress Meta */}
         <div className="wizard-progress-meta" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <Sparkles size={14} style={{ color: 'var(--color-green-primary)' }} />
           <span>Step 4 of 4 - 100% Complete</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', marginBottom: '8px' }}>
+
+        {/* Title & Goal Badge */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <h2 className="wizard-title" style={{ margin: 0 }}>Optimisation Action Plan</h2>
           {(() => {
             const goal = auditResult.optimizationGoal || 'performance';
@@ -388,195 +418,139 @@ export default function ActionPlanView({
                 border: `1px solid ${borderColor}`,
                 textTransform: 'uppercase',
                 letterSpacing: '0.06em',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                marginTop: '4px'
+                boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
               }}>
                 {label}
               </span>
             );
           })()}
         </div>
-        <p className="wizard-desc">
+
+        <p className="wizard-desc" style={{ marginBottom: '20px' }}>
           We analyzed your stack and detected {recs.length} key waste indicators. Select your preferred pathway for each recommendation.
         </p>
 
-        {/* Two-Column Layout: Info Sidebar (left) + Recommendations (right) */}
-        <div className="action-plan-layout" style={{ marginTop: '24px' }}>
+        {/* Responsive Two-Column Layout: Left Sticky Info/Live Simulation + Right Recommendations List */}
+        <div className="action-plan-layout">
 
-          {/* LEFT COLUMN — Sticky Info Panel */}
-          <div style={{ position: 'sticky', top: '100px' }}>
-            {/* Real-time Dynamic Simulation Card */}
-            <style>{`
-              @keyframes pulse {
-                0% { transform: scale(0.95); opacity: 0.65; }
-                50% { transform: scale(1.15); opacity: 1; }
-                100% { transform: scale(0.95); opacity: 0.65; }
-              }
-            `}</style>
-             <div 
-               style={{
-                 background: 'rgba(255, 255, 255, 0.72)',
-                 backdropFilter: 'blur(18px)',
-                 WebkitBackdropFilter: 'blur(18px)',
-                 border: '1px solid rgba(255, 255, 255, 0.75)',
-                 borderRadius: '18px',
-                 padding: '24px',
-                 marginBottom: '16px',
-                 boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
-                 position: 'relative',
-                 overflow: 'hidden',
-                 transition: 'all 250ms ease'
-               }}
-               onMouseEnter={(e) => {
-                 e.currentTarget.style.transform = 'translateY(-3px)';
-                 e.currentTarget.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
-               }}
-               onMouseLeave={(e) => {
-                 e.currentTarget.style.transform = 'translateY(0)';
-                 e.currentTarget.style.boxShadow = '0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
-               }}
-             >
-               {/* Pulsing indicator */}
-               <div style={{
-                 position: 'absolute',
-                 top: '20px',
-                 right: '20px',
-                 display: 'flex',
-                 alignItems: 'center',
-                 gap: '6px',
-                 backgroundColor: 'rgba(16, 185, 129, 0.08)',
-                 border: '1px solid rgba(16, 185, 129, 0.15)',
-                 padding: '4px 10px',
-                 borderRadius: '12px',
-                 backdropFilter: 'blur(4px)',
-                 boxShadow: '0 2px 8px rgba(16, 185, 129, 0.04)'
-               }}>
-                 <span style={{
-                   width: '6px',
-                   height: '6px',
-                   backgroundColor: '#10B981',
-                   borderRadius: '50%',
-                   display: 'inline-block',
-                   boxShadow: '0 0 8px #10B981',
-                   animation: 'pulse 1.8s infinite'
-                 }} />
-                 <span style={{ fontSize: '10.5px', color: '#047857', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Live Simulation</span>
-               </div>
+          {/* LEFT COLUMN — Live Simulation & Guidance */}
+          <div className="action-plan-sidebar">
+            
+            {/* Live Simulation Card */}
+            <div className="action-plan-sim-card">
+              <div className="action-plan-sim-header">
+                <h4 className="action-plan-sim-title">
+                  <TrendingUp size={16} style={{ color: '#10B981' }} />
+                  <span>Live Projection</span>
+                </h4>
+                
+                <div className="action-plan-live-badge">
+                  <span style={{
+                    width: '6px',
+                    height: '6px',
+                    backgroundColor: '#10B981',
+                    borderRadius: '50%',
+                    display: 'inline-block',
+                    boxShadow: '0 0 8px #10B981',
+                    animation: 'pulse 1.8s infinite'
+                  }} />
+                  <span>Live Simulation</span>
+                </div>
+              </div>
 
-               <h4 style={{ fontSize: '14px', fontWeight: '800', color: '#1E293B', margin: '0 0 20px 0', textTransform: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                 <TrendingUp size={16} style={{ color: '#10B981' }} /> <span>Live Projection</span>
-               </h4>
+              {/* Simulation Metrics Grid */}
+              <div className="action-plan-metrics-grid">
+                
+                {/* 1. Projected Cost Card */}
+                <div className="action-plan-metric-box">
+                  <span className="action-plan-metric-label">Projected Cost</span>
+                  <div className="action-plan-metric-value">
+                    <span>${dynamicOptimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="action-plan-metric-unit">/mo</span>
+                  </div>
+                  <div className="action-plan-orig-cost">
+                    <span>Original:</span>
+                    <strike>${totalCurrentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo</strike>
+                  </div>
+                </div>
 
-               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                 {/* Cost Metric Card */}
-                 <div style={{
-                   background: 'rgba(255, 255, 255, 0.9)',
-                   border: '1px solid rgba(226, 232, 240, 0.8)',
-                   borderRadius: '12px',
-                   padding: '16px',
-                   display: 'flex',
-                   flexDirection: 'column',
-                   position: 'relative',
-                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
-                 }}>
-                   <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Projected Cost</span>
-                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
-                     <strong style={{ fontSize: '34px', color: '#1E293B', fontWeight: '700', lineHeight: '1' }}>
-                       ${dynamicOptimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                     </strong>
-                     <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/month</span>
-                   </div>
-                   
-                   {/* Original Cost gray pill */}
-                   <div style={{
-                     position: 'absolute',
-                     top: '16px',
-                     right: '16px',
-                     display: 'flex',
-                     flexDirection: 'column',
-                     alignItems: 'flex-end'
-                   }}>
-                     <span style={{ fontSize: '8px', fontWeight: '800', textTransform: 'uppercase', color: '#94A3B8', letterSpacing: '0.05em' }}>Original Cost</span>
-                     <span style={{ fontSize: '12px', color: '#94A3B8', textDecoration: 'line-through', fontWeight: '600' }}>
-                       ${totalCurrentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
-                     </span>
-                   </div>
-                 </div>
+                {/* 2. Projected Savings Card */}
+                <div 
+                  className="action-plan-metric-box"
+                  style={{
+                    backgroundColor: isSavingsPositive ? 'rgba(236, 253, 245, 0.85)' : 'rgba(254, 242, 242, 0.85)',
+                    borderColor: isSavingsPositive ? 'rgba(187, 247, 208, 0.9)' : 'rgba(254, 202, 202, 0.9)'
+                  }}
+                >
+                  <span 
+                    className="action-plan-metric-label" 
+                    style={{ color: isSavingsPositive ? '#047857' : '#B91C1C' }}
+                  >
+                    {isSavingsPositive ? 'Projected Savings' : 'Projected Change'}
+                  </span>
+                  <div 
+                    className="action-plan-metric-value" 
+                    style={{ color: isSavingsPositive ? '#047857' : '#B91C1C' }}
+                  >
+                    <TrendingUp 
+                      size={20} 
+                      style={{ 
+                        color: isSavingsPositive ? '#10B981' : '#EF4444', 
+                        transform: isSavingsPositive ? 'none' : 'rotate(180deg)',
+                        flexShrink: 0
+                      }} 
+                    />
+                    <span>{isSavingsPositive ? '+' : '-'}${Math.abs(dynamicSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="action-plan-metric-unit" style={{ color: isSavingsPositive ? '#047857' : '#B91C1C' }}>/mo</span>
+                  </div>
+                </div>
 
-                 {/* Savings Metric Card */}
-                 <div style={{
-                   background: isSavingsPositive ? 'rgba(236, 253, 245, 0.8)' : 'rgba(254, 242, 242, 0.8)',
-                   border: `1px solid ${isSavingsPositive ? 'rgba(187, 247, 208, 0.8)' : 'rgba(254, 202, 202, 0.8)'}`,
-                   borderRadius: '12px',
-                   padding: '16px',
-                   display: 'flex',
-                   flexDirection: 'column',
-                   boxShadow: isSavingsPositive ? '0 2px 8px rgba(16, 185, 129, 0.02)' : '0 2px 8px rgba(239, 68, 68, 0.02)'
-                 }}>
-                   <span style={{ fontSize: '11px', color: isSavingsPositive ? '#047857' : '#B91C1C', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>
-                     {isSavingsPositive ? 'Projected Savings' : 'Projected Change'}
-                   </span>
-                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px', gap: '4px' }}>
-                     <TrendingUp size={22} style={{ color: isSavingsPositive ? '#10B981' : '#EF4444', alignSelf: 'center', transform: isSavingsPositive ? 'none' : 'rotate(180deg)' }} />
-                     <strong style={{ fontSize: '34px', color: isSavingsPositive ? '#047857' : '#B91C1C', fontWeight: '700', lineHeight: '1' }}>
-                       {isSavingsPositive ? '+' : '-'}${Math.abs(dynamicSavings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                     </strong>
-                     <span style={{ fontSize: '14px', color: isSavingsPositive ? '#047857' : '#B91C1C', fontWeight: '600' }}>/month</span>
-                   </div>
-                 </div>
+                {/* 3. Annual Savings Card */}
+                <div className="action-plan-metric-box">
+                  <span className="action-plan-metric-label">Annual Savings</span>
+                  <div className="action-plan-metric-value">
+                    <span style={{ color: isSavingsPositive ? '#1E293B' : '#B91C1C' }}>
+                      {isSavingsPositive ? '' : '-'}${Math.abs(dynamicSavingsAnnual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    <span className="action-plan-metric-unit">/yr</span>
+                  </div>
+                </div>
 
-                 {/* Annual Savings Card */}
-                 <div style={{
-                   background: 'rgba(255, 255, 255, 0.9)',
-                   border: '1px solid rgba(226, 232, 240, 0.8)',
-                   borderRadius: '12px',
-                   padding: '16px',
-                   display: 'flex',
-                   flexDirection: 'column',
-                   boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
-                 }}>
-                   <span style={{ fontSize: '11px', color: '#64748B', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Annual Savings</span>
-                   <div style={{ display: 'flex', alignItems: 'baseline', marginTop: '4px' }}>
-                     <strong style={{ fontSize: '34px', color: isSavingsPositive ? '#1E293B' : '#B91C1C', fontWeight: '700', lineHeight: '1' }}>
-                       {isSavingsPositive ? '' : '-'}${Math.abs(dynamicSavingsAnnual).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                     </strong>
-                     <span style={{ fontSize: '14px', color: '#64748B', fontWeight: '500', marginLeft: '2px' }}>/year</span>
-                   </div>
-                 </div>
+                {/* 4. Budget Impact Card */}
+                <div 
+                  className="action-plan-metric-box"
+                  style={{
+                    backgroundColor: isSavingsPositive ? 'rgba(239, 246, 255, 0.85)' : 'rgba(254, 242, 242, 0.85)',
+                    borderColor: isSavingsPositive ? 'rgba(191, 219, 254, 0.9)' : 'rgba(254, 202, 202, 0.9)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                    <span 
+                      className="action-plan-metric-label" 
+                      style={{ color: isSavingsPositive ? '#1D4ED8' : '#B91C1C' }}
+                    >
+                      Budget Impact
+                    </span>
+                    <span style={{ fontSize: '12px', color: isSavingsPositive ? '#10B981' : '#EF4444', fontWeight: '800' }}>
+                      {isSavingsPositive ? `-${absReductionPercent}% Cut` : `+${absReductionPercent}% Cost`}
+                    </span>
+                  </div>
+                  
+                  {/* Progress Bar */}
+                  <div style={{ marginTop: '8px', width: '100%', height: '7px', backgroundColor: 'rgba(226, 232, 240, 0.9)', borderRadius: '999px', overflow: 'hidden' }}>
+                    <div style={{ 
+                      width: `${isSavingsPositive ? Math.min(100, parseFloat(absReductionPercent)) : 0}%`, 
+                      height: '100%', 
+                      background: isSavingsPositive ? 'linear-gradient(90deg, #34D399 0%, #10B981 100%)' : '#EF4444', 
+                      borderRadius: '999px',
+                      boxShadow: isSavingsPositive ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none',
+                      transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
+                    }} />
+                  </div>
+                </div>
 
-                 {/* Budget Efficiency Card */}
-                 <div style={{
-                   background: isSavingsPositive ? 'rgba(239, 246, 255, 0.8)' : 'rgba(254, 242, 242, 0.8)',
-                   border: `1px solid ${isSavingsPositive ? 'rgba(191, 219, 254, 0.8)' : 'rgba(254, 202, 202, 0.8)'}`,
-                   borderRadius: '12px',
-                   padding: '16px',
-                   display: 'flex',
-                   flexDirection: 'column',
-                   boxShadow: isSavingsPositive ? '0 2px 8px rgba(37, 99, 235, 0.02)' : '0 2px 8px rgba(239, 68, 68, 0.02)'
-                 }}>
-                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                     <span style={{ fontSize: '11px', color: isSavingsPositive ? '#1D4ED8' : '#B91C1C', textTransform: 'uppercase', fontWeight: '600', letterSpacing: '0.05em' }}>Budget Impact</span>
-                     <span style={{ fontSize: '12px', color: isSavingsPositive ? '#10B981' : '#EF4444', fontWeight: '800' }}>
-                       {isSavingsPositive ? `-${absReductionPercent}% Cost Cut` : `+${absReductionPercent}% Cost Increase`}
-                     </span>
-                   </div>
-                   
-                   {/* Premium Progress Bar */}
-                   <div style={{ marginTop: '10px' }}>
-                     <div style={{ width: '100%', height: '8px', backgroundColor: 'rgba(226, 232, 240, 0.8)', borderRadius: '999px', overflow: 'hidden' }}>
-                       <div style={{ 
-                         width: `${isSavingsPositive ? Math.min(100, parseFloat(absReductionPercent)) : 0}%`, 
-                         height: '100%', 
-                         background: isSavingsPositive ? 'linear-gradient(90deg, #34D399 0%, #10B981 100%)' : '#EF4444', 
-                         borderRadius: '999px',
-                         boxShadow: isSavingsPositive ? '0 0 8px rgba(16, 185, 129, 0.3)' : 'none',
-                         transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)'
-                       }} />
-                     </div>
-                   </div>
-                 </div>
-               </div>
-             </div>
+              </div>
+            </div>
 
             {/* Quick Stats Summary */}
             <div style={{
@@ -584,798 +558,662 @@ export default function ActionPlanView({
               border: '1px solid #E2E8F0',
               borderRadius: '16px',
               padding: '16px 20px',
-              marginBottom: '16px'
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.02)'
             }}>
-              <h4 style={{ fontSize: '12.5px', fontWeight: '800', color: '#1E293B', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h4 style={{ fontSize: '12px', fontWeight: '800', color: '#1E293B', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={15} style={{ color: '#1E293B' }} /> AUDIT SUMMARY
               </h4>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Tools Analyzed</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>{recs.length}</span>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#1E293B' }}>{recs.length}</span>
                 </div>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Monthly Spend</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#1E293B' }}>
                     ${totalCurrentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div style={{ height: '1px', backgroundColor: '#F1F5F9' }} />
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '500' }}>Annual Spend</span>
-                  <span style={{ fontSize: '16px', fontWeight: '600', color: '#1E293B' }}>
+                  <span style={{ fontSize: '15px', fontWeight: '700', color: '#1E293B' }}>
                     ${(totalCurrentCost * 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div style={{
-              background: 'linear-gradient(135deg, #F0F9FF 0%, #EFF6FF 40%, #F0FDF4 100%)',
-              border: '1px solid #BFDBFE',
-              borderRadius: '16px',
-              padding: '24px',
-              position: 'relative',
-              overflow: 'hidden'
-            }}>
-              {/* Top accent */}
-              <div style={{
-                position: 'absolute', top: 0, left: 0, height: '4px', width: '100%',
-                background: 'linear-gradient(90deg, #3B82F6 0%, #10B981 100%)',
-                borderRadius: '16px 16px 0 0'
-              }} />
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <Target size={18} style={{ color: '#1E293B' }} />
-                <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
-                  How This Works
-                </h3>
+            {/* How This Works Card (Collapsible for small screens) */}
+            <div className="action-plan-guide-card">
+              <div 
+                className="action-plan-guide-header"
+                onClick={() => setGuideExpanded(!guideExpanded)}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Target size={17} style={{ color: '#1E293B' }} />
+                  <h3 style={{ fontSize: '14.5px', fontWeight: '800', color: '#1E293B', margin: 0 }}>
+                    How This Works
+                  </h3>
+                </div>
+                <div style={{ color: '#64748B' }}>
+                  {guideExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                </div>
               </div>
 
-              <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.7', margin: '0 0 18px 0' }}>
-                Our AI engine analyzed your subscriptions and usage patterns to identify cost-saving opportunities. For each tool, choose your preferred <strong>optimisation pathway</strong>.
-              </p>
+              {guideExpanded && (
+                <div style={{ marginTop: '12px' }}>
+                  <p style={{ fontSize: '12.5px', color: '#475569', lineHeight: '1.6', margin: '0 0 14px 0' }}>
+                    Choose your preferred <strong>optimisation pathway</strong> for each tool:
+                  </p>
 
-              {/* Option A */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #E2E8F0',
-                borderRadius: '12px',
-                padding: '14px 16px',
-                marginBottom: '10px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: '26px', height: '26px', borderRadius: '7px',
-                    backgroundColor: '#EFF6FF', color: '#3B82F6'
+                  {/* Option A info */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    marginBottom: '8px'
                   }}>
-                    <Server size={14} />
-                  </span>
-                  <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#1E293B' }}>Direct API Integration</span>
-                </div>
-                <p style={{ fontSize: '11.5px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
-                  Pay only for what you use with per-token pricing. Best for variable or lower usage volumes.
-                </p>
-              </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        backgroundColor: '#EFF6FF', color: '#3B82F6'
+                      }}>
+                        <Server size={13} />
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: '750', color: '#1E293B' }}>Direct API Integration</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.5', margin: 0 }}>
+                      Pay per token with custom usage sliders. Best for variable or lower usage workloads.
+                    </p>
+                  </div>
 
-              {/* Option B */}
-              <div style={{
-                backgroundColor: '#FFFFFF',
-                border: '1px solid #A7F3D0',
-                borderRadius: '12px',
-                padding: '14px 16px',
-                marginBottom: '10px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <span style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: '26px', height: '26px', borderRadius: '7px',
-                    backgroundColor: '#ECFDF5', color: '#047857'
+                  {/* Option B info */}
+                  <div style={{
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #A7F3D0',
+                    borderRadius: '10px',
+                    padding: '12px 14px',
+                    marginBottom: '8px'
                   }}>
-                    <CreditCard size={14} />
-                  </span>
-                  <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#1E293B' }}>Subscription Migration</span>
-                </div>
-                <p style={{ fontSize: '11.5px', color: '#64748B', lineHeight: '1.6', margin: 0 }}>
-                  Switch to a better-fit subscription tier. Ideal for predictable billing and bundled model access.
-                </p>
-              </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <span style={{
+                        display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                        width: '24px', height: '24px', borderRadius: '6px',
+                        backgroundColor: '#ECFDF5', color: '#047857'
+                      }}>
+                        <CreditCard size={13} />
+                      </span>
+                      <span style={{ fontSize: '12px', fontWeight: '750', color: '#1E293B' }}>Subscription Migration</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.5', margin: 0 }}>
+                      Switch to a better-fit subscription tier. Ideal for predictable billing and bundled features.
+                    </p>
+                  </div>
 
-              {/* Pro Tip */}
-              <div style={{
-                backgroundColor: '#FFFBEB',
-                border: '1px solid #FDE68A',
-                borderRadius: '12px',
-                padding: '14px 16px'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                  <Info size={15} style={{ color: '#92400E' }} />
-                  <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#92400E' }}>Pro Tip</span>
+                  {/* Pro Tip info */}
+                  <div style={{
+                    backgroundColor: '#FFFBEB',
+                    border: '1px solid #FDE68A',
+                    borderRadius: '10px',
+                    padding: '10px 12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                      <Info size={14} style={{ color: '#92400E' }} />
+                      <span style={{ fontSize: '11.5px', fontWeight: '750', color: '#92400E' }}>Pro Tip</span>
+                    </div>
+                    <p style={{ fontSize: '11px', color: '#78350F', lineHeight: '1.5', margin: 0 }}>
+                      Both pathways are fully modeled. Select the one matching your team's architecture.
+                    </p>
+                  </div>
                 </div>
-                <p style={{ fontSize: '11.5px', color: '#78350F', lineHeight: '1.6', margin: 0 }}>
-                  Both Option A (API) and Option B (Subscription) are recommended pathways. Choose the one that best suits your team's workflow and usage.
-                </p>
-              </div>
+              )}
             </div>
+
           </div>
 
           {/* RIGHT COLUMN — Recommendation Cards */}
-          <div>
+          <div style={{ minWidth: 0 }}>
             <div className="results-recommendations-list">
-          {recs.map((rec, idx) => {
-            const currentChoice = selectedOptions[idx] || 'api';
-            const details = parseRecDetails(rec);
-            const itemCurrentCost = details.currentCost || 0;
-            const currentDisplayName = details.type === 'subscription' 
-              ? (() => {
-                  const plan = details.plan || '';
-                  const provider = details.provider || '';
-                  const tool = details.toolName || '';
-                  
-                  if (!plan || plan.toLowerCase() === 'subscription' || plan.toLowerCase() === 'free') {
-                    return tool || provider;
-                  }
-                  
-                  let cleanPlan = plan;
-                  const cleanProviderLower = provider.toLowerCase();
-                  if (cleanPlan.toLowerCase().startsWith(cleanProviderLower)) {
-                    cleanPlan = cleanPlan.substring(provider.length).trim();
-                  }
-                  
-                  const cleanToolLower = tool.toLowerCase();
-                  if (cleanPlan.toLowerCase().startsWith(cleanToolLower)) {
-                    cleanPlan = cleanPlan.substring(tool.length).trim();
-                  }
-                  
-                  return cleanPlan || plan;
-                })()
-              : details.modelName;
+              {recs.map((rec, idx) => {
+                const currentChoice = selectedOptions[idx] || 'api';
+                const details = parseRecDetails(rec);
+                const itemCurrentCost = details.currentCost || 0;
+                const currentDisplayName = details.type === 'subscription' 
+                  ? (() => {
+                      const plan = details.plan || '';
+                      const provider = details.provider || '';
+                      const tool = details.toolName || '';
+                      
+                      if (!plan || plan.toLowerCase() === 'subscription' || plan.toLowerCase() === 'free') {
+                        return tool || provider;
+                      }
+                      
+                      let cleanPlan = plan;
+                      const cleanProviderLower = provider.toLowerCase();
+                      if (cleanPlan.toLowerCase().startsWith(cleanProviderLower)) {
+                        cleanPlan = cleanPlan.substring(provider.length).trim();
+                      }
+                      
+                      const cleanToolLower = tool.toLowerCase();
+                      if (cleanPlan.toLowerCase().startsWith(cleanToolLower)) {
+                        cleanPlan = cleanPlan.substring(tool.length).trim();
+                      }
+                      
+                      return cleanPlan || plan;
+                    })()
+                  : details.modelName;
 
-            return (
-              <div key={idx} className="rec-card" style={{ display: 'block', padding: '24px', marginBottom: '24px', backgroundColor: '#FFFFFF', border: '1px solid #E2E8F0', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                <div className="rec-info" style={{ width: '100%' }}>
-                  {/* Header Row */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <span className="rec-tool" style={{ fontWeight: '800', fontSize: '15px', display: 'inline-flex', alignItems: 'center', gap: '10px', color: '#1E293B', letterSpacing: '-0.01em' }}>
-                      <ProviderLogo provider={getNormalizedProvider(details.provider || details.toolName)} size={32} />
-                      <span>{getFullSubscriptionOrModelName(details).toUpperCase()}</span>
-                    </span>
-                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#475569', backgroundColor: '#F1F5F9', padding: '6px 14px', borderRadius: '8px', border: '1px solid #E2E8F0' }}>
-                      Current Cost: ${itemCurrentCost.toLocaleString()}/mo
-                    </span>
-                  </div>
+                return (
+                  <div key={idx} className="action-plan-rec-card">
+                    <div className="rec-info" style={{ width: '100%' }}>
+                      
+                      {/* Header Row: Tool + Cost */}
+                      <div className="action-plan-card-header">
+                        <span className="action-plan-tool-title">
+                          <ProviderLogo provider={getNormalizedProvider(details.provider || details.toolName)} size={30} />
+                          <span>{getFullSubscriptionOrModelName(details).toUpperCase()}</span>
+                        </span>
+                        <span className="action-plan-cost-pill">
+                          Current Cost: ${itemCurrentCost.toLocaleString()}/mo
+                        </span>
+                      </div>
 
-                  {/* Metadata strip containing Purpose and Seats */}
-                  <div style={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '12px',
-                    marginBottom: '16px',
-                    padding: '10px 14px',
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <Target size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Purpose:</span> <strong style={{ color: '#0F172A' }}>{details.purpose}</strong>
-                    </span>
-                    <span style={{ width: '4px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '50%' }} />
-                    <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <Users size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Seats:</span> <strong style={{ color: '#0F172A' }}>{details.seats} seat{details.seats > 1 ? 's' : ''}</strong>
-                    </span>
-                    <span style={{ width: '4px', height: '4px', backgroundColor: '#CBD5E1', borderRadius: '50%' }} />
-                    <span style={{ fontSize: '12px', color: '#475569', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                      <CreditCard size={14} style={{ color: '#64748B' }} /> <span style={{ color: '#64748B', fontWeight: 'normal' }}>Billing Model:</span> <strong style={{ color: '#0F172A', textTransform: 'capitalize' }}>{details.type === 'subscription' ? 'Subscription-based' : 'API-based (Tokens)'}</strong>
-                    </span>
-                  </div>
-                  
-                  <span className="rec-issue" style={{ marginBottom: '20px', display: 'block', fontSize: '13.5px', color: '#475569', lineHeight: '1.5' }}>
-                    {rec.issue}
-                  </span>
+                      {/* Metadata Chips: Purpose, Seats, Billing Model */}
+                      <div className="action-plan-meta-strip">
+                        <span className="action-plan-meta-chip">
+                          <Target size={13} style={{ color: '#64748B' }} />
+                          <span>Purpose: <strong style={{ color: '#0F172A' }}>{details.purpose}</strong></span>
+                        </span>
+                        <span className="action-plan-meta-chip">
+                          <Users size={13} style={{ color: '#64748B' }} />
+                          <span>Seats: <strong style={{ color: '#0F172A' }}>{details.seats} seat{details.seats > 1 ? 's' : ''}</strong></span>
+                        </span>
+                        <span className="action-plan-meta-chip">
+                          <CreditCard size={13} style={{ color: '#64748B' }} />
+                          <span>Billing: <strong style={{ color: '#0F172A' }}>{details.type === 'subscription' ? 'Subscription' : 'API Tokens'}</strong></span>
+                        </span>
+                      </div>
+                      
+                      {/* Waste / Issue description */}
+                      <p style={{ margin: '0 0 16px 0', fontSize: '13.5px', color: '#475569', lineHeight: '1.55' }}>
+                        {rec.issue}
+                      </p>
 
-                  {/* Side-by-Side Options Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', width: '100%' }}>
-                    
-                    {/* Option A: Direct API Integration */}
-                    {rec.apiOption && (
-                      <div 
-                        onClick={() => handleSelectOption(idx, 'api')}
-                        style={{
-                          padding: '20px',
-                          border: currentChoice === 'api' ? '2.5px solid #3B82F6' : '1.5px solid #E2E8F0',
-                          borderRadius: '12px',
-                          backgroundColor: currentChoice === 'api' ? '#F0F7FF' : '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          gap: '14px',
-                          cursor: 'pointer',
-                          opacity: currentChoice === 'api' ? 1 : 0.8,
-                          boxShadow: currentChoice === 'api' ? '0 10px 25px -5px rgba(59, 130, 246, 0.12), 0 8px 10px -6px rgba(59, 130, 246, 0.12)' : '0 1px 3px rgba(0, 0, 0, 0.02)',
-                          transition: 'all 0.25s ease',
-                          position: 'relative'
-                        }}
-                      >
-                        {/* Radio Check Indicator */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          border: currentChoice === 'api' ? '5px solid #3B82F6' : '2px solid #94A3B8',
-                          backgroundColor: '#FFFFFF',
-                          transition: 'all 0.2s'
-                        }} />
+                      {/* Responsive Side-by-Side Options Grid */}
+                      <div className="action-plan-options-grid">
+                        
+                        {/* =========================================
+                            Option A: Direct API Integration
+                            ========================================= */}
+                        {rec.apiOption && (
+                          <div 
+                            onClick={() => handleSelectOption(idx, 'api')}
+                            className="action-plan-option-card"
+                            style={{
+                              border: currentChoice === 'api' ? '2.5px solid #3B82F6' : '1.5px solid #E2E8F0',
+                              backgroundColor: currentChoice === 'api' ? '#F0F7FF' : '#FFFFFF',
+                              opacity: currentChoice === 'api' ? 1 : 0.82,
+                              boxShadow: currentChoice === 'api' ? '0 10px 25px -5px rgba(59, 130, 246, 0.14), 0 8px 10px -6px rgba(59, 130, 246, 0.12)' : '0 1px 3px rgba(0, 0, 0, 0.02)'
+                            }}
+                          >
+                            {/* Radio Check Circle */}
+                            <div 
+                              className="action-plan-radio-circle"
+                              style={{
+                                border: currentChoice === 'api' ? '5px solid #3B82F6' : '2px solid #94A3B8'
+                              }} 
+                            />
 
-                        <div style={{ paddingRight: '20px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#1D4ED8', letterSpacing: '0.05em' }}>
-                              Option A: Direct API Integration
-                            </span>
-                            {!rec.apiOption.statusText && (() => {
-                              const limits = rec.apiOption.limits || '';
-                              const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
-                                ? rec.apiOption.inputCostPerM 
-                                : (() => {
-                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
-                                    return match ? parseFloat(match[1]) : 5.00;
-                                  })();
-                              const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
-                                ? rec.apiOption.outputCostPerM 
-                                : (() => {
-                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
-                                    return match ? parseFloat(match[1]) : 15.00;
-                                  })();
-
-                              const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
-                              const inputCost = adj.inputMillions * inputCostPerM;
-                              const outputCost = adj.outputMillions * outputCostPerM;
-                              const dynamicApiCost = inputCost + outputCost;
-                              const dynamicSavingsVal = itemCurrentCost - dynamicApiCost;
-                              const isNegativeSavings = dynamicSavingsVal < 0;
-
-                              return (
-                                <span style={getSavingsPillStyle(dynamicSavingsVal)}>
-                                  {dynamicSavingsVal >= 0 && <CircleCheckBig size={11} />}
-                                  {isNegativeSavings ? `+$${Math.abs(dynamicSavingsVal).toFixed(2)} cost` : `$${dynamicSavingsVal.toFixed(2)} saved`}
+                            <div style={{ paddingRight: '22px' }}>
+                              
+                              {/* Option Title + Savings Pill */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#1D4ED8', letterSpacing: '0.05em' }}>
+                                  Option A: Direct API Integration
                                 </span>
-                              );
-                            })()}
-                          </div>
+                                {!rec.apiOption.statusText && (() => {
+                                  const limits = rec.apiOption.limits || '';
+                                  const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                                    ? rec.apiOption.inputCostPerM 
+                                    : (() => {
+                                        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                                        return match ? parseFloat(match[1]) : 5.00;
+                                      })();
+                                  const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                                    ? rec.apiOption.outputCostPerM 
+                                    : (() => {
+                                        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                                        return match ? parseFloat(match[1]) : 15.00;
+                                      })();
 
-                          {/* Transition Visual Block */}
-                          {(() => {
-                            const sugApiModel = rec.apiOption.recommendedModel || rec.apiOption.name || '';
-                            const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
-                            const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                            const cleanSugModelName = sugApiModel.toLowerCase().replace(/[^a-z0-9]/g, '');
-                            const isSameApi = details.type === 'api' && 
-                                              (
-                                                uiChoiceLabelsMatch(
-                                                  currentDisplayName,
-                                                  sugApiModel,
-                                                  [details.provider, details.toolName],
-                                                  [rec.apiOption.recommendedProvider]
-                                                ) ||
-                                                (cleanBaseModelName && cleanSugModelName && (
-                                                  cleanBaseModelName === cleanSugModelName ||
-                                                  cleanSugModelName.includes(cleanBaseModelName) ||
-                                                  cleanBaseModelName.includes(cleanSugModelName)
-                                                ))
-                                              );
+                                  const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
+                                  const inputCost = adj.inputMillions * inputCostPerM;
+                                  const outputCost = adj.outputMillions * outputCostPerM;
+                                  const dynamicApiCost = inputCost + outputCost;
+                                  const dynamicSavingsVal = itemCurrentCost - dynamicApiCost;
+                                  const isNegativeSavings = dynamicSavingsVal < 0;
 
-                            if (isSameApi) {
-                              return (
-                                <div style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '8px',
-                                  padding: '16px 20px',
-                                  background: 'rgba(255, 255, 255, 0.72)',
-                                  backdropFilter: 'blur(18px)',
-                                  borderRadius: '14px',
-                                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                                  boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
-                                  marginTop: '10px',
-                                  marginBottom: '12px',
-                                  textAlign: 'center',
-                                  transition: 'all 250ms ease'
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <BadgeCheck size={18} style={{ color: '#047857' }} />
-                                    <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
-                                  </div>
-                                  <p style={{ fontSize: '11.5px', color: '#065F46', margin: 0, fontWeight: '500' }}>
-                                    Your current plan already provides the best value. No migration required.
-                                  </p>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <div 
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  background: 'rgba(255, 255, 255, 0.72)',
-                                  backdropFilter: 'blur(18px)',
-                                  borderRadius: '14px',
-                                  padding: '16px 20px',
-                                  marginTop: '10px',
-                                  marginBottom: '12px',
-                                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                                  boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
-                                  gap: '16px',
-                                  transition: 'all 250ms ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-3px)';
-                                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0)';
-                                  e.currentTarget.style.boxShadow = '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 20px rgba(59, 130, 246, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
-                                }}
-                              >
-                                {/* Left Column: Current */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
-                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.08em' }}>Current Configuration</span>
-                                  <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderRadius: '12px',
-                                    border: '1px solid #E5E7EB',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                  }}>
-                                    <ProviderLogo provider={getNormalizedProvider(details.provider)} size={28} />
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
-                                    <span style={{ fontWeight: '750', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={currentDisplayName}>
-                                      {currentDisplayName}
+                                  return (
+                                    <span style={getSavingsPillStyle(dynamicSavingsVal)}>
+                                      {dynamicSavingsVal >= 0 && <CircleCheckBig size={11} />}
+                                      {isNegativeSavings ? `+$${Math.abs(dynamicSavingsVal).toFixed(2)} cost` : `$${dynamicSavingsVal.toFixed(2)} saved`}
                                     </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B', fontWeight: '500' }}>{details.provider}</span>
+                                  );
+                                })()}
+                              </div>
+
+                              {/* Transition Visual Block */}
+                              {(() => {
+                                const sugApiModel = rec.apiOption.recommendedModel || rec.apiOption.name || '';
+                                const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
+                                const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                                const cleanSugModelName = sugApiModel.toLowerCase().replace(/[^a-z0-9]/g, '');
+                                const isSameApi = details.type === 'api' && 
+                                                  (
+                                                    uiChoiceLabelsMatch(
+                                                      currentDisplayName,
+                                                      sugApiModel,
+                                                      [details.provider, details.toolName],
+                                                      [rec.apiOption.recommendedProvider]
+                                                    ) ||
+                                                    (cleanBaseModelName && cleanSugModelName && (
+                                                      cleanBaseModelName === cleanSugModelName ||
+                                                      cleanSugModelName.includes(cleanBaseModelName) ||
+                                                      cleanBaseModelName.includes(cleanSugModelName)
+                                                    ))
+                                                  );
+
+                                if (isSameApi) {
+                                  return (
+                                    <div style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '6px',
+                                      padding: '14px 16px',
+                                      background: 'rgba(255, 255, 255, 0.72)',
+                                      backdropFilter: 'blur(14px)',
+                                      borderRadius: '12px',
+                                      border: '1px solid rgba(255, 255, 255, 0.75)',
+                                      boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                                      marginTop: '8px',
+                                      marginBottom: '10px',
+                                      textAlign: 'center'
+                                    }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <BadgeCheck size={17} style={{ color: '#047857' }} />
+                                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
+                                      </div>
+                                      <p style={{ fontSize: '11px', color: '#065F46', margin: 0, fontWeight: '500' }}>
+                                        Your current setup provides optimal value. No migration needed.
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div 
+                                    className="action-plan-transition-block"
+                                    style={{
+                                      boxShadow: '0 0 0 1px rgba(59, 130, 246, 0.15), 0 0 16px rgba(59, 130, 246, 0.06)'
+                                    }}
+                                  >
+                                    {/* Left Column: Current */}
+                                    <div className="action-plan-trans-col">
+                                      <span className="action-plan-trans-label" style={{ color: '#64748B' }}>Current</span>
+                                      <div className="action-plan-trans-logo">
+                                        <ProviderLogo provider={getNormalizedProvider(details.provider)} size={24} />
+                                      </div>
+                                      <span className="action-plan-trans-name" style={{ color: '#1E293B' }} title={currentDisplayName}>
+                                        {currentDisplayName}
+                                      </span>
+                                      <span className="action-plan-trans-sub" style={{ color: '#64748B' }}>{details.provider}</span>
+                                    </div>
+
+                                    {/* Arrow Badge */}
+                                    <div className="action-plan-arrow-badge">
+                                      <ArrowRight size={14} style={{ color: '#475569' }} />
+                                    </div>
+
+                                    {/* Right Column: Suggested */}
+                                    <div className="action-plan-trans-col">
+                                      <span className="action-plan-trans-label" style={{ color: '#2563EB' }}>Recommended</span>
+                                      <div className="action-plan-trans-logo" style={{ borderColor: 'rgba(37, 99, 235, 0.2)' }}>
+                                        <ProviderLogo provider={getNormalizedProvider(sugProvider || sugApiModel)} size={24} />
+                                      </div>
+                                      <span className="action-plan-trans-name" style={{ color: '#2563EB' }} title={sugApiModel}>
+                                        {sugApiModel}
+                                      </span>
+                                      <span className="action-plan-trans-sub" style={{ color: '#2563EB' }}>{sugProvider}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+                              
+                              <p style={{ fontSize: '12.5px', color: '#1E293B', fontWeight: '600', margin: '0 0 8px 0', lineHeight: '1.5' }}>
+                                {rec.apiOption.action}
+                              </p>
+
+                              {rec.apiOption.statusText && (
+                                <p style={{ fontSize: '11.5px', color: '#3B82F6', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <Info size={13} style={{ color: '#3B82F6' }} /> <span>{rec.apiOption.statusText}</span>
+                                </p>
+                              )}
+                              
+                              {rec.apiOption.limits && (
+                                <div style={{ fontSize: '11.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '8px', backgroundColor: '#FFFFFF', padding: '7px 10px', borderRadius: '6px', border: '1px dashed #E2E8F0' }}>
+                                  <Info size={13} style={{ color: '#475569', marginTop: '2px', flexShrink: 0 }} /> <span>{rec.apiOption.limits}</span>
+                                </div>
+                              )}
+
+                              {rec.apiOption.includedModels && rec.apiOption.includedModels.length > 0 && (
+                                <div style={{ marginTop: '10px' }}>
+                                  <div style={{ fontSize: '9.5px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '5px' }}>
+                                    Models Included:
+                                  </div>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                    {rec.apiOption.includedModels.map((model, mi) => (
+                                      <span key={mi} style={{
+                                        fontSize: '10.5px', fontWeight: '650',
+                                        color: '#334155', backgroundColor: '#F1F5F9',
+                                        border: '1px solid #E2E8F0',
+                                        padding: '2px 7px', borderRadius: '5px'
+                                      }}>
+                                        {model}
+                                      </span>
+                                    ))}
                                   </div>
                                 </div>
-
-                                {/* Arrow Badge */}
-                                <div style={{
-                                  width: '32px',
-                                  height: '32px',
-                                  borderRadius: '50%',
-                                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                  border: '1px solid #E5E7EB',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                                  flexShrink: 0
-                                }}>
-                                  <ArrowRight size={16} style={{ color: '#475569' }} />
-                                </div>
-
-                                {/* Right Column: Suggested */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
-                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#2563EB', letterSpacing: '0.08em' }}>Recommended Configuration</span>
-                                  <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderRadius: '12px',
-                                    border: '1px solid #E5E7EB',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                  }}>
-                                    <ProviderLogo provider={getNormalizedProvider(sugProvider || sugApiModel)} size={28} />
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontWeight: '750', color: '#2563EB', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={sugApiModel}>
-                                      {sugApiModel}
-                                    </span>
-                                    <span style={{ fontSize: '9px', color: '#2563EB', fontWeight: '500' }}>{sugProvider}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                          
-                          <p style={{ fontSize: '13px', color: '#1E293B', fontWeight: '600', margin: '0 0 8px 0', lineHeight: '1.5' }}>
-                            {rec.apiOption.action}
-                          </p>
-                          {rec.apiOption.statusText && (
-                            <p style={{ fontSize: '12px', color: '#3B82F6', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Info size={14} style={{ color: '#3B82F6' }} /> <span>{rec.apiOption.statusText}</span>
-                            </p>
-                          )}
-                          
-                          {rec.apiOption.limits && (
-                            <div style={{ fontSize: '12.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '10px', backgroundColor: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px dashed #E2E8F0', fontStyle: 'normal' }}>
-                              <Info size={13} style={{ color: '#475569', marginTop: '2px' }} /> <span>{rec.apiOption.limits}</span>
+                              )}
                             </div>
-                          )}
 
-                          {rec.apiOption.includedModels && rec.apiOption.includedModels.length > 0 && (
-                            <div style={{ marginTop: '12px' }}>
-                              <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                                Models Included:
-                              </div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                {rec.apiOption.includedModels.map((model, mi) => (
-                                  <span key={mi} style={{
-                                    fontSize: '11px', fontWeight: '650',
-                                    color: '#334155', backgroundColor: '#F1F5F9',
-                                    border: '1px solid #E2E8F0',
-                                    padding: '3px 8px', borderRadius: '6px',
-                                    whiteSpace: 'normal',
-                                    wordBreak: 'break-word'
-                                  }}>
-                                    {model}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Token Sliders for API Simulation */}
-                        <div 
-                          onClick={(e) => e.stopPropagation()} // prevent triggering card selection when sliding
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                            backgroundColor: '#F8FAFC',
-                            padding: '12px 14px',
-                            borderRadius: '8px',
-                            border: '1px solid #E2E8F0',
-                            marginTop: '12px'
-                          }}
-                        >
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
-                                Monthly Input Tokens:
-                              </span>
-                              <span style={{ fontSize: '11.5px', fontWeight: '850', color: '#1D4ED8' }}>
-                                {(tokenAdjustments[idx]?.inputMillions || 0).toFixed(1)}M
-                              </span>
-                            </div>
-                            <input 
-                              type="range"
-                              min="0"
-                              max="100"
-                              step="0.5"
-                              value={tokenAdjustments[idx]?.inputMillions || 0}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setTokenAdjustments(prev => ({
-                                  ...prev,
-                                  [idx]: {
-                                    ...prev[idx],
-                                    inputMillions: val
-                                  }
-                                }));
+                            {/* Token Sliders for API Simulation */}
+                            <div 
+                              onClick={(e) => e.stopPropagation()} // prevent triggering card selection when dragging slider
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '10px',
+                                backgroundColor: '#F8FAFC',
+                                padding: '12px 14px',
+                                borderRadius: '10px',
+                                border: '1px solid #E2E8F0',
+                                marginTop: '8px'
                               }}
-                              style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6' }}
-                            />
-                          </div>
-
-                          <div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                              <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
-                                Monthly Output Tokens:
-                              </span>
-                              <span style={{ fontSize: '11.5px', fontWeight: '850', color: '#1D4ED8' }}>
-                                {(tokenAdjustments[idx]?.outputMillions || 0).toFixed(1)}M
-                              </span>
-                            </div>
-                            <input 
-                              type="range"
-                              min="0"
-                              max="50"
-                              step="0.5"
-                              value={tokenAdjustments[idx]?.outputMillions || 0}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value);
-                                setTokenAdjustments(prev => ({
-                                  ...prev,
-                                  [idx]: {
-                                    ...prev[idx],
-                                    outputMillions: val
-                                  }
-                                }));
-                              }}
-                              style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6' }}
-                            />
-                          </div>
-                        </div>
-
-                        <div style={{ borderTop: '1px dashed #CBD5E1', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '14px' }}>
-                          <span style={{ fontSize: '12px', color: '#64748B' }}>Est. Monthly Cost:</span>
-                          <strong style={{ fontSize: '16px', color: '#0F172A' }}>
-                            ${(() => {
-                              const limits = rec.apiOption.limits || '';
-                              const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
-                                ? rec.apiOption.inputCostPerM 
-                                : (() => {
-                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
-                                    return match ? parseFloat(match[1]) : 5.00;
-                                  })();
-                              const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
-                                ? rec.apiOption.outputCostPerM 
-                                : (() => {
-                                    const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
-                                    return match ? parseFloat(match[1]) : 15.00;
-                                  })();
-
-                              const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
-                              const inputCost = adj.inputMillions * inputCostPerM;
-                              const outputCost = adj.outputMillions * outputCostPerM;
-                              return (inputCost + outputCost).toFixed(2);
-                            })()}/mo
-                          </strong>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Option B: Subscription Migration */}
-                    {rec.subscriptionOption && (
-                      <div 
-                        onClick={() => handleSelectOption(idx, 'subscription')}
-                        style={{
-                          padding: '20px',
-                          border: currentChoice === 'subscription' ? '2.5px solid #10B981' : '1.5px solid #E2E8F0',
-                          borderRadius: '12px',
-                          backgroundColor: currentChoice === 'subscription' ? '#ECFDF5' : '#FFFFFF',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          gap: '14px',
-                          cursor: 'pointer',
-                          opacity: currentChoice === 'subscription' ? 1 : 0.8,
-                          boxShadow: currentChoice === 'subscription' ? '0 10px 25px -5px rgba(16, 185, 129, 0.12), 0 8px 10px -6px rgba(16, 185, 129, 0.12)' : '0 1px 3px rgba(0, 0, 0, 0.02)',
-                          transition: 'all 0.25s ease',
-                          position: 'relative'
-                        }}
-                      >
-                        {/* Radio Check Indicator */}
-                        <div style={{
-                          position: 'absolute',
-                          top: '12px',
-                          right: '12px',
-                          width: '18px',
-                          height: '18px',
-                          borderRadius: '50%',
-                          border: currentChoice === 'subscription' ? '5px solid #10B981' : '2px solid #94A3B8',
-                          backgroundColor: '#FFFFFF',
-                          transition: 'all 0.2s'
-                        }} />
-
-                        <div style={{ paddingRight: '20px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#047857', letterSpacing: '0.05em' }}>
-                              Option B: Subscription Migration
-                            </span>
-                            {!rec.subscriptionOption.statusText && (
-                              <span style={getSavingsPillStyle(rec.subscriptionOption.savings)}>
-                                {rec.subscriptionOption.savings >= 0 && <CircleCheckBig size={11} />}
-                                {rec.subscriptionOption.savings < 0 ? `+$${Math.abs(rec.subscriptionOption.savings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cost` : `$${rec.subscriptionOption.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} saved`}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* Transition Visual Block */}
-                          {(() => {
-                            const sugProvider = rec.subscriptionOption.recommendedProvider || details.provider || 'OpenAI';
-                            const sugModel = rec.subscriptionOption.recommendedModel || rec.subscriptionOption.planName || 'Claude Pro';
-                            const currentContext = [details.provider, details.toolName];
-                            const suggestedContext = [sugProvider];
-                            const isSameSub = details.type === 'subscription' &&
-                              (
-                                uiChoiceLabelsMatch(currentDisplayName, sugModel, currentContext, suggestedContext) ||
-                                uiChoiceLabelsMatch(
-                                  `${details.toolName || ''} ${details.plan || ''}`,
-                                  rec.subscriptionOption.planName || sugModel,
-                                  currentContext,
-                                  suggestedContext
-                                )
-                              );
-
-                            if (isSameSub) {
-                              return (
-                                <div style={{
-                                  display: 'flex',
-                                  flexDirection: 'column',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  gap: '8px',
-                                  padding: '16px 20px',
-                                  background: 'rgba(255, 255, 255, 0.72)',
-                                  backdropFilter: 'blur(18px)',
-                                  borderRadius: '14px',
-                                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                                  boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
-                                  marginTop: '10px',
-                                  marginBottom: '12px',
-                                  textAlign: 'center',
-                                  transition: 'all 250ms ease'
-                                }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                    <BadgeCheck size={18} style={{ color: '#047857' }} />
-                                    <span style={{ fontSize: '12.5px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
-                                  </div>
-                                  <p style={{ fontSize: '11.5px', color: '#065F46', margin: 0, fontWeight: '500' }}>
-                                    Your current plan already provides the best value. No migration required.
-                                  </p>
-                                </div>
-                              );
-                            }
-
-                            return (
-                              <div 
-                                style={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'space-between',
-                                  background: 'rgba(255, 255, 255, 0.72)',
-                                  backdropFilter: 'blur(18px)',
-                                  borderRadius: '14px',
-                                  padding: '16px 20px',
-                                  marginTop: '10px',
-                                  marginBottom: '12px',
-                                  border: '1px solid rgba(255, 255, 255, 0.75)',
-                                  boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)',
-                                  gap: '16px',
-                                  transition: 'all 250ms ease'
-                                }}
-                                onMouseEnter={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(-3px)';
-                                  e.currentTarget.style.boxShadow = '0 0 0 2px rgba(16, 185, 129, 0.3), 0 0 30px rgba(16, 185, 129, 0.15), 0 15px 35px rgba(15, 23, 42, 0.1)';
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.transform = 'translateY(0)';
-                                  e.currentTarget.style.boxShadow = '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 20px rgba(16, 185, 129, 0.08), 0 10px 30px rgba(15, 23, 42, 0.06)';
-                                }}
-                              >
-                                {/* Left Column: Current */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
-                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.08em' }}>Current Configuration</span>
-                                  <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderRadius: '12px',
-                                    border: '1px solid #E5E7EB',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                  }}>
-                                    <ProviderLogo provider={getNormalizedProvider(details.provider)} size={28} />
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 0 }}>
-                                    <span style={{ fontWeight: '750', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={currentDisplayName}>
-                                      {currentDisplayName}
-                                    </span>
-                                    <span style={{ fontSize: '9px', color: '#64748B', fontWeight: '500' }}>{details.provider}</span>
-                                  </div>
-                                </div>
-
-                                {/* Arrow Badge */}
-                                <div style={{
-                                  width: '32px',
-                                  height: '32px',
-                                  borderRadius: '50%',
-                                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                  border: '1px solid #E5E7EB',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                                  flexShrink: 0
-                                }}>
-                                  <ArrowRight size={16} style={{ color: '#475569' }} />
-                                </div>
-
-                                {/* Right Column: Suggested */}
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, minWidth: 0, gap: '6px' }}>
-                                  <span style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', color: '#059669', letterSpacing: '0.08em' }}>Recommended Configuration</span>
-                                  <div style={{
-                                    width: '40px',
-                                    height: '40px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                    borderRadius: '12px',
-                                    border: '1px solid #E5E7EB',
-                                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    flexShrink: 0
-                                  }}>
-                                    <ProviderLogo provider={getNormalizedProvider(sugProvider || sugModel)} size={28} />
-                                  </div>
-                                  <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-                                    <span style={{ fontWeight: '750', color: '#059669', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '11px', textAlign: 'center', maxWidth: '120px' }} title={sugModel}>
-                                      {sugModel}
-                                    </span>
-                                    <span style={{ fontSize: '9px', color: '#059669', fontWeight: '500' }}>{sugProvider}</span>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          <p style={{ fontSize: '13px', color: '#1E293B', fontWeight: '600', margin: '0 0 6px 0', lineHeight: '1.5' }}>
-                            {rec.subscriptionOption.action}
-                          </p>
-                          {rec.subscriptionOption.statusText && (
-                            <p style={{ fontSize: '12px', color: '#10B981', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Info size={14} style={{ color: '#10B981' }} /> <span>{rec.subscriptionOption.statusText}</span>
-                            </p>
-                          )}
-
-                          {rec.subscriptionOption.limits && (
-                            <div style={{ fontSize: '12.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '10px', backgroundColor: '#FFFFFF', padding: '8px 10px', borderRadius: '6px', border: '1px dashed #A7F3D0', fontStyle: 'normal' }}>
-                              <Info size={13} style={{ color: '#475569', marginTop: '2px' }} /> <span>{rec.subscriptionOption.limits}</span>
-                            </div>
-                          )}
-
-                          {rec.subscriptionOption.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
-                            <div style={{ marginTop: '12px' }}>
-                              <div style={{ fontSize: '10px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                                Models Included:
-                              </div>
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                {rec.subscriptionOption.includedModels.map((model, mi) => (
-                                  <span key={mi} style={{
-                                    fontSize: '11px', fontWeight: '650',
-                                    color: '#047857', backgroundColor: '#ECFDF5',
-                                    border: '1px solid #A7F3D0',
-                                    padding: '3px 8px', borderRadius: '6px',
-                                    whiteSpace: 'normal',
-                                    wordBreak: 'break-word'
-                                  }}>
-                                    {model}
+                            >
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
+                                    Monthly Input Tokens:
                                   </span>
-                                ))}
+                                  <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#1D4ED8', backgroundColor: '#EFF6FF', padding: '2px 6px', borderRadius: '4px' }}>
+                                    {(tokenAdjustments[idx]?.inputMillions || 0).toFixed(1)}M
+                                  </span>
+                                </div>
+                                <input 
+                                  type="range"
+                                  min="0"
+                                  max="100"
+                                  step="0.5"
+                                  value={tokenAdjustments[idx]?.inputMillions || 0}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    setTokenAdjustments(prev => ({
+                                      ...prev,
+                                      [idx]: {
+                                        ...prev[idx],
+                                        inputMillions: val
+                                      }
+                                    }));
+                                  }}
+                                  style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6', height: '6px' }}
+                                />
+                              </div>
+
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>
+                                    Monthly Output Tokens:
+                                  </span>
+                                  <span style={{ fontSize: '11.5px', fontWeight: '800', color: '#1D4ED8', backgroundColor: '#EFF6FF', padding: '2px 6px', borderRadius: '4px' }}>
+                                    {(tokenAdjustments[idx]?.outputMillions || 0).toFixed(1)}M
+                                  </span>
+                                </div>
+                                <input 
+                                  type="range"
+                                  min="0"
+                                  max="50"
+                                  step="0.5"
+                                  value={tokenAdjustments[idx]?.outputMillions || 0}
+                                  onChange={(e) => {
+                                    const val = parseFloat(e.target.value);
+                                    setTokenAdjustments(prev => ({
+                                      ...prev,
+                                      [idx]: {
+                                        ...prev[idx],
+                                        outputMillions: val
+                                      }
+                                    }));
+                                  }}
+                                  style={{ width: '100%', cursor: 'pointer', accentColor: '#3B82F6', height: '6px' }}
+                                />
                               </div>
                             </div>
-                          )}
-                        </div>
 
-                        <div style={{ borderTop: '1px dashed #A7F3D0', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '14px' }}>
-                          <span style={{ fontSize: '12px', color: '#047857' }}>Est. Monthly Cost:</span>
-                          <strong style={{ fontSize: '16px', color: '#047857' }}>
-                            ${rec.subscriptionOption.cost.toLocaleString()}/mo
-                          </strong>
-                        </div>
+                            {/* Est. Monthly Cost Footer */}
+                            <div style={{ borderTop: '1px dashed #CBD5E1', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '10px' }}>
+                              <span style={{ fontSize: '11.5px', color: '#64748B', fontWeight: '500' }}>Est. Monthly Cost:</span>
+                              <strong style={{ fontSize: '16px', color: '#0F172A' }}>
+                                ${(() => {
+                                  const limits = rec.apiOption.limits || '';
+                                  const inputCostPerM = rec.apiOption.inputCostPerM !== undefined 
+                                    ? rec.apiOption.inputCostPerM 
+                                    : (() => {
+                                        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+                                        return match ? parseFloat(match[1]) : 5.00;
+                                      })();
+                                  const outputCostPerM = rec.apiOption.outputCostPerM !== undefined 
+                                    ? rec.apiOption.outputCostPerM 
+                                    : (() => {
+                                        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+                                        return match ? parseFloat(match[1]) : 15.00;
+                                      })();
+
+                                  const adj = tokenAdjustments[idx] || { inputMillions: 5, outputMillions: 1.25 };
+                                  const inputCost = adj.inputMillions * inputCostPerM;
+                                  const outputCost = adj.outputMillions * outputCostPerM;
+                                  return (inputCost + outputCost).toFixed(2);
+                                })()}/mo
+                              </strong>
+                            </div>
+
+                          </div>
+                        )}
+
+                        {/* =========================================
+                            Option B: Subscription Migration
+                            ========================================= */}
+                        {rec.subscriptionOption && (
+                          <div 
+                            onClick={() => handleSelectOption(idx, 'subscription')}
+                            className="action-plan-option-card"
+                            style={{
+                              border: currentChoice === 'subscription' ? '2.5px solid #10B981' : '1.5px solid #E2E8F0',
+                              backgroundColor: currentChoice === 'subscription' ? '#ECFDF5' : '#FFFFFF',
+                              opacity: currentChoice === 'subscription' ? 1 : 0.82,
+                              boxShadow: currentChoice === 'subscription' ? '0 10px 25px -5px rgba(16, 185, 129, 0.14), 0 8px 10px -6px rgba(16, 185, 129, 0.12)' : '0 1px 3px rgba(0, 0, 0, 0.02)'
+                            }}
+                          >
+                            {/* Radio Check Circle */}
+                            <div 
+                              className="action-plan-radio-circle"
+                              style={{
+                                border: currentChoice === 'subscription' ? '5px solid #10B981' : '2px solid #94A3B8'
+                              }} 
+                            />
+
+                            <div style={{ paddingRight: '22px' }}>
+                              
+                              {/* Option Title + Savings Pill */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', color: '#047857', letterSpacing: '0.05em' }}>
+                                  Option B: Subscription Migration
+                                </span>
+                                {!rec.subscriptionOption.statusText && (
+                                  <span style={getSavingsPillStyle(rec.subscriptionOption.savings)}>
+                                    {rec.subscriptionOption.savings >= 0 && <CircleCheckBig size={11} />}
+                                    {rec.subscriptionOption.savings < 0 ? `+$${Math.abs(rec.subscriptionOption.savings).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} cost` : `$${rec.subscriptionOption.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} saved`}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Transition Visual Block */}
+                              {(() => {
+                                const sugProvider = rec.subscriptionOption.recommendedProvider || details.provider || 'OpenAI';
+                                const sugModel = rec.subscriptionOption.recommendedModel || rec.subscriptionOption.planName || 'Claude Pro';
+                                const currentContext = [details.provider, details.toolName];
+                                const suggestedContext = [sugProvider];
+                                const isSameSub = details.type === 'subscription' &&
+                                  (
+                                    uiChoiceLabelsMatch(currentDisplayName, sugModel, currentContext, suggestedContext) ||
+                                    uiChoiceLabelsMatch(
+                                      `${details.toolName || ''} ${details.plan || ''}`,
+                                      rec.subscriptionOption.planName || sugModel,
+                                      currentContext,
+                                      suggestedContext
+                                    )
+                                  );
+
+                                if (isSameSub) {
+                                  return (
+                                    <div style={{
+                                      display: 'flex',
+                                      flexDirection: 'column',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      gap: '6px',
+                                      padding: '14px 16px',
+                                      background: 'rgba(255, 255, 255, 0.72)',
+                                      backdropFilter: 'blur(14px)',
+                                      borderRadius: '12px',
+                                      border: '1px solid rgba(255, 255, 255, 0.75)',
+                                      boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 4px 12px rgba(15, 23, 42, 0.04)',
+                                      marginTop: '8px',
+                                      marginBottom: '10px',
+                                      textAlign: 'center'
+                                    }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <BadgeCheck size={17} style={{ color: '#047857' }} />
+                                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#047857', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Already Optimized</span>
+                                      </div>
+                                      <p style={{ fontSize: '11px', color: '#065F46', margin: 0, fontWeight: '500' }}>
+                                        Your current plan provides maximum efficiency. No tier switch needed.
+                                      </p>
+                                    </div>
+                                  );
+                                }
+
+                                return (
+                                  <div 
+                                    className="action-plan-transition-block"
+                                    style={{
+                                      boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.15), 0 0 16px rgba(16, 185, 129, 0.06)'
+                                    }}
+                                  >
+                                    {/* Left Column: Current */}
+                                    <div className="action-plan-trans-col">
+                                      <span className="action-plan-trans-label" style={{ color: '#64748B' }}>Current</span>
+                                      <div className="action-plan-trans-logo">
+                                        <ProviderLogo provider={getNormalizedProvider(details.provider)} size={24} />
+                                      </div>
+                                      <span className="action-plan-trans-name" style={{ color: '#1E293B' }} title={currentDisplayName}>
+                                        {currentDisplayName}
+                                      </span>
+                                      <span className="action-plan-trans-sub" style={{ color: '#64748B' }}>{details.provider}</span>
+                                    </div>
+
+                                    {/* Arrow Badge */}
+                                    <div className="action-plan-arrow-badge">
+                                      <ArrowRight size={14} style={{ color: '#475569' }} />
+                                    </div>
+
+                                    {/* Right Column: Suggested */}
+                                    <div className="action-plan-trans-col">
+                                      <span className="action-plan-trans-label" style={{ color: '#059669' }}>Recommended</span>
+                                      <div className="action-plan-trans-logo" style={{ borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+                                        <ProviderLogo provider={getNormalizedProvider(sugProvider || sugModel)} size={24} />
+                                      </div>
+                                      <span className="action-plan-trans-name" style={{ color: '#059669' }} title={sugModel}>
+                                        {sugModel}
+                                      </span>
+                                      <span className="action-plan-trans-sub" style={{ color: '#059669' }}>{sugProvider}</span>
+                                    </div>
+                                  </div>
+                                );
+                              })()}
+
+                              <p style={{ fontSize: '12.5px', color: '#1E293B', fontWeight: '600', margin: '0 0 6px 0', lineHeight: '1.5' }}>
+                                {rec.subscriptionOption.action}
+                              </p>
+
+                              {rec.subscriptionOption.statusText && (
+                                <p style={{ fontSize: '11.5px', color: '#10B981', margin: '4px 0 0 0', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <Info size={13} style={{ color: '#10B981' }} /> <span>{rec.subscriptionOption.statusText}</span>
+                                </p>
+                              )}
+
+                              {rec.subscriptionOption.limits && (
+                                <div style={{ fontSize: '11.5px', color: '#475569', display: 'flex', alignItems: 'flex-start', gap: '6px', marginTop: '8px', backgroundColor: '#FFFFFF', padding: '7px 10px', borderRadius: '6px', border: '1px dashed #A7F3D0' }}>
+                                  <Info size={13} style={{ color: '#475569', marginTop: '2px', flexShrink: 0 }} /> <span>{rec.subscriptionOption.limits}</span>
+                                </div>
+                              )}
+
+                              {rec.subscriptionOption.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
+                                <div style={{ marginTop: '10px' }}>
+                                  <div style={{ fontSize: '9.5px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '5px' }}>
+                                    Models Included:
+                                  </div>
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                    {rec.subscriptionOption.includedModels.map((model, mi) => (
+                                      <span key={mi} style={{
+                                        fontSize: '10.5px', fontWeight: '650',
+                                        color: '#047857', backgroundColor: '#ECFDF5',
+                                        border: '1px solid #A7F3D0',
+                                        padding: '2px 7px', borderRadius: '5px'
+                                      }}>
+                                        {model}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Est. Monthly Cost Footer */}
+                            <div style={{ borderTop: '1px dashed #A7F3D0', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '10px' }}>
+                              <span style={{ fontSize: '11.5px', color: '#047857', fontWeight: '500' }}>Est. Monthly Cost:</span>
+                              <strong style={{ fontSize: '16px', color: '#047857' }}>
+                                ${rec.subscriptionOption.cost.toLocaleString()}/mo
+                              </strong>
+                            </div>
+
+                          </div>
+                        )}
+
                       </div>
-                    )}
 
+                    </div>
                   </div>
-                </div>
-              </div>
-            );
-          })}
+                );
+              })}
             </div>
 
-            {/* Wizard Footer Navigation Actions */}
+            {/* Wizard Actions / Generate Report CTA */}
             <div className="wizard-actions" style={{ marginTop: '32px', display: 'flex', justifyContent: 'flex-end' }}>
               <button 
                 onClick={() => onNavigateToView('results')} 
@@ -1387,28 +1225,31 @@ export default function ActionPlanView({
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '8px',
-                  borderRadius: '10px',
-                  fontWeight: '700',
+                  borderRadius: '12px',
+                  fontWeight: '750',
                   fontSize: '14.5px',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.2)',
-                  transition: 'all 150ms ease',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)',
+                  transition: 'all 180ms ease',
                   cursor: 'pointer'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.25)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.32)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.2)';
+                  e.currentTarget.style.boxShadow = '0 4px 14px rgba(16, 185, 129, 0.25)';
                 }}
               >
                 <BarChart3 size={18} />
                 <span>Generate Final Audit Report</span>
               </button>
             </div>
+
           </div>
+
         </div>
+
       </main>
     </div>
   );

@@ -55,6 +55,7 @@ const getViewFromUrl = () => {
     if (normalized === 'step1' || normalized === 'wizard' || normalized === 'audit') return 'step1';
     if (normalized === 'step2') return 'step2';
     if (normalized === 'step3') return 'step3';
+    if (normalized === 'step4' || normalized === 'plan' || normalized === 'actionplan') return 'step4';
     if (normalized === 'sample' || normalized === 'samplereport') return 'sample_report';
     if (normalized === 'history') return 'history';
     if (normalized === 'signin' || normalized === 'login') return 'signin';
@@ -73,6 +74,7 @@ const getViewUrlParam = (view) => {
     case 'step1': return 'step1';
     case 'step2': return 'step2';
     case 'step3': return 'step3';
+    case 'step4': return 'step4';
     case 'sample_report': return 'sample';
     case 'history': return 'history';
     case 'signin': return 'signin';
@@ -88,6 +90,7 @@ const getViewTitle = (view) => {
     case 'step1': return 'Audex AI — AI Subscription Audit Wizard & Spend Calculator';
     case 'step2': return 'Audex AI — Configure AI Tool Allocations';
     case 'step3': return 'Audex AI — Set AI Optimization Goals';
+    case 'step4': return 'Audex AI — Optimisation Action Plan (Step 4)';
     case 'results': return 'Audex AI — Enterprise AI Spend Audit Results';
     case 'sample_report': return 'Audex AI — Sample Enterprise AI Audit Report';
     case 'history': return 'Audex AI — Audit Reports History';
@@ -429,27 +432,23 @@ export default function App() {
   const renderCoinDropdown = () => {
     if (!user) return null;
     const planName = user.plan === 'enterprise' ? 'Enterprise Plan' : (user.plan === 'pro' ? 'Pro Plan' : 'Free Plan');
+    const shortPlan = user.plan === 'enterprise' ? 'ENT' : (user.plan === 'pro' ? 'PRO' : 'FREE');
     const badgeColor = user.plan === 'enterprise' ? '#8B5CF6' : (user.plan === 'pro' ? '#10B981' : '#64748B');
     const bgColor = user.plan === 'enterprise' ? '#F5F3FF' : (user.plan === 'pro' ? '#ECFDF5' : '#F1F5F9');
 
     return (
-      <div className="coin-dropdown-container" style={{ position: 'relative', display: 'inline-block', marginRight: '16px' }}>
-        <button className="coin-btn" style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          backgroundColor: bgColor,
-          border: `1px solid ${badgeColor}`,
-          color: badgeColor,
-          padding: '8px 16px',
-          borderRadius: '9999px',
-          fontWeight: '700',
-          fontSize: '13px',
-          cursor: 'pointer',
-          textTransform: 'uppercase',
-          letterSpacing: '0.03em'
-        }}>
-          <span>✦ {planName}</span>
+      <div className="coin-dropdown-container">
+        <button 
+          className="coin-btn" 
+          style={{
+            backgroundColor: bgColor,
+            border: `1px solid ${badgeColor}`,
+            color: badgeColor
+          }}
+          title={`Active Tier: ${planName}`}
+        >
+          <span className="coin-btn-text-full">✦ {planName}</span>
+          <span className="coin-btn-text-short">✦ {shortPlan}</span>
         </button>
       </div>
     );
@@ -521,14 +520,23 @@ export default function App() {
         localStorage.setItem('audex_user', JSON.stringify(updatedUser));
       }
 
-      // Pre-select options for Step 4
+      // Pre-select options and token adjustments for Step 4
       const initialChoices = {};
+      const initialTokenAdjustments = {};
       (data.savings?.recommendations || []).forEach((rec, idx) => {
         const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
         const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
         initialChoices[idx] = apiSav >= subSav ? 'api' : 'subscription';
+
+        const defaultInput = rec.apiOption?.defaultInputTokens || 5000000;
+        const defaultOutput = rec.apiOption?.defaultOutputTokens || 1250000;
+        initialTokenAdjustments[idx] = {
+          inputMillions: defaultInput / 1000000,
+          outputMillions: defaultOutput / 1000000
+        };
       });
       setSelectedOptions(initialChoices);
+      setTokenAdjustments(initialTokenAdjustments);
 
       // Scanner animation delay
       setTimeout(() => {
@@ -624,13 +632,26 @@ export default function App() {
       const data = await response.json();
       setAuditResult(data);
       
+      const recs = data.savings?.recommendations || [];
+      const initialTokens = {};
+      recs.forEach((rec, idx) => {
+        const defaultInput = rec.apiOption?.defaultInputTokens || 5000000;
+        const defaultOutput = rec.apiOption?.defaultOutputTokens || 1250000;
+        initialTokens[idx] = {
+          inputMillions: defaultInput / 1000000,
+          outputMillions: defaultOutput / 1000000
+        };
+      });
+      setTokenAdjustments(initialTokens);
+
       if (data.selectedOptions && Object.keys(data.selectedOptions).length > 0) {
         setSelectedOptions(data.selectedOptions);
       } else {
         const initialChoices = {};
-        const recs = data.savings?.recommendations || [];
         recs.forEach((rec, idx) => {
-          initialChoices[idx] = 'api';
+          const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
+          const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
+          initialChoices[idx] = apiSav >= subSav ? 'api' : 'subscription';
         });
         setSelectedOptions(initialChoices);
       }
@@ -875,27 +896,40 @@ export default function App() {
           />
         );
 
-      case 'step4':
+      case 'step4': {
+        const activeAudit = auditResult || SAMPLE_AUDIT_DATA;
+        const activeSelectedOptions = Object.keys(selectedOptions).length > 0 
+          ? selectedOptions 
+          : (activeAudit.selectedOptions || (() => {
+              const initial = {};
+              (activeAudit.savings?.recommendations || []).forEach((rec, idx) => {
+                const apiSav = rec.apiOption ? rec.apiOption.savings : -Infinity;
+                const subSav = rec.subscriptionOption ? rec.subscriptionOption.savings : -Infinity;
+                initial[idx] = apiSav >= subSav ? 'api' : 'subscription';
+              });
+              return initial;
+            })());
+
         return (
           <ActionPlanView 
-            auditResult={auditResult}
-            selectedOptions={selectedOptions}
+            auditResult={activeAudit}
+            selectedOptions={activeSelectedOptions}
             setSelectedOptions={setSelectedOptions}
             tokenAdjustments={tokenAdjustments}
             setTokenAdjustments={setTokenAdjustments}
             onNavigateToView={(view) => {
-              if (view === 'results' && auditResult?._id && token) {
+              if (view === 'results' && activeAudit?._id && token) {
                 // Persist choices to MongoDB
-                fetch(`${BACKEND_URL}/audits/${auditResult._id}/options`, {
+                fetch(`${BACKEND_URL}/audits/${activeAudit._id}/options`, {
                   method: 'PUT',
                   headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                   },
-                  body: JSON.stringify({ selectedOptions })
+                  body: JSON.stringify({ selectedOptions: activeSelectedOptions })
                 }).catch(err => console.error('Failed to save selected options:', err));
               }
-              if (view === 'results' && (auditResult?._id === 'sample_audit_2026' || auditResult?._id === '6a4fb719471a97ae89e88f49')) {
+              if (view === 'results' && (activeAudit?._id === 'sample_audit_2026' || activeAudit?._id === '6a4fb719471a97ae89e88f49')) {
                 setCurrentView('sample_report');
               } else {
                 setCurrentView(view);
@@ -903,6 +937,7 @@ export default function App() {
             }}
           />
         );
+      }
 
       case 'saved_plan':
       case 'saved_report':

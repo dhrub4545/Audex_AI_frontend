@@ -213,15 +213,21 @@ export default function FreeResultsView({
   return (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Navbar */}
-      <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 100, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
-        <div className="container" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '60px' }}>
-          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', flexShrink: 0 }}>
+      <header className="navbar subpage-navbar">
+        <div className="container subpage-nav-container">
+          <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="brand subpage-brand">
             <img src={logoImg} alt="Audex AI Logo" className="brand-logo" />
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
-          <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>Back to Home</button>
-            <button onClick={() => onNavigateToView('step1')} className="btn btn-black" style={{ padding: '7px 12px', fontSize: '12px', fontWeight: '700' }}>New Audit</button>
+          <div className="nav-actions subpage-nav-actions">
+            <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn" title="Back to Home">
+              <span className="btn-text-full">Back to Home</span>
+              <span className="btn-text-short">Home</span>
+            </button>
+            <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start New Audit">
+              <span className="btn-text-full">New Audit</span>
+              <span className="btn-text-short">New</span>
+            </button>
           </div>
         </div>
       </header>
