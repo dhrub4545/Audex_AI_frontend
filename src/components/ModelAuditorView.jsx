@@ -671,37 +671,58 @@ export default function ModelAuditorView({
     <div className="app-container" style={{ backgroundColor: '#FCFCFD' }}>
       <style>{`
         .auditor-main-container {
-          padding: 48px 0;
+          padding: 40px 0;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow-x: hidden;
         }
         .auditor-title {
-          font-size: 36px;
+          font-size: clamp(22px, 3.8vw, 36px);
           font-weight: 800;
           letter-spacing: -0.02em;
           margin-bottom: 8px;
           line-height: 1.2;
+          color: #0F172A;
+        }
+        .auditor-main-layout {
+          display: grid;
+          grid-template-columns: 380px minmax(0, 1fr);
+          gap: 32px;
+          align-items: start;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
         .auditor-sidebar-card {
           padding: 24px;
           position: sticky;
-          top: 96px;
+          top: 88px;
           border: 1px solid var(--color-border);
-          background: rgba(255, 255, 255, 0.72);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           border-radius: 16px;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
         }
         .strategy-card {
           background: rgba(255, 255, 255, 0.72);
           backdrop-filter: blur(12px);
           -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(226, 232, 240, 0.7);
+          border: 1px solid rgba(226, 232, 240, 0.8);
           border-radius: 12px;
-          padding: 16px;
+          padding: 14px;
           cursor: pointer;
           display: flex;
           gap: 12px;
           align-items: flex-start;
-          transition: all 200ms ease;
+          transition: all 180ms ease;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
         .strategy-card:hover {
           transform: translateY(-2px);
@@ -709,43 +730,82 @@ export default function ModelAuditorView({
           border-color: #CBD5E1;
         }
         .strategy-card.selected {
-          background-color: rgba(236, 253, 245, 0.5);
+          background-color: rgba(236, 253, 245, 0.6);
           border-color: #10B981;
           border-width: 1.5px;
           box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+        }
+        .strategy-icon-box {
+          width: 36px;
+          height: 36px;
+          min-width: 36px;
+          min-height: 36px;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          transition: all 180ms ease;
         }
         .auditor-baseline-bar {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          background: rgba(255, 255, 255, 0.72);
+          background: rgba(255, 255, 255, 0.75);
           backdrop-filter: blur(18px);
           -webkit-backdrop-filter: blur(18px);
-          border: 1px solid rgba(255, 255, 255, 0.75);
-          padding: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          padding: 22px 24px;
           border-radius: 18px;
           margin-bottom: 24px;
           box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.18), 0 0 22px rgba(16, 185, 129, 0.08), 0 12px 40px rgba(15, 23, 42, 0.06);
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          gap: 16px;
         }
         .intel-rank-row {
           display: flex;
-          background: rgba(255, 255, 255, 0.72) !important;
+          background: rgba(255, 255, 255, 0.75) !important;
           backdrop-filter: blur(12px) !important;
           -webkit-backdrop-filter: blur(12px) !important;
-          border: 1px solid rgba(226, 232, 240, 0.7) !important;
-          border-radius: 12px;
-          transition: all 200ms ease;
+          border: 1px solid rgba(226, 232, 240, 0.8) !important;
+          border-radius: 14px;
+          transition: all 180ms ease;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
         .intel-rank-row:hover {
           transform: translateY(-2px);
-          border-color: rgba(16, 185, 129, 0.3) !important;
-          background-color: rgba(255, 255, 255, 0.85) !important;
-          box-shadow: 0 8px 16px rgba(15, 23, 42, 0.05) !important;
+          border-color: rgba(16, 185, 129, 0.35) !important;
+          background-color: rgba(255, 255, 255, 0.95) !important;
+          box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
         }
         .intel-rank-row.selected {
           border-color: var(--color-green-primary) !important;
-          background-color: rgba(236, 253, 245, 0.5) !important;
-          box-shadow: 0 0 12px rgba(16, 185, 129, 0.15) !important;
+          background-color: rgba(236, 253, 245, 0.6) !important;
+          box-shadow: 0 0 16px rgba(16, 185, 129, 0.18) !important;
+        }
+        .intel-rank-number {
+          width: 26px;
+          height: 26px;
+          min-width: 26px;
+          min-height: 26px;
+          border-radius: 50%;
+          font-size: 11.5px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background: #F1F5F9;
+          color: #64748B;
+        }
+        .intel-rank-number.is-top-three {
+          background: #ECFDF5;
+          color: #059669;
+          border: 1px solid #A7F3D0;
         }
         .auditor-rec-row {
           display: flex;
@@ -754,26 +814,34 @@ export default function ModelAuditorView({
           padding: 16px 20px;
           gap: 16px;
           cursor: pointer;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
         .auditor-rec-left {
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 12px;
           min-width: 0;
           flex: 1;
+          overflow: hidden;
         }
         .auditor-rec-right {
           display: flex;
           align-items: center;
-          gap: 14px;
+          gap: 12px;
           flex-shrink: 0;
         }
         .auditor-deep-compare-card {
-          margin-top: 32px;
+          margin-top: 28px;
           border: 1px solid var(--color-border);
           border-radius: 16px;
-          padding: 28px;
+          padding: 24px;
           background-color: #F8FAFC;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
+          overflow: hidden;
         }
         .auditor-deep-compare-header {
           display: flex;
@@ -781,6 +849,8 @@ export default function ModelAuditorView({
           align-items: center;
           margin-bottom: 20px;
           gap: 12px;
+          width: 100%;
+          box-sizing: border-box;
         }
         .auditor-table-wrapper {
           border: 1px solid var(--color-border);
@@ -788,7 +858,11 @@ export default function ModelAuditorView({
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
           background-color: #FFFFFF;
+          width: 100%;
+          max-width: 100%;
+          box-sizing: border-box;
         }
+        
         /* Custom Select styling */
         select.modern-select {
           appearance: none;
@@ -803,6 +877,7 @@ export default function ModelAuditorView({
           border-color: var(--color-green-primary) !important;
           box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1) !important;
         }
+        
         /* Range slider customizations */
         input[type="range"].modern-slider {
           -webkit-appearance: none;
@@ -811,11 +886,12 @@ export default function ModelAuditorView({
           background: #E2E8F0;
           border-radius: 999px;
           outline: none;
+          touch-action: manipulation;
         }
         input[type="range"].modern-slider::-webkit-slider-thumb {
           -webkit-appearance: none;
-          width: 16px;
-          height: 16px;
+          width: 18px;
+          height: 18px;
           border-radius: 50%;
           background: var(--color-green-primary);
           cursor: pointer;
@@ -825,71 +901,135 @@ export default function ModelAuditorView({
         input[type="range"].modern-slider::-webkit-slider-thumb:hover {
           transform: scale(1.15);
         }
+
+        /* Responsive Breakpoints */
         @media (max-width: 1024px) {
+          .auditor-main-layout {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 24px !important;
+          }
           .auditor-sidebar-card {
             position: static !important;
-            margin-bottom: 24px !important;
+            margin-bottom: 0 !important;
+            padding: 20px 16px !important;
           }
         }
-        @media (max-width: 640px) {
+
+        @media (max-width: 768px) {
           .auditor-main-container {
             padding: 24px 0 !important;
           }
           .auditor-title {
-            font-size: 24px !important;
+            font-size: clamp(22px, 5vw, 28px) !important;
+          }
+          .auditor-baseline-bar {
+            padding: 18px 16px !important;
+            gap: 14px !important;
+          }
+          .auditor-rec-row {
+            padding: 14px 14px !important;
+          }
+          .auditor-deep-compare-card {
+            padding: 18px 14px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .auditor-main-container {
+            padding: 20px 0 !important;
+          }
+          .auditor-title {
+            font-size: 22px !important;
           }
           .auditor-sidebar-card {
-            padding: 16px 14px !important;
+            padding: 16px 12px !important;
+            border-radius: 14px !important;
           }
           .strategy-card {
             padding: 12px 10px !important;
           }
           .auditor-baseline-bar {
             flex-direction: column !important;
-            align-items: flex-start !important;
-            padding: 18px 14px !important;
-            gap: 16px !important;
+            align-items: stretch !important;
+            padding: 16px 12px !important;
+            gap: 12px !important;
           }
           .auditor-rec-row {
             flex-direction: column !important;
             align-items: stretch !important;
-            padding: 14px 12px !important;
-            gap: 12px !important;
+            padding: 12px 10px !important;
+            gap: 10px !important;
           }
           .auditor-rec-right {
             justify-content: space-between !important;
             width: 100% !important;
-            border-top: 1px solid rgba(226, 232, 240, 0.6);
-            padding-top: 10px;
+            border-top: 1px solid rgba(226, 232, 240, 0.7) !important;
+            padding-top: 10px !important;
+            margin-top: 2px !important;
           }
           .auditor-deep-compare-card {
             padding: 16px 12px !important;
+            border-radius: 14px !important;
           }
           .auditor-deep-compare-header {
             flex-direction: column !important;
-            align-items: flex-start !important;
+            align-items: stretch !important;
+            gap: 12px !important;
           }
           .auditor-deep-compare-header > div {
             width: 100% !important;
-            display: flex !important;
+            display: grid !important;
+            grid-template-columns: 1fr 1fr !important;
             gap: 8px !important;
           }
           .auditor-deep-compare-header button {
-            flex: 1 !important;
+            width: 100% !important;
             justify-content: center !important;
+            padding: 8px 12px !important;
+            font-size: 11.5px !important;
+          }
+          .grid-auto-fit-sm {
+            grid-template-columns: 1fr !important;
+            gap: 8px !important;
           }
           .auditor-tooltip-card {
             position: fixed !important;
-            left: 12px !important;
-            right: 12px !important;
-            bottom: 12px !important;
+            left: 10px !important;
+            right: 10px !important;
+            bottom: 10px !important;
             top: auto !important;
             width: auto !important;
-            max-width: 100% !important;
+            max-width: calc(100vw - 20px) !important;
             max-height: 80vh !important;
             pointer-events: auto !important;
             box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.28) !important;
-            border-radius: 20px !important;
+            border-radius: 18px !important;
+          }
+        }
+
+        @media (max-width: 420px) {
+          .auditor-main-container {
+            padding: 16px 0 !important;
+          }
+          .auditor-sidebar-card {
+            padding: 14px 10px !important;
+            border-radius: 12px !important;
+          }
+          .strategy-card {
+            padding: 10px 8px !important;
+          }
+          .auditor-deep-compare-header > div {
+            grid-template-columns: 1fr !important;
+          }
+          .intel-rank-row {
+            border-radius: 10px !important;
+          }
+          .auditor-table-wrapper table {
+            font-size: 11.5px !important;
+          }
+          .auditor-table-wrapper td,
+          .auditor-table-wrapper th {
+            padding: 8px 10px !important;
           }
         }
       `}</style>
