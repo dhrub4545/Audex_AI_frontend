@@ -547,16 +547,21 @@ export default function WizardFlow({
   const [step1ViewMode, setStep1ViewMode] = useState('sub'); // 'sub', 'api'
   const [apiProviderFilter, setApiProviderFilter] = useState('ALL');
   const [dbModels, setDbModels] = useState([
+    { id: 'google/gemini-4-carbon', name: 'Google: Gemini 4 Carbon', developer: 'Google' },
+    { id: 'anthropic/claude-opus-5-5', name: 'Anthropic: Claude Opus 5.5', developer: 'Anthropic' },
+    { id: 'openai/gpt-6-astra', name: 'OpenAI: GPT-6 Astra', developer: 'OpenAI' },
+    { id: 'openai/gpt-6-1-sol', name: 'OpenAI: GPT-6.1 Sol', developer: 'OpenAI' },
+    { id: 'anthropic/claude-sonnet-5-5', name: 'Anthropic: Claude Sonnet 5.5', developer: 'Anthropic' },
+    { id: 'google/gemini-4-argon', name: 'Google: Gemini 4 Argon', developer: 'Google' },
+    { id: 'anthropic/claude-fable-5-1', name: 'Anthropic: Claude Fable 5.1', developer: 'Anthropic' },
+    { id: 'deepseek/deepseek-v4-pro', name: 'DeepSeek: DeepSeek V4 Pro', developer: 'DeepSeek' },
+    { id: 'deepseek/deepseek-v4-flash', name: 'DeepSeek: DeepSeek V4 Flash', developer: 'DeepSeek' },
+    { id: 'alibaba/qwen3-7-max', name: 'Alibaba: Qwen 3.7 Max', developer: 'Alibaba' },
     { id: 'openai/gpt-5-6-sol', name: 'OpenAI: GPT-5.6 Sol', developer: 'OpenAI' },
     { id: 'anthropic/claude-opus-5', name: 'Anthropic: Claude Opus 5', developer: 'Anthropic' },
     { id: 'google/gemini-3-7-flash', name: 'Google: Gemini 3.7 Flash', developer: 'Google' },
     { id: 'x-ai/grok-4-6', name: 'xAI: Grok 4.6', developer: 'xAI' },
-    { id: 'deepseek/deepseek-v4-pro', name: 'DeepSeek: DeepSeek V4 Pro', developer: 'DeepSeek' },
-    { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5', developer: 'Anthropic' },
-    { id: 'openai/gpt-5-5-pro', name: 'OpenAI: GPT-5.5 Pro', developer: 'OpenAI' },
-    { id: 'google/gemini-3-5-flash', name: 'Google: Gemini 3.5 Flash', developer: 'Google' },
-    { id: 'anthropic/claude-3-7-sonnet', name: 'Anthropic: Claude 3.7 Sonnet', developer: 'Anthropic' },
-    { id: 'alibaba/qwen3-5-omni-plus', name: 'Alibaba: Qwen 3.5 Omni Plus', developer: 'Alibaba' }
+    { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5', developer: 'Anthropic' }
   ]);
 
   // Fetch available models from backend for API dropdowns (cached)

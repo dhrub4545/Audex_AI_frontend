@@ -111,6 +111,16 @@ const getNormalizedProvider = (provOrId) => {
 };
 
 const POPULAR_MODELS = [
+  { id: 'google/gemini-4-carbon', name: 'Google: Gemini 4 Carbon (High)' },
+  { id: 'anthropic/claude-opus-5-5', name: 'Anthropic: Claude Opus 5.5 (Max)' },
+  { id: 'openai/gpt-6-astra', name: 'OpenAI: GPT-6 Astra (Max)' },
+  { id: 'openai/gpt-6-1-sol', name: 'OpenAI: GPT-6.1 Sol (Max)' },
+  { id: 'anthropic/claude-sonnet-5-5', name: 'Anthropic: Claude Sonnet 5.5 (Max)' },
+  { id: 'google/gemini-4-argon', name: 'Google: Gemini 4 Argon (High)' },
+  { id: 'anthropic/claude-fable-5-1', name: 'Anthropic: Claude Fable 5.1 (Max)' },
+  { id: 'deepseek/deepseek-v4-pro', name: 'DeepSeek: DeepSeek V4 Pro (Max)' },
+  { id: 'deepseek/deepseek-v4-flash', name: 'DeepSeek: DeepSeek V4 Flash (Max)' },
+  { id: 'alibaba/qwen3-7-max', name: 'Alibaba: Qwen 3.7 Max' },
   { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5 (Max, Opus 4.8 Fallback)' },
   { id: 'openai/gpt-4o', name: "OpenAI: GPT-4o (Nov '24)" },
   { id: 'anthropic/claude-3-5-sonnet', name: "Anthropic: Claude 3.5 Sonnet (Oct '24)" },
@@ -119,7 +129,6 @@ const POPULAR_MODELS = [
   { id: 'anthropic/claude-opus-4-8', name: 'Anthropic: Claude Opus 4.8 (Max)' },
   { id: 'deepseek/deepseek-chat', name: 'DeepSeek: DeepSeek V3' },
   { id: 'google/gemini-3-1-pro-preview', name: 'Google: Gemini 3.1 Pro Preview' },
-  { id: 'alibaba/qwen3-7-max', name: 'Alibaba: Qwen 3.7 Max' },
   { id: 'openai/gpt-4o-mini', name: 'OpenAI: GPT-4o mini' }
 ];
 
@@ -413,7 +422,7 @@ export default function ModelAuditorView({
   /* onPurchase */
 }) {
 
-  const [currentModelId, setCurrentModelId] = useState('anthropic/claude-fable-5');
+  const [currentModelId, setCurrentModelId] = useState('google/gemini-4-carbon');
   const [localTargetUseCase, setLocalTargetUseCase] = useState('Mixed');
   const targetUseCase = propTargetUseCase !== undefined ? propTargetUseCase : localTargetUseCase;
   const setTargetUseCase = propSetTargetUseCase !== undefined ? propSetTargetUseCase : setLocalTargetUseCase;
