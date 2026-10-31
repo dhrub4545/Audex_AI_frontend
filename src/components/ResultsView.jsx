@@ -620,7 +620,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
 export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, fromHistory, tokenAdjustments = {}, isSample, onPurchase }) {
   const [intelData, setIntelData] = useState(null);
   const userPlan = (user?.plan || 'free').toLowerCase();
-  const isStarter = userPlan === 'free' && (auditResult?.tierUsed === 'starter' || auditResult?.isUnlocked === false);
+  const isStarter = false;
   const [showDetailedReport, setShowDetailedReport] = useState(true);
 
   useEffect(() => {
@@ -760,7 +760,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
       <main className="main-content" style={{ padding: '48px 0' }}>
         <div className="container">
 
-          {auditResult.isUnlocked === false && (
+          {false && (
             <div style={{
               backgroundColor: '#FEF3C7',
               border: '1.5px solid #F59E0B',

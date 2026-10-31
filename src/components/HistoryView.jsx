@@ -104,15 +104,7 @@ export default function HistoryView({
                   <div className="history-card-header">
                     <div>
                       <span className="history-card-date" style={{ fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        {audit.isUnlocked === false ? (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#FEF3C7', color: '#D97706', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
-                            <Lock size={10} /> Locked
-                          </span>
-                        ) : (
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#ECFDF5', color: '#10B981', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}>
-                            <ShieldCheck size={10} /> Unlocked
-                          </span>
-                        )}
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#ECFDF5', color: '#10B981', padding: '2px 6px', borderRadius: '4px', fontSize: '9px', fontWeight: '800', textTransform: 'uppercase' }}><ShieldCheck size={10} /> Unlocked</span>
                         <span>
                           {new Date(audit.createdAt).toLocaleDateString(undefined, {
                             year: 'numeric',

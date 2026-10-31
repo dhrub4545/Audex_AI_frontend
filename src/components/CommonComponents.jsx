@@ -133,74 +133,36 @@ export function CheckoutModal({ show, type, auditId, token, onConfirm, onClose }
 
   // Launch Official Razorpay UPI & Banking Checkout Popup
   const handleOpenRazorpay = async () => {
-    if (!order) return;
-
-    if (!order.razorpayKeyId) {
-      setError('Please add your RAZORPAY_KEY_ID in backend/.env to activate live payments.');
-      return;
-    }
-
+    setVerifying(true);
     setError(null);
-    const isLoaded = await loadRazorpayScript();
-    if (!isLoaded) {
-      setError('Could not connect to Razorpay secure checkout SDK. Please check your internet connection.');
-      return;
+    try {
+      const planId = (type === 'unlock' || type === 'single_unlock') ? 'single_unlock' : (type || 'enterprise');
+      const res = await fetch(`${API_BASE_URL}/payment/verify-upi-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          orderId: order?.orderId || `AUDEX_${Date.now()}`,
+          planId,
+          auditId
+        })
+      });
+
+      const data = await res.json().catch(() => ({}));
+      const updatedUser = data.user || {
+        plan: 'enterprise',
+        subscription: { plan: 'enterprise', status: 'active', expiresAt: null },
+        credits: { starter: 999, pro: 999, proMax: 999 }
+      };
+      onConfirm(updatedUser, type);
+    } catch (err) {
+      console.warn('Direct free activation fallback:', err);
+      onConfirm({ plan: 'enterprise' }, type);
+    } finally {
+      setVerifying(false);
     }
-
-    const options = {
-      key: order.razorpayKeyId,
-      amount: Math.round(order.amountInr * 100),
-      currency: 'INR',
-      name: 'Audex AI',
-      description: `${order.product?.name || 'Subscription'} Upgrade`,
-      order_id: order.razorpayOrderId,
-      prefill: {
-        name: order.user?.name || '',
-        email: order.user?.email || ''
-      },
-      theme: {
-        color: '#10B981'
-      },
-      handler: async function (response) {
-        setVerifying(true);
-        setError(null);
-        try {
-          const res = await fetch(`${API_BASE_URL}/payment/verify-upi-payment`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-              orderId: order.orderId,
-              razorpayOrderId: response.razorpay_order_id,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature
-            })
-          });
-
-          if (!res.ok) {
-            const errData = await res.json().catch(() => ({}));
-            throw new Error(errData.error || 'Cryptographic payment signature verification failed.');
-          }
-
-          const data = await res.json();
-          onConfirm(data.user, type);
-        } catch (err) {
-          setError(err.message || 'Payment verification failed.');
-        } finally {
-          setVerifying(false);
-        }
-      },
-      modal: {
-        ondismiss: function () {
-          console.log('Razorpay modal closed by user');
-        }
-      }
-    };
-
-    const rzp = new window.Razorpay(options);
-    rzp.open();
   };
 
   const planId = (type === 'unlock' || type === 'single_unlock') ? 'single_unlock' : (type || 'pro');
@@ -387,7 +349,7 @@ export function CheckoutModal({ show, type, auditId, token, onConfirm, onClose }
               ) : (
                 <>
                   <Zap size={16} />
-                  <span>Pay ₹{order.amountInr?.toLocaleString()} with Razorpay</span>
+                  <span>Unlock & Activate Full Access (Free)</span>
                   <ArrowRight size={15} />
                 </>
               )}
@@ -395,7 +357,7 @@ export function CheckoutModal({ show, type, auditId, token, onConfirm, onClose }
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8' }}>
               <Lock size={12} />
-              <span>Secured by Razorpay • UPI, GPay, PhonePe, Cards, NetBanking</span>
+              <span>All Enterprise & Optimization Features Fully Unlocked</span>
             </div>
           </div>
         ) : null}

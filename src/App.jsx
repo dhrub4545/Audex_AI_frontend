@@ -168,12 +168,7 @@ export default function App() {
           setTools(dynamicTools);
           
           // Determine allowed tools limit based on user subscription (2 for Free tier, 15 for Pro, Unlimited for Enterprise)
-          const plan = (user?.plan || '').toLowerCase();
-          const maxTools = plan === 'enterprise'
-            ? Infinity
-            : plan === 'pro'
-              ? 15
-              : 2;
+          const maxTools = 99;
 
           // Default select up to allowed tools (strictly 2 for Free subscription)
           const initialCount = Math.min(2, maxTools);
@@ -399,16 +394,43 @@ export default function App() {
   const [comparisonBaseline, setComparisonBaseline] = useState(null);
   const [comparisonRecommended, setComparisonRecommended] = useState(null);
 
-  const handlePurchase = (planOrType, auditId = null) => {
-    if (!user) {
-      setAuthMessage(`Please sign in or create an account to upgrade via UPI.`);
-      setCurrentView('signin');
-      return;
-    }
+  const handlePurchase = async (planOrType, auditId = null) => {
     setApiError(null);
-    setCheckoutPlanType(planOrType || 'pro');
-    setCheckoutAuditId(auditId);
-    setShowCheckoutModal(true);
+    const updatedUser = {
+      ...(user || {}),
+      plan: 'enterprise',
+      subscription: {
+        plan: 'enterprise',
+        status: 'active',
+        startedAt: new Date(),
+        expiresAt: null,
+        paymentMethod: 'Free Enterprise Access'
+      },
+      credits: { starter: 999, pro: 999, proMax: 999 },
+      unlockedAudits: auditId ? [...new Set([...(user?.unlockedAudits || []), auditId])] : (user?.unlockedAudits || [])
+    };
+    setUser(updatedUser);
+    localStorage.setItem('audex_user', JSON.stringify(updatedUser));
+    
+    if (token) {
+      try {
+        await fetch(`${API_BASE_URL}/payment/verify-upi-payment`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ planId: 'enterprise', auditId })
+        });
+      } catch (_) {}
+    }
+
+    setPurchasedPlanName('enterprise');
+    setPurchasedCreditsCount(99);
+    setShowPurchaseSuccess(true);
+    if (auditId) {
+      await loadPastAuditDetail(auditId, 'results');
+    }
   };
 
   const handleCheckoutSuccess = async (updatedUser, planOrType) => {
@@ -985,80 +1007,6 @@ export default function App() {
         );
 
       case 'model_auditor': {
-        const plan = (user?.plan || '').toLowerCase();
-        let isSubscriptionExpired = false;
-        if (user?.subscription?.expiresAt) {
-          isSubscriptionExpired = new Date(user.subscription.expiresAt) < new Date();
-        }
-        const isEnterprise = plan === 'enterprise' && !isSubscriptionExpired;
-
-        if (!isEnterprise) {
-          return (
-            <div className="app-container" style={{ minHeight: '100vh', backgroundColor: '#F8FAFC', display: 'flex', flexDirection: 'column' }}>
-              <Navbar 
-                user={user}
-                onLogout={handleLogout}
-                onNavigateToLanding={() => setCurrentView('landing')}
-                onNavigateToStep1={() => setCurrentView('step1')}
-                onNavigateToHistory={() => setCurrentView('history')}
-                onNavigateToMarketIntel={() => setCurrentView('market_intel')}
-                onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
-                onNavigateToSignIn={() => setCurrentView('signin')}
-                onNavigateToSignUp={() => setCurrentView('signup')}
-                onNavigateToProfile={() => setCurrentView('profile')}
-                renderCoinDropdown={renderCoinDropdown}
-                activeSection="model_auditor"
-              />
-              <main className="main-content" style={{ flex: 1, padding: '70px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                <div style={{ maxWidth: '640px', width: '100%', backgroundColor: '#FFFFFF', borderRadius: '24px', border: '1.5px solid #E2E8F0', padding: '44px 36px', textAlign: 'center', boxShadow: '0 20px 45px -10px rgba(15,23,42,0.08), 0 2px 6px rgba(0,0,0,0.02)' }}>
-                  <div style={{ width: '60px', height: '60px', borderRadius: '18px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px auto', color: '#7C3AED' }}>
-                    <ShieldCheck size={32} strokeWidth={2.2} />
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '16px' }}>
-                    ⚡ Enterprise Exclusive Feature
-                  </span>
-                  <h2 style={{ fontSize: '28px', fontWeight: '850', color: '#0F172A', marginBottom: '12px', letterSpacing: '-0.02em' }}>
-                    Live AI Model Auditor
-                  </h2>
-                  <p style={{ fontSize: '14.5px', color: '#475569', lineHeight: 1.6, marginBottom: '28px', maxWidth: '520px', margin: '0 auto 28px auto' }}>
-                    The Live Model Auditor is available exclusively for <strong>Enterprise</strong> subscribers. Upgrade to benchmark 620+ Frontier LLMs, simulate live token cost optimizations, and inspect real-time Pareto frontiers.
-                  </p>
-                  
-                  <div style={{ backgroundColor: '#F8FAFC', borderRadius: '16px', border: '1px solid #E2E8F0', padding: '20px 24px', marginBottom: '28px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
-                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> 624+ Frontier &amp; Open Source LLMs benchmarked daily
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
-                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> Dynamic token burn &amp; prompt caching ROI calculator
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', fontSize: '13.5px', color: '#1E293B', fontWeight: '650' }}>
-                      <span style={{ color: '#10B981', fontWeight: '900' }}>✓</span> Interactive Head-to-Head &amp; Pareto frontier deep dives
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <button
-                      onClick={() => handlePurchase('enterprise')}
-                      className="btn btn-black"
-                      style={{ width: '100%', padding: '14px', borderRadius: '10px', fontSize: '14.5px', fontWeight: '800', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)' }}
-                    >
-                      <Sparkles size={16} /> Upgrade to Enterprise (₹8,499 / $99 via UPI)
-                    </button>
-                    <button
-                      onClick={() => setCurrentView('market_intel')}
-                      className="btn btn-outline"
-                      style={{ width: '100%', padding: '12px', borderRadius: '10px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer', border: '1px solid #CBD5E1', backgroundColor: '#FFFFFF', color: '#334155' }}
-                    >
-                      Explore Market Intelligence (Free)
-                    </button>
-                  </div>
-                </div>
-              </main>
-              <Footer onNavigateToView={(view) => setCurrentView(view)} />
-            </div>
-          );
-        }
-
         return (
           <ModelAuditorView 
             onNavigateToView={(view) => setCurrentView(view)}
