@@ -626,6 +626,117 @@ export default function ModelAuditorView({
     fetchModels();
   }, []);
 
+  // Resilient client-side fallback computation from cached intelData
+  const computeClientFallback = useCallback((modelId, useCase, totalTokens, inRatio, goal, cutPct, data) => {
+    if (!data?.categories) return null;
+    const catKey = {
+      'Coding': 'coding',
+      'Reasoning': 'reasoning',
+      'Math': 'math',
+      'Writing': 'creative-writing',
+      'Research': 'research',
+      'Mixed': 'overall'
+    }[useCase] || 'overall';
+
+    const catList = data.categories[catKey] || data.categories.overall || [];
+    if (!catList || catList.length === 0) return null;
+
+    const baseSlug = (modelId.split('/')[1] || modelId).toLowerCase();
+    let baseModel = catList.find(m => (m.modelId && m.modelId.toLowerCase() === modelId.toLowerCase()) || (m.slug && m.slug.toLowerCase() === baseSlug)) ||
+                    data.categories.overall?.find(m => (m.modelId && m.modelId.toLowerCase() === modelId.toLowerCase()) || (m.slug && m.slug.toLowerCase() === baseSlug));
+    if (!baseModel) baseModel = catList[0];
+
+    const calcCost = (m) => {
+      const inP = Number(m.pricing?.price_1m_input_tokens || 1.5);
+      const outP = Number(m.pricing?.price_1m_output_tokens || 6.0);
+      return (totalTokens * inRatio / 1000000 * inP) + (totalTokens * (1 - inRatio) / 1000000 * outP);
+    };
+
+    const normRating = (r) => r ? Math.round(Math.min(99, Math.max(35, 50 + ((Number(r) - 1000) / 327) * 49))) : 75;
+    const normRank = (rk) => {
+      if (!rk || rk <= 0) return 75;
+      if (rk === 1) return 99;
+      if (rk <= 3) return 98;
+      if (rk <= 10) return Math.round(97 - (rk - 3) * 0.4);
+      if (rk <= 50) return Math.round(94 - ((rk - 10) / 40) * 6);
+      return Math.round(Math.max(40, 88 - ((rk - 50) / 250) * 20));
+    };
+
+    const getScore = (m) => {
+      const rkScore = normRank(m.rank);
+      const rScore = normRating(m.rating);
+      return Math.round(rScore * 0.6 + rkScore * 0.4);
+    };
+
+    const baseCost = calcCost(baseModel);
+    const baseScore = getScore(baseModel);
+
+    const candidates = catList
+      .filter(m => m.slug !== baseModel.slug && m.modelId !== baseModel.modelId)
+      .map(m => {
+        const cost = calcCost(m);
+        const score = getScore(m);
+        const savingsMo = baseCost - cost;
+        const savingsYr = savingsMo * 12;
+        const savingsPct = baseCost > 0 ? (savingsMo / baseCost) * 100 : 0;
+        return {
+          _id: m.modelId,
+          modelId: m.modelId,
+          slug: m.slug,
+          name: m.name,
+          developer: m.organization || 'Unknown',
+          provider: m.organization || 'Unknown',
+          cost_per_m_input: m.pricing?.price_1m_input_tokens || 1,
+          cost_per_m_output: m.pricing?.price_1m_output_tokens || 4,
+          monthly_cost: Math.round(cost),
+          annual_cost: Math.round(cost * 12),
+          category_score: score,
+          category_rank: m.rank,
+          rating: m.rating,
+          projected_monthly_savings: Math.round(savingsMo),
+          projected_annual_savings: Math.round(savingsYr),
+          projected_savings_percentage: Math.round(savingsPct),
+          tokens_per_second: Math.round(m.median_output_tokens_per_second || 75),
+          time_to_first_token_ms: Math.round((m.median_time_to_first_token_seconds || 0.4) * 1000),
+          evaluations: m.evaluations || {},
+          pricing: m.pricing || {}
+        };
+      });
+
+    let recs = [];
+    if (goal === 'cost') {
+      const maxBudget = baseCost * (1 - (cutPct || 50) / 100);
+      recs = candidates.filter(c => c.monthly_cost <= maxBudget).sort((a, b) => b.category_score - a.category_score);
+    } else if (goal === 'quality') {
+      recs = candidates.sort((a, b) => b.category_score - a.category_score);
+    } else {
+      // performance preservation (tolerance -3%)
+      recs = candidates.filter(c => c.category_score >= (baseScore - 3) && c.monthly_cost < baseCost).sort((a, b) => a.monthly_cost - b.monthly_cost);
+    }
+
+    return {
+      currentBaseline: {
+        _id: baseModel.modelId,
+        modelId: baseModel.modelId,
+        slug: baseModel.slug,
+        name: baseModel.name,
+        developer: baseModel.organization || 'Google',
+        provider: baseModel.organization || 'Google',
+        cost_per_m_input: baseModel.pricing?.price_1m_input_tokens || 1,
+        cost_per_m_output: baseModel.pricing?.price_1m_output_tokens || 4,
+        monthly_cost: Math.round(baseCost),
+        category_score: baseScore,
+        category_rank: baseModel.rank,
+        rating: baseModel.rating,
+        tokens_per_second: Math.round(baseModel.median_output_tokens_per_second || 75),
+        time_to_first_token_ms: Math.round((baseModel.median_time_to_first_token_seconds || 0.5) * 1000),
+        evaluations: baseModel.evaluations || {},
+        pricing: baseModel.pricing || {}
+      },
+      recommendations: recs.slice(0, 5)
+    };
+  }, []);
+
   // Fetch recommendations whenever controls are adjusted
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -681,7 +792,29 @@ export default function ModelAuditorView({
           setSelectedRecommendation(null);
         }
       } catch (err) {
-        console.error(err);
+        console.error('Audit recommendation network error, falling back to local dataset:', err);
+        // Resilient client-side fallback computation using cached intelData
+        if (intelData && intelData.categories) {
+          const fallbackData = computeClientFallback(
+            currentModelId,
+            targetUseCase,
+            monthlyInputTokens + monthlyOutputTokens,
+            (monthlyInputTokens + monthlyOutputTokens) > 0 ? (monthlyInputTokens / (monthlyInputTokens + monthlyOutputTokens)) : 0.8,
+            optimizationGoal,
+            costCutPercentage,
+            intelData
+          );
+          if (fallbackData) {
+            setResults(fallbackData);
+            if (fallbackData.recommendations && fallbackData.recommendations.length > 0) {
+              setSelectedRecommendation(fallbackData.recommendations[0]);
+            } else {
+              setSelectedRecommendation(null);
+            }
+            setError(null);
+            return;
+          }
+        }
         setError(err.message);
       } finally {
         setLoading(false);
@@ -693,7 +826,7 @@ export default function ModelAuditorView({
     }, 250); // debounce API requests while sliding
 
     return () => clearTimeout(delayDebounce);
-  }, [currentModelId, targetUseCase, monthlyInputTokens, monthlyOutputTokens, optimizationGoal, costCutPercentage, token]);
+  }, [currentModelId, targetUseCase, monthlyInputTokens, monthlyOutputTokens, optimizationGoal, costCutPercentage, token, intelData, computeClientFallback]);
 
   const handleApplyMigration = (rec) => {
     alert(`🎉 Migration Plan Initiated!\n\nTo transition from ${results?.currentBaseline?.name} to ${rec.name}:\n1. Obtain direct API keys from the provider (${rec.developer}).\n2. Initialize your client SDK and replace the model parameter with "${rec.modelId}".\n3. Projected annual savings: $${rec.projected_annual_savings.toLocaleString()}!`);
@@ -1658,7 +1791,7 @@ export default function ModelAuditorView({
                         Already Optimized
                       </h4>
                       <p style={{ fontSize: '13.5px', color: '#15803D', lineHeight: 1.5, margin: 0 }}>
-                        Your baseline model (<strong>{results?.currentBaseline?.name || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
+                        Your baseline model (<strong>{results?.currentBaseline?.name || modelOptions.find(o => o.value === currentModelId)?.label || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
                       </p>
                     </div>
                   ) : optimizationGoal === 'cost' ? (
