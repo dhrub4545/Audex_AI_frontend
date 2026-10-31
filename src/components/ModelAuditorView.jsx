@@ -27,7 +27,8 @@ import {
   ChevronDown,
   Check,
   Home,
-  Sparkles
+  Sparkles,
+  BadgeCheck
 } from 'lucide-react';
 
 const getNormalizedProvider = (provOrId) => {
@@ -409,7 +410,7 @@ export default function ModelAuditorView({
   setTargetUseCase: propSetTargetUseCase,
   token,
   user,
-  onPurchase
+  /* onPurchase */
 }) {
 
   const [currentModelId, setCurrentModelId] = useState('anthropic/claude-fable-5');
@@ -421,7 +422,7 @@ export default function ModelAuditorView({
   const [monthlyOutputTokens, setMonthlyOutputTokens] = useState(5000000); // 5M completion tokens
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [upgradeRequired, setUpgradeRequired] = useState(false);
+  const [_upgradeRequired, setUpgradeRequired] = useState(false);
   const [results, setResults] = useState(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
   const [availableModels, setAvailableModels] = useState(POPULAR_MODELS);
@@ -480,6 +481,7 @@ export default function ModelAuditorView({
   }, []);
 
   const resolveHoveredModelDetails = (rec) => {
+    if (!rec) return null;
     if (!intelData) return null;
     const catKey = {
       'Coding': 'coding',
@@ -616,14 +618,14 @@ export default function ModelAuditorView({
         if (!response.ok) {
           const errText = await response.text();
           let errMsg = 'Failed to compute recommendations from backend.';
-          let isUpgrade = response.status === 401 || response.status === 403;
+          let _isUpgrade = response.status === 401 || response.status === 403;
           try {
             const parsed = JSON.parse(errText);
             if (parsed && parsed.error) {
               errMsg = parsed.error;
             }
             if (parsed && parsed.upgradeRequired) {
-              isUpgrade = true;
+              _isUpgrade = true;
             }
           } catch (err) {
             console.error(err);
@@ -675,8 +677,8 @@ export default function ModelAuditorView({
       monthly_cost: results.currentBaseline.monthly_cost || 0
     };
 
-    const baselineDetails = resolveHoveredModelDetails(baselineRec);
-    const recommendedDetails = resolveHoveredModelDetails(rec);
+    const baselineDetails = resolveHoveredModelDetails(baselineRec) || baselineRec;
+    const recommendedDetails = resolveHoveredModelDetails(rec) || rec;
 
     if (onCompareModels) {
       onCompareModels(baselineDetails, recommendedDetails);
@@ -1324,27 +1326,27 @@ export default function ModelAuditorView({
 
             {/* Right Column: Recommendations & Calculations */}
             <div style={{ minWidth: 0 }}>
-              {false ? null : error && (
-                error.includes('Database is empty') ||
+              {error ? (
+                (error.includes('Database is empty') ||
                 error.includes('403') ||
                 error.includes('Key is missing') ||
                 error.toLowerCase().includes('failed to fetch') ||
                 error.toLowerCase().includes('fetch failed') ||
-                error.toLowerCase().includes('network error')
-              ) ? (
-                <div style={{ padding: '32px', backgroundColor: '#FFFBEB', border: '1px solid #FCD34D', color: '#B45309', borderRadius: '16px', marginBottom: '24px', textAlign: 'center' }}>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-                    <LoaderCircle size={48} className="animate-spin" style={{ color: '#B45309' }} />
+                error.toLowerCase().includes('network error')) ? (
+                  <div style={{ padding: '32px', backgroundColor: '#FFFBEB', border: '1px solid #FCD34D', color: '#B45309', borderRadius: '16px', marginBottom: '24px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                      <LoaderCircle size={48} className="animate-spin" style={{ color: '#B45309' }} />
+                    </div>
+                    <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Server Busy &amp; Hydrating</h3>
+                    <p style={{ fontSize: '14.5px', color: '#92400E', lineHeight: '1.6' }}>
+                      The background database is currently synchronizing live pricing and capability benchmarks from the Artificial Analysis API. Please wait a few seconds and adjust the filters to try again.
+                    </p>
                   </div>
-                  <h3 style={{ fontSize: '18px', fontWeight: '800', marginBottom: '8px' }}>Server Busy & Hydrating</h3>
-                  <p style={{ fontSize: '14.5px', color: '#92400E', lineHeight: '1.6' }}>
-                    The background database is currently synchronizing live pricing and capability benchmarks from the Artificial Analysis API. Please wait a few seconds and adjust the filters to try again.
-                  </p>
-                </div>
-              ) : error ? (
-                <div style={{ padding: '16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <LoaderCircle size={16} className="animate-spin" style={{ color: '#B91C1C' }} /> <strong>API Connection Error:</strong> {error}
-                </div>
+                ) : (
+                  <div style={{ padding: '16px', backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', color: '#B91C1C', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <LoaderCircle size={16} className="animate-spin" style={{ color: '#B91C1C' }} /> <strong>API Connection Error:</strong> {error}
+                  </div>
+                )
               ) : null}
 
               {/* Baseline stats bar */}
@@ -1430,10 +1432,10 @@ export default function ModelAuditorView({
                               </div>
                               <span className="intel-rank-name" style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
                                 <strong style={{ color: '#1E293B', fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {rec.name.replace(/^.*?:\s*/, '')}
+                                  {(rec.name || rec.modelId || 'Model').replace(/^.*?:\s*/, '')}
                                 </strong>
                                 <small style={{ color: '#64748B', fontSize: '11.5px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                  {rec.developer} · {rec.modelId.split('/')[1]}
+                                  {rec.developer || 'AI Provider'} · {(rec.modelId || '').includes('/') ? rec.modelId.split('/')[1] : (rec.modelId || 'model')}
                                 </small>
                               </span>
                             </div>

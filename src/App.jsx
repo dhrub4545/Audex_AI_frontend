@@ -110,6 +110,43 @@ const getViewTitle = (view) => {
   }
 };
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.error('UI Crash Caught by ErrorBoundary:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '80px 20px', textAlign: 'center', maxWidth: '600px', margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', fontSize: '24px' }}>
+            ⚠️
+          </div>
+          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>Something went wrong</h2>
+          <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
+            {this.state.error?.message || 'An unexpected error occurred while rendering this view.'}
+          </p>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+            <button onClick={() => window.location.href = '/'} className="btn btn-black" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '13.5px', fontWeight: '700' }}>
+              Return to Home
+            </button>
+            <button onClick={() => this.setState({ hasError: false, error: null })} className="btn btn-outline" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '13.5px', fontWeight: '700' }}>
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   // Navigation: 'landing', 'step1', 'step2', 'step3', 'loading', 'results', 'history', 'signin', 'signup', 'model_auditor', 'market_intel', 'sample_report'
   const [currentView, setCurrentView] = useState(() => {
@@ -154,8 +191,8 @@ export default function App() {
 
   // UPI Checkout Modal States
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
-  const [checkoutPlanType, setCheckoutPlanType] = useState('pro');
-  const [checkoutAuditId, setCheckoutAuditId] = useState(null);
+  const [checkoutPlanType] = useState('pro');
+  const [checkoutAuditId] = useState(null);
 
   const [auditResult, setAuditResult] = useState(null);
   const [pastAudits, setPastAudits] = useState([]);
@@ -428,7 +465,7 @@ export default function App() {
           },
           body: JSON.stringify({ planId: 'enterprise', auditId })
         });
-      } catch (_) {}
+      } catch (err) { console.warn('Free activation sync note:', err); }
     }
 
     setPurchasedPlanName('enterprise');
@@ -1143,9 +1180,11 @@ export default function App() {
 
   return (
     <>
-      <Suspense fallback={<LoadingIndicator />}>
-        {renderActiveView()}
-      </Suspense>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingIndicator />}>
+          {renderActiveView()}
+        </Suspense>
+      </ErrorBoundary>
       <CheckoutModal
         show={showCheckoutModal}
         type={checkoutPlanType}

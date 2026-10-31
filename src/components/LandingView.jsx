@@ -27,7 +27,7 @@ import {
 } from '@lobehub/icons';
 import turtleOutline from '../assets/Audex-outline.jpg';
 
-export default function LandingView({ onNavigateToStep1, onViewSample, onPurchase, onNavigateToModelAuditor, onNavigateToMarketIntel }) {
+export default function LandingView({ onNavigateToStep1, onViewSample, onPurchase, onNavigateToModelAuditor, /* onNavigateToMarketIntel */ }) {
   const pipelineRef = useRef(null);
   const [isPipelineAnimated, setIsPipelineAnimated] = useState(false);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);

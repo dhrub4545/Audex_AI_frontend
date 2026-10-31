@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 import { ShieldCheck, AlertCircle, Zap, CheckCircle2, Lock, ArrowRight } from 'lucide-react';
 
 // Dynamically load official Razorpay SDK
-const loadRazorpayScript = () => {
+const _loadRazorpayScript = () => {
   return new Promise((resolve) => {
     if (window.Razorpay) {
       resolve(true);

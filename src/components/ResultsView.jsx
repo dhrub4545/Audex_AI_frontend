@@ -619,7 +619,7 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
 
 export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, fromHistory, tokenAdjustments = {}, isSample, onPurchase }) {
   const [intelData, setIntelData] = useState(null);
-  const userPlan = (user?.plan || 'free').toLowerCase();
+  const _userPlan = (user?.plan || 'free').toLowerCase();
   const isStarter = false;
   const [showDetailedReport, setShowDetailedReport] = useState(true);
 
@@ -764,51 +764,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
       <main className="main-content" style={{ padding: '48px 0' }}>
         <div className="container">
 
-          {false && (
-            <div style={{
-              backgroundColor: '#FEF3C7',
-              border: '1.5px solid #F59E0B',
-              borderRadius: '16px',
-              padding: '20px 24px',
-              marginBottom: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '16px',
-              flexWrap: 'wrap',
-              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.12)'
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '14px', minWidth: '280px', flex: 1 }}>
-                <div style={{ width: '40px', height: '40px', borderRadius: '10px', backgroundColor: '#FDE68A', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#B45309', flexShrink: 0 }}>
-                  <Lock size={20} />
-                </div>
-                <div>
-                  <h4 style={{ margin: '0 0 2px 0', fontSize: '15px', fontWeight: '850', color: '#92400E' }}>
-                    Recommendations Locked (Free Tier Limit: 2 Tools)
-                  </h4>
-                  <p style={{ margin: 0, fontSize: '13px', color: '#78350F', lineHeight: '1.4' }}>
-                    This audit contains more than 2 tools. Unlock this specific report for <strong>₹1,599 ($19)</strong> or upgrade to <strong>Pro (₹2,499/mo)</strong> via UPI to reveal all models, providers, and migration scripts.
-                  </p>
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                <button
-                  onClick={() => onPurchase ? onPurchase('unlock', auditResult._id) : null}
-                  className="btn btn-black"
-                  style={{ padding: '10px 18px', fontSize: '12.5px', fontWeight: '800', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Sparkles size={14} /> Unlock This Report (₹1,599 / $19)
-                </button>
-                <button
-                  onClick={() => onPurchase ? onPurchase('pro') : null}
-                  className="btn btn-green"
-                  style={{ padding: '10px 18px', fontSize: '12.5px', fontWeight: '800', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Rocket size={14} /> Upgrade to Pro (₹2,499/mo)
-                </button>
-              </div>
-            </div>
-          )}
+          {null}
 
           {!showDetailedReport ? (
             <div style={{ maxWidth: '960px', margin: '0 auto' }}>
