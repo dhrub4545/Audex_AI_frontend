@@ -628,9 +628,8 @@ export default function ModelAuditorView({
           } catch (err) {
             console.error(err);
           }
-          if (isUpgrade) {
-            setUpgradeRequired(true);
-          }
+          // Enterprise features are unlocked for all users
+          setUpgradeRequired(false);
           throw new Error(errMsg);
         }
 
@@ -1325,29 +1324,7 @@ export default function ModelAuditorView({
 
             {/* Right Column: Recommendations & Calculations */}
             <div style={{ minWidth: 0 }}>
-              {upgradeRequired ? (
-                <div style={{ padding: '44px 32px', backgroundColor: '#FFFFFF', border: '1.5px solid #E2E8F0', borderRadius: '20px', textAlign: 'center', boxShadow: '0 12px 32px rgba(15, 23, 42, 0.06)', marginBottom: '24px' }}>
-                  <div style={{ width: '56px', height: '56px', borderRadius: '16px', backgroundColor: '#F5F3FF', border: '1.5px solid #DDD6FE', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', color: '#7C3AED' }}>
-                    <ShieldCheck size={28} strokeWidth={2.2} />
-                  </div>
-                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '4px 12px', borderRadius: '9999px', fontSize: '11px', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
-                    ⚡ Enterprise Subscription Required
-                  </span>
-                  <h3 style={{ fontSize: '24px', fontWeight: '800', color: '#0F172A', marginBottom: '10px' }}>
-                    Unlock Live AI Model Auditor
-                  </h3>
-                  <p style={{ fontSize: '14px', color: '#64748B', lineHeight: 1.6, maxWidth: '480px', margin: '0 auto 24px auto' }}>
-                    Live AI Model Auditing, dynamic token burn calculations, and Pareto frontier optimization require an active <strong>Enterprise</strong> subscription.
-                  </p>
-                  <button
-                    onClick={() => onPurchase ? onPurchase('enterprise') : onNavigateToView('landing')}
-                    className="btn btn-black"
-                    style={{ padding: '14px 28px', borderRadius: '10px', fontSize: '14.5px', fontWeight: '800', display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)' }}
-                  >
-                    <Sparkles size={16} /> Upgrade to Enterprise Plan
-                  </button>
-                </div>
-              ) : error && (
+              {false ? null : error && (
                 error.includes('Database is empty') ||
                 error.includes('403') ||
                 error.includes('Key is missing') ||

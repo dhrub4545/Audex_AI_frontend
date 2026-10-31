@@ -45,14 +45,20 @@ const BACKEND_URL = API_BASE_URL;
 const getViewFromUrl = () => {
   try {
     const params = new URLSearchParams(window.location.search);
-    const v = params.get('view');
+    let v = params.get('view');
+    if (!v) {
+      const rawPath = (window.location.pathname || '').replace(/^\/+|\/+$/g, '');
+      if (rawPath && rawPath !== 'index.html') {
+        v = rawPath;
+      }
+    }
     if (!v) {
       if (window.location.hash === '#pricing') return 'pricing_scroll';
       return 'landing';
     }
     const normalized = v.toLowerCase().replace(/[-_]/g, '');
-    if (normalized === 'modelauditor') return 'model_auditor';
-    if (normalized === 'marketintel') return 'market_intel';
+    if (normalized === 'modelauditor' || normalized === 'models' || normalized === 'auditor' || normalized === 'model') return 'model_auditor';
+    if (normalized === 'marketintel' || normalized === 'intel' || normalized === 'leaderboard') return 'market_intel';
     if (normalized === 'step1' || normalized === 'wizard' || normalized === 'audit') return 'step1';
     if (normalized === 'step2') return 'step2';
     if (normalized === 'step3') return 'step3';
@@ -854,6 +860,8 @@ export default function App() {
               onNavigateToStep1={() => setCurrentView('step1')} 
               onViewSample={handleViewSample}
               onPurchase={handlePurchase}
+              onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+              onNavigateToMarketIntel={() => setCurrentView('market_intel')}
             />
             <Footer 
               onNavigateToStep1={() => setCurrentView('step1')}
@@ -1116,11 +1124,17 @@ export default function App() {
             />
             <LandingView 
               onNavigateToStep1={() => setCurrentView('step1')} 
+              onViewSample={handleViewSample}
               onPurchase={handlePurchase}
+              onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+              onNavigateToMarketIntel={() => setCurrentView('market_intel')}
             />
             <Footer 
               onNavigateToStep1={() => setCurrentView('step1')}
               onNavigateToLanding={() => setCurrentView('landing')}
+              onViewSample={handleViewSample}
+              onNavigateToModelAuditor={() => setCurrentView('model_auditor')}
+              onNavigateToMarketIntel={() => setCurrentView('market_intel')}
             />
           </div>
         );

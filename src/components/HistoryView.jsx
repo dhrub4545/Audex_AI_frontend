@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Target,
   Sparkles,
+  Zap,
   Trash2,
   Lock,
   ShieldCheck,
@@ -61,6 +62,10 @@ export default function HistoryView({
           </a>
           <div className="nav-actions">
             {renderCoinDropdown && renderCoinDropdown()}
+            <button onClick={() => onNavigateToView('model_auditor')} className="btn btn-outline nav-action-btn" title="Live Model Auditor">
+              <Zap size={14} color="#10B981" />
+              <span className="nav-action-btn-text">Model Auditor</span>
+            </button>
             <button onClick={onLogout} className="btn btn-outline nav-action-btn" title="Sign Out">
               <LogOut size={14} />
               <span className="nav-action-btn-text">Sign out</span>

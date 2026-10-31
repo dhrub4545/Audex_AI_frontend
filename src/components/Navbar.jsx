@@ -356,8 +356,8 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           <a href="/?view=history" onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
             Reports History
           </a>
-          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 570+ Models in Live AI Model Auditor">
-            Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#F5F3FF', color: '#7C3AED', padding: '1px 5px', borderRadius: '4px', border: '1px solid #DDD6FE', letterSpacing: '0.04em' }}>ENT</span>
+          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 1,150+ Models in Live AI Model Auditor">
+            <Zap size={14} color="#10B981" /> Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #86EFAC', letterSpacing: '0.04em' }}>ENT</span>
           </a>
         </nav>
 
@@ -420,6 +420,11 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToProfile ? onNavigateToProfile() : null; }} className="user-menu-item">
                   <ShieldCheck size={14} color="#10B981" />
                   <span style={{ fontWeight: '600', color: '#0F172A' }}>Account &amp; Plan</span>
+                </button>
+                <button onClick={() => { setIsUserMenuOpen(false); onNavigateToModelAuditor(); }} className="user-menu-item">
+                  <Zap size={14} color="#10B981" />
+                  <span style={{ fontWeight: '600', color: '#0F172A' }}>Live Model Auditor</span>
+                  <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#F0FDF4', color: '#047857', padding: '1px 5px', borderRadius: '4px', border: '1px solid #BBF7D0', marginLeft: 'auto' }}>ENT</span>
                 </button>
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToHistory(); }} className="user-menu-item">
                   <FileText size={14} />
@@ -506,21 +511,15 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             )}
 
             <a 
-              href="#how-it-works" 
-              onClick={handleHowItWorksScroll} 
-              className={`mobile-link-item ${activeSection === 'how-it-works' ? 'active' : ''}`}
+              href="/?view=model-auditor" 
+              onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToModelAuditor(); }} 
+              className={`mobile-link-item ${activeSection === 'model_auditor' ? 'active' : ''}`}
+              style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}
             >
-              <span>How it works</span>
-              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
-            </a>
-            
-            <a 
-              href="#pricing" 
-              onClick={handlePricingScroll} 
-              className={`mobile-link-item ${activeSection === 'pricing' ? 'active' : ''}`}
-            >
-              <span>Pricing & Plans</span>
-              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#047857', fontWeight: '750' }}>
+                <Zap size={16} color="#10B981" /> Live AI Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #86EFAC' }}>UNLOCKED</span>
+              </span>
+              <span style={{ fontSize: '14px', color: '#047857', fontWeight: '700' }}>›</span>
             </a>
 
             <a 
@@ -542,13 +541,20 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             </a>
 
             <a 
-              href="/?view=model-auditor" 
-              onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToModelAuditor(); }} 
-              className={`mobile-link-item ${activeSection === 'model_auditor' ? 'active' : ''}`}
+              href="#how-it-works" 
+              onClick={handleHowItWorksScroll} 
+              className={`mobile-link-item ${activeSection === 'how-it-works' ? 'active' : ''}`}
             >
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', color: 'var(--color-green-primary)' }}>
-                Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#F5F3FF', color: '#7C3AED', padding: '1px 5px', borderRadius: '4px', border: '1px solid #DDD6FE' }}>ENT</span>
-              </span>
+              <span>How it works</span>
+              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
+            </a>
+            
+            <a 
+              href="#pricing" 
+              onClick={handlePricingScroll} 
+              className={`mobile-link-item ${activeSection === 'pricing' ? 'active' : ''}`}
+            >
+              <span>Pricing & Plans</span>
               <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
             </a>
           </div>

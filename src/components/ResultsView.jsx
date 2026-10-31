@@ -748,6 +748,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
               <Home size={14} />
               <span className="nav-action-btn-text">Home</span>
             </button>
+            <button onClick={() => onNavigateToView('model_auditor')} className="btn btn-outline nav-action-btn" title="Benchmark in Live Model Auditor">
+              <Zap size={14} color="#10B981" />
+              <span className="nav-action-btn-text">Model Auditor</span>
+            </button>
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start New Audit">
               <Sparkles size={14} />
               <span>New Audit</span>

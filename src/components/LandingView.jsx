@@ -27,7 +27,7 @@ import {
 } from '@lobehub/icons';
 import turtleOutline from '../assets/Audex-outline.jpg';
 
-export default function LandingView({ onNavigateToStep1, onViewSample, onPurchase }) {
+export default function LandingView({ onNavigateToStep1, onViewSample, onPurchase, onNavigateToModelAuditor, onNavigateToMarketIntel }) {
   const pipelineRef = useRef(null);
   const [isPipelineAnimated, setIsPipelineAnimated] = useState(false);
   const [activeFaqIndex, setActiveFaqIndex] = useState(null);
@@ -254,8 +254,13 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
         <div className="container hero-grid">
           <div className="hero-content">
             <div>
-              <span className="badge badge-green" style={{ marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                <ShieldCheck size={16} strokeWidth={2.2} /> Algorithmic AI Spend Auditing · Free to Start
+              <span 
+                onClick={onNavigateToModelAuditor} 
+                className="badge badge-green" 
+                style={{ marginBottom: '16px', display: 'inline-flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+                title="Launch Live AI Model Auditor"
+              >
+                <ShieldCheck size={16} strokeWidth={2.2} /> Algorithmic AI Spend Auditing · <strong style={{ color: 'var(--color-green-primary)', textDecoration: 'underline' }}>Explore Live Model Auditor →</strong>
               </span>
               <h1 className="hero-title">
                 Stop burning cash <br />
@@ -266,9 +271,17 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               Audex AI audits your enterprise subscriptions, detects duplicate licenses, and maps workload optimization paths in under 60 seconds.
             </p>
 
-            <div className="hero-cta">
+            <div className="hero-cta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
               <button onClick={onNavigateToStep1} className="btn btn-black" style={{ padding: '14px 28px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <Rocket size={18} /> Audit My AI Stack <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22C55E', marginLeft: '2px' }}></span>
+              </button>
+              <button 
+                onClick={onNavigateToModelAuditor} 
+                className="btn btn-outline" 
+                style={{ padding: '14px 22px', display: 'inline-flex', alignItems: 'center', gap: '8px', borderColor: '#10B981', color: '#047857', backgroundColor: '#F0FDF4', fontWeight: '750' }}
+                title="Benchmark 1,150+ Models in Live AI Model Auditor"
+              >
+                <Zap size={18} color="#10B981" /> Live Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #86EFAC' }}>FREE</span>
               </button>
               <button onClick={onViewSample} className="btn btn-outline" style={{ padding: '14px 28px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
                 <Eye size={18} /> See Sample Report
@@ -1685,6 +1698,15 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 <p className="pipeline-card-desc">
                   Cross-reference every model recommendation against standard benchmarks (coding, math, reasoning) to preserve response quality.
                 </p>
+                <div style={{ marginTop: '14px', marginBottom: '10px' }}>
+                  <button 
+                    onClick={onNavigateToModelAuditor} 
+                    className="btn btn-black" 
+                    style={{ padding: '8px 16px', fontSize: '12.5px', fontWeight: '750', display: 'inline-flex', alignItems: 'center', gap: '6px', borderRadius: '8px' }}
+                  >
+                    <Zap size={13} color="#34D399" /> Open Live Model Auditor <ArrowRight size={13} />
+                  </button>
+                </div>
                 <div className="mini-vis benchmark-vis">
                   <svg width="70" height="70" viewBox="0 0 100 100" className="radar-svg">
                     <polygon points="50,10 88,38 73,82 27,82 12,38" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
@@ -2425,11 +2447,11 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </div>
 
               <button
-                onClick={() => onPurchase('enterprise', 99)}
+                onClick={onNavigateToModelAuditor}
                 className="btn btn-black"
-                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}
+                style={{ width: '100%', padding: '12px', borderRadius: '8px', fontWeight: '750', cursor: 'pointer', backgroundColor: '#0F172A', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                Upgrade to Enterprise (₹8,499 / $99)
+                <Zap size={15} color="#34D399" /> Launch Model Auditor (Unlocked) <ArrowRight size={14} />
               </button>
             </div>
           </div>
