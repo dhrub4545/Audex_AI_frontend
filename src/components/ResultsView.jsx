@@ -184,7 +184,14 @@ const getSmoothPath = (points) => {
 };
 
 
-function getBenchmarkScores(model, intelData = null) {
+function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTps = null, passedIntelData = null) {
+  let explicitBlendedCost = explicitBlendedCostOrIntel;
+  let intelData = passedIntelData;
+  if (explicitBlendedCostOrIntel && typeof explicitBlendedCostOrIntel === 'object' && explicitBlendedCostOrIntel.categories) {
+    intelData = explicitBlendedCostOrIntel;
+    explicitBlendedCost = null;
+  }
+
   if (!model) {
     return {
       coding: 78,
@@ -199,239 +206,147 @@ function getBenchmarkScores(model, intelData = null) {
       speedVal: 75,
       costEff: 75,
       blendedCost: 2.5,
-      context_length: 128000
+      context_length: 128000,
+      intelligence_index: 80
     };
   }
 
   const ev = model.evaluations || {};
   const nameSlug = `${model.slug || ''} ${model.modelId || ''} ${model.name || ''}`.toLowerCase();
-  
-  // Deterministic seed variance helper based on string content
-  const getHashVariance = (str, offset = 0) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i) + offset;
-      hash |= 0;
-    }
-    return (Math.abs(hash) % 9) - 4; // -4 to +4
+
+  // Helper to normalize Elo rating from Artificial Analysis bounds (1000 - 1327) to 0-100 scale
+  const normRating = (r) => {
+    if (!r || isNaN(r)) return null;
+    return Math.round(Math.min(99, Math.max(35, 50 + ((Number(r) - 1000) / 327) * 49)));
+  };
+
+  // Helper to normalize category rank
+  const normRank = (rank) => {
+    if (!rank || isNaN(rank) || rank <= 0) return 75;
+    const rk = Number(rank);
+    if (rk === 1) return 99;
+    if (rk <= 3) return 98;
+    if (rk <= 10) return Math.round(97 - (rk - 3) * 0.4);
+    if (rk <= 50) return Math.round(94 - ((rk - 10) / 40) * 6);
+    if (rk <= 150) return Math.round(88 - ((rk - 50) / 100) * 8);
+    if (rk <= 300) return Math.round(80 - ((rk - 150) / 150) * 10);
+    return Math.round(Math.max(40, 70 - ((rk - 300) / 420) * 25));
+  };
+
+  const getCatScore = (catItem, fallbackRating) => {
+    if (!catItem) return normRating(fallbackRating) || 75;
+    const rScore = normRating(catItem.rating || fallbackRating) || 75;
+    const rkScore = normRank(catItem.rank);
+    return Math.round(rScore * 0.6 + rkScore * 0.4);
   };
 
   const rating = Number(model.rating || model.arena_elo || 1200);
-  const baseNorm = Math.round(Math.min(99, Math.max(35, ((rating - 850) / 500) * 100)));
+  const baseNorm = normRating(rating) || 80;
 
-  // Helper to find in intelData categories by flexible slug / name match
+  // Helper to find in intelData categories by flexible slug / modelId / name match
   const findInCat = (catName) => {
     if (!intelData?.categories?.[catName]) return null;
     const catList = intelData.categories[catName];
-    return catList.find(m => 
-      (model.slug && m.slug && m.slug.toLowerCase() === model.slug.toLowerCase()) ||
-      (model.modelId && m.modelId && m.modelId.toLowerCase() === model.modelId.toLowerCase()) ||
-      (m.name && model.name && m.name.toLowerCase().trim() === model.name.toLowerCase().trim()) ||
-      (model.slug && m.slug && (m.slug.includes(model.slug) || model.slug.includes(m.slug))) ||
-      (model.name && m.name && (m.name.toLowerCase().includes(model.name.toLowerCase()) || model.name.toLowerCase().includes(m.name.toLowerCase())))
-    );
+    const targetSlug = (model.slug || model.modelId?.split('/')[1] || '').toLowerCase();
+    const targetId = (model.modelId || '').toLowerCase();
+    const targetName = (model.name || '').toLowerCase().trim();
+
+    return catList.find(m => {
+      const mSlug = (m.slug || '').toLowerCase();
+      const mId = (m.modelId || '').toLowerCase();
+      const mName = (m.name || '').toLowerCase().trim();
+
+      return (
+        (targetSlug && mSlug && targetSlug === mSlug) ||
+        (targetId && mId && targetId === mId) ||
+        (targetName && mName && targetName === mName) ||
+        (targetSlug && mSlug && (targetSlug.includes(mSlug) || mSlug.includes(targetSlug))) ||
+        (targetId && mSlug && targetId.includes(mSlug)) ||
+        (targetName && mName && (targetName.includes(mName) || mName.includes(targetName)))
+      );
+    });
   };
 
   // 1. CODING
   let coding = null;
-  const rawCoding = model.coding_index ?? ev.artificial_analysis_coding_index ?? ev.livecodebench ?? ev.coding_agent_index ?? model.capabilities?.coding_score;
-  if (rawCoding !== undefined && rawCoding !== null && Number(rawCoding) > 0) {
-    coding = Math.round(Number(rawCoding) <= 1 ? Number(rawCoding) * 100 : Number(rawCoding));
+  const codeCat = findInCat('coding');
+  if (ev.livecodebench) {
+    coding = Math.round(Math.min(99, Math.max(35, (Number(ev.livecodebench) / 90) * 100)));
+  } else if (ev.artificial_analysis_coding_index) {
+    const v = Number(ev.artificial_analysis_coding_index);
+    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
+  } else if (codeCat) {
+    coding = getCatScore(codeCat, model.rating);
   } else if (ev.scicode) {
-    coding = Math.round(Number(ev.scicode) * (ev.scicode <= 1 ? 100 : 1));
-  } else {
-    const codeCat = findInCat('coding');
-    if (codeCat && codeCat.rating) {
-      coding = Math.round(Math.min(99, Math.max(40, ((codeCat.rating - 850) / 500) * 100)));
-    }
+    coding = Math.round(Math.min(99, Math.max(35, (Number(ev.scicode) / 67) * 98)));
   }
-
-  // Model-family coding calibration if missing
-  if (coding === null || isNaN(coding)) {
-    if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) coding = 97;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) coding = 96;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) coding = 95;
-    else if (nameSlug.includes('gpt-5-6') || nameSlug.includes('gpt-5.6') || nameSlug.includes('sol')) coding = 96;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5')) coding = 94;
-    else if (nameSlug.includes('deepseek-v4-pro') || nameSlug.includes('v4 pro')) coding = 95;
-    else if (nameSlug.includes('deepseek-v4-flash') || nameSlug.includes('v4 flash') || nameSlug.includes('deepseek-v4')) coding = 90;
-    else if (nameSlug.includes('codestral')) coding = 93;
-    else if (nameSlug.includes('gpt-5-2') || nameSlug.includes('gpt-5.2') || nameSlug.includes('gpt-5')) coding = 92;
-    else if (nameSlug.includes('gemini-3-5') || nameSlug.includes('gemini 3.5')) coding = 89;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini 3.0') || nameSlug.includes('gemini advanced')) coding = 92;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('sonnet 3.5') || nameSlug.includes('claude pro') || nameSlug.includes('claude team')) coding = 93;
-    else if (nameSlug.includes('gpt-4o mini') || nameSlug.includes('4o-mini')) coding = 79;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt plus') || nameSlug.includes('chatgpt')) coding = 89;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('mistral') || nameSlug.includes('le chat')) coding = 87;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) coding = 89;
-    else if (nameSlug.includes('llama-3')) coding = 85;
-    else if (nameSlug.includes('claude-3-5-haiku') || nameSlug.includes('haiku')) coding = 82;
-    else if (nameSlug.includes('gemini-2-5') || nameSlug.includes('gemini-2')) coding = 84;
-    else coding = Math.min(98, Math.max(35, baseNorm + getHashVariance(nameSlug, 1)));
-  }
+  if (!coding) coding = baseNorm;
 
   // 2. MATH
   let math = null;
-  const rawMath = model.math_index ?? ev.artificial_analysis_math_index ?? ev.aime ?? ev.aime_25 ?? ev.math_500 ?? model.capabilities?.math_score;
-  if (rawMath !== null && rawMath !== undefined && Number(rawMath) > 0) {
-    math = Math.round(Number(rawMath) <= 1 ? Number(rawMath) * 100 : Number(rawMath));
-  } else {
-    const mathCat = findInCat('math');
-    if (mathCat && mathCat.rating) {
-      math = Math.round(Math.min(99, Math.max(35, ((mathCat.rating - 850) / 450) * 100)));
-    }
+  const mathCat = findInCat('math');
+  if (ev.aime) {
+    math = Math.round(Math.min(99, Math.max(35, Number(ev.aime))));
+  } else if (ev.artificial_analysis_math_index) {
+    const v = Number(ev.artificial_analysis_math_index);
+    math = Math.round(Math.min(99, Math.max(35, v <= 67 ? (v / 67) * 98 : v)));
+  } else if (ev.scicode) {
+    math = Math.round(Math.min(99, Math.max(35, (Number(ev.scicode) / 67) * 98)));
+  } else if (mathCat) {
+    math = getCatScore(mathCat, model.rating);
   }
-
-  // Model-family math calibration if missing
-  if (math === null || isNaN(math)) {
-    if (nameSlug.includes('gpt-5-2') || nameSlug.includes('gpt-5.2')) math = 99;
-    else if (nameSlug.includes('gpt-5-6') || nameSlug.includes('gpt-5.6') || nameSlug.includes('sol')) math = 94;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5') || nameSlug.includes('gpt-5-4')) math = 93;
-    else if (nameSlug.includes('deepseek-v4-pro') || nameSlug.includes('v4 pro')) math = 93;
-    else if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) math = 90;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) math = 90;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) math = 89;
-    else if (nameSlug.includes('gemini-3-5') || nameSlug.includes('gemini 3.5')) math = 88;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini 3.0') || nameSlug.includes('gemini advanced')) math = 91;
-    else if (nameSlug.includes('deepseek-v4-flash') || nameSlug.includes('v4 flash') || nameSlug.includes('deepseek-v4')) math = 88;
-    else if (nameSlug.includes('deepseek-v3') || nameSlug.includes('deepseek')) math = 89;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('sonnet 3.5') || nameSlug.includes('claude pro') || nameSlug.includes('claude team')) math = 86;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt plus') || nameSlug.includes('chatgpt')) math = 85;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) math = 86;
-    else if (nameSlug.includes('llama-3')) math = 82;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('mistral') || nameSlug.includes('le chat')) math = 83;
-    else if (nameSlug.includes('codestral')) math = 81;
-    else if (nameSlug.includes('gpt-4o mini') || nameSlug.includes('4o-mini')) math = 76;
-    else if (nameSlug.includes('claude-3-5-haiku') || nameSlug.includes('haiku')) math = 77;
-    else if (nameSlug.includes('gemini-2-5') || nameSlug.includes('gemini-2')) math = 82;
-    else math = Math.min(98, Math.max(30, baseNorm - 3 + getHashVariance(nameSlug, 2)));
-  }
+  if (!math) math = baseNorm;
 
   // 3. REASONING
   let reasoning = null;
-  const rawReasoning = ev.gpqa ?? model.gpqa ?? model.capabilities?.reasoning_score;
-  if (rawReasoning !== undefined && rawReasoning !== null && Number(rawReasoning) > 0) {
-    reasoning = Math.round(Number(rawReasoning) <= 1 ? Number(rawReasoning) * 100 : Number(rawReasoning));
-  } else if (model.intelligence_index || ev.artificial_analysis_intelligence_index) {
-    const val = Number(model.intelligence_index || ev.artificial_analysis_intelligence_index);
-    reasoning = Math.round(val <= 1 ? val * 100 : val);
-  } else {
-    const reasonCat = findInCat('reasoning') || findInCat('overall');
-    if (reasonCat && reasonCat.rating) {
-      reasoning = Math.round(Math.min(99, Math.max(35, ((reasonCat.rating - 850) / 500) * 100)));
-    }
+  const reasonCat = findInCat('reasoning') || findInCat('overall');
+  if (ev.gpqa) {
+    reasoning = Math.round(Math.min(99, Math.max(35, Number(ev.gpqa))));
+  } else if (ev.artificial_analysis_intelligence_index) {
+    const v = Number(ev.artificial_analysis_intelligence_index);
+    reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
+  } else if (ev.mmlu_pro) {
+    reasoning = Math.round(Math.min(99, Math.max(35, (Number(ev.mmlu_pro) / 90) * 100)));
+  } else if (reasonCat) {
+    reasoning = getCatScore(reasonCat, model.rating);
   }
-
-  if (reasoning === null || isNaN(reasoning)) {
-    if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) reasoning = 98;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) reasoning = 97;
-    else if (nameSlug.includes('gpt-5-6') || nameSlug.includes('gpt-5.6') || nameSlug.includes('sol')) reasoning = 97;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5')) reasoning = 95;
-    else if (nameSlug.includes('deepseek-v4-pro') || nameSlug.includes('v4 pro')) reasoning = 95;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) reasoning = 94;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini advanced')) reasoning = 93;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('claude pro') || nameSlug.includes('claude team')) reasoning = 91;
-    else if (nameSlug.includes('deepseek-v4-flash') || nameSlug.includes('v4 flash')) reasoning = 91;
-    else if (nameSlug.includes('gemini-3-5') || nameSlug.includes('gemini 3.5')) reasoning = 90;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) reasoning = 90;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt')) reasoning = 88;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('le chat')) reasoning = 88;
-    else if (nameSlug.includes('codestral')) reasoning = 85;
-    else reasoning = Math.min(99, Math.max(35, baseNorm + 2 + getHashVariance(nameSlug, 3)));
-  }
+  if (!reasoning) reasoning = baseNorm;
 
   // 4. WRITING
   let writing = null;
   const writeCat = findInCat('creative-writing') || findInCat('writing');
-  if (writeCat && writeCat.rating) {
-    writing = Math.round(Math.min(98, Math.max(35, ((writeCat.rating - 900) / 700) * 100)));
+  if (writeCat) {
+    writing = getCatScore(writeCat, model.rating);
   }
-  if (!writing) {
-    if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) writing = 96;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) writing = 95;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) writing = 93;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('claude pro')) writing = 94;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini advanced')) writing = 94;
-    else if (nameSlug.includes('gpt-5-6') || nameSlug.includes('sol')) writing = 93;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5')) writing = 91;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt')) writing = 90;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('le chat')) writing = 90;
-    else if (nameSlug.includes('deepseek-v4-pro')) writing = 88;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) writing = 88;
-    else if (nameSlug.includes('gemini-3-5')) writing = 88;
-    else if (nameSlug.includes('deepseek-v4-flash')) writing = 85;
-    else if (nameSlug.includes('codestral')) writing = 79;
-    else writing = Math.min(96, Math.max(40, baseNorm + 1 + getHashVariance(nameSlug, 4)));
-  }
+  if (!writing) writing = baseNorm;
 
   // 5. RESEARCH (HLE / GPQA / MMLU)
   let research = null;
-  const rawHle = ev.hle ?? model.hle;
-  if (rawHle !== undefined && rawHle !== null && Number(rawHle) > 0) {
-    research = Math.round(Number(rawHle) <= 1 ? Number(rawHle) * 100 : Number(rawHle));
-  } else {
-    const resCat = findInCat('research');
-    if (resCat && resCat.rating) {
-      research = Math.round(Math.min(99, Math.max(35, ((resCat.rating - 850) / 500) * 100)));
-    }
+  const resCat = findInCat('research');
+  if (ev.hle) {
+    research = Math.round(Math.min(99, Math.max(35, (Number(ev.hle) / 58) * 98)));
+  } else if (ev.gpqa) {
+    research = Math.round(Math.min(99, Math.max(35, Number(ev.gpqa))));
+  } else if (resCat) {
+    research = getCatScore(resCat, model.rating);
   }
-  if (!research) {
-    if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) research = 97;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) research = 96;
-    else if (nameSlug.includes('gpt-5-6') || nameSlug.includes('sol')) research = 95;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5')) research = 93;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) research = 92;
-    else if (nameSlug.includes('deepseek-v4-pro')) research = 92;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini advanced')) research = 92;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('claude pro')) research = 89;
-    else if (nameSlug.includes('gemini-3-5')) research = 87;
-    else if (nameSlug.includes('deepseek-v4-flash')) research = 87;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) research = 87;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt')) research = 86;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('le chat')) research = 86;
-    else if (nameSlug.includes('codestral')) research = 82;
-    else research = Math.max(30, baseNorm - 2 + getHashVariance(nameSlug, 5));
-  }
+  if (!research) research = baseNorm;
 
   // 6. FUNCTION CALLING / AGENTIC
   let funcCalling = null;
-  const rawIfbench = ev.ifbench ?? ev.agentic_index ?? model.capabilities?.agentic_score ?? (model.gpqa ? model.gpqa * 0.8 : null);
-  if (rawIfbench !== undefined && rawIfbench !== null && Number(rawIfbench) > 0) {
-    funcCalling = Math.round(Number(rawIfbench) <= 1 ? Number(rawIfbench) * 100 : Number(rawIfbench));
-  } else {
-    const fnCat = findInCat('function-calling') || findInCat('tool-use') || findInCat('agents');
-    if (fnCat && fnCat.rating) {
-      funcCalling = Math.round(Math.min(99, Math.max(35, ((fnCat.rating - 850) / 500) * 100)));
-    }
+  const fnCat = findInCat('function-calling') || findInCat('tool-use') || findInCat('agents');
+  if (ev.ifbench) {
+    funcCalling = Math.round(Math.min(99, Math.max(35, (Number(ev.ifbench) / 85) * 100)));
+  } else if (ev.agentic_index) {
+    const v = Number(ev.agentic_index);
+    funcCalling = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
+  } else if (fnCat) {
+    funcCalling = getCatScore(fnCat, model.rating);
   }
-  if (!funcCalling) {
-    if (nameSlug.includes('gpt-5-6') || nameSlug.includes('sol')) funcCalling = 96;
-    else if (nameSlug.includes('claude-opus-5') || nameSlug.includes('opus 5')) funcCalling = 95;
-    else if (nameSlug.includes('claude-fable-5') || nameSlug.includes('fable 5')) funcCalling = 94;
-    else if (nameSlug.includes('gpt-5-5') || nameSlug.includes('gpt-5.5')) funcCalling = 94;
-    else if (nameSlug.includes('claude-3-7') || nameSlug.includes('sonnet 3.7')) funcCalling = 93;
-    else if (nameSlug.includes('gemini-3-0') || nameSlug.includes('gemini advanced')) funcCalling = 93;
-    else if (nameSlug.includes('deepseek-v4-pro')) funcCalling = 92;
-    else if (nameSlug.includes('claude-3-5-sonnet') || nameSlug.includes('claude pro')) funcCalling = 91;
-    else if (nameSlug.includes('gpt-4o') || nameSlug.includes('chatgpt')) funcCalling = 90;
-    else if (nameSlug.includes('gemini-3-5')) funcCalling = 89;
-    else if (nameSlug.includes('deepseek-v4-flash')) funcCalling = 88;
-    else if (nameSlug.includes('llama-4') || nameSlug.includes('maverick')) funcCalling = 88;
-    else if (nameSlug.includes('mistral-large') || nameSlug.includes('le chat')) funcCalling = 87;
-    else if (nameSlug.includes('codestral')) funcCalling = 86;
-    else funcCalling = Math.min(98, Math.max(35, baseNorm + getHashVariance(nameSlug, 6)));
-  }
+  if (!funcCalling) funcCalling = reasoning ? Math.min(99, Math.round(reasoning * 0.98)) : baseNorm;
 
-  let ctx = model.context_length;
-  if (!ctx) {
-    if (nameSlug.includes('gpt-4o') || nameSlug.includes('gpt-4') || nameSlug.includes('chatgpt')) ctx = 128000;
-    else if (nameSlug.includes('gpt-5') || nameSlug.includes('gemini-3') || nameSlug.includes('gemini advanced')) ctx = 1000000;
-    else if (nameSlug.includes('gemini-2.5') || nameSlug.includes('gemini-2')) ctx = 1000000;
-    else if (nameSlug.includes('claude-3') || nameSlug.includes('claude-4') || nameSlug.includes('claude-opus') || nameSlug.includes('claude-fable') || nameSlug.includes('claude pro')) ctx = 200000;
-    else if (nameSlug.includes('deepseek-v4') || nameSlug.includes('deepseek')) ctx = 128000;
-    else if (nameSlug.includes('mimo')) ctx = 1048576;
-    else ctx = 128000;
-  }
+  // 7. Context Length
+  const ctx = Number(model.context_length || 128000);
   let longContext = 88;
   if (ctx >= 1000000) longContext = 99;
   else if (ctx >= 200000) longContext = 95;
@@ -440,28 +355,42 @@ function getBenchmarkScores(model, intelData = null) {
   else if (ctx >= 8000) longContext = 65;
   else longContext = 50;
 
-  const isMultimodal = nameSlug.includes('gpt') || nameSlug.includes('claude') || nameSlug.includes('gemini') || nameSlug.includes('deepseek') || nameSlug.includes('mimo');
-  let multimodal = isMultimodal ? Math.max(70, Math.min(98, baseNorm + 3)) : Math.max(35, baseNorm - 15);
+  // 8. Multimodal
+  let multimodal = null;
+  const visCat = findInCat('vision') || findInCat('multimodal');
+  if (visCat) {
+    multimodal = getCatScore(visCat, model.rating);
+  } else {
+    const isMulti = nameSlug.includes('gemini') || nameSlug.includes('gpt') || nameSlug.includes('claude') || nameSlug.includes('vision') || nameSlug.includes('pixtral') || nameSlug.includes('omni');
+    multimodal = isMulti ? baseNorm : Math.max(35, baseNorm - 20);
+  }
 
-  const speedVal = Number(model.throughput || model.tokens_per_second || (nameSlug.includes('flash') || nameSlug.includes('mimo') || nameSlug.includes('haiku') ? 95 : (nameSlug.includes('opus') || nameSlug.includes('fable') ? 54 : 75)));
-  const speedNorm = Math.round(Math.min(95, Math.max(20, (speedVal / 140) * 100)));
+  // 9. Speed
+  const speedVal = Number(explicitTps || model.median_output_tokens_per_second || model.tokens_per_second || model.throughput || 75);
+  const speedNorm = Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100)));
 
-  const blended = Number(model.blendedPrice || (model.inputCost ? model.inputCost * 0.75 + (model.outputCost || 0) * 0.25 : (nameSlug.includes('opus') ? 10 : (nameSlug.includes('sonnet') ? 6 : (nameSlug.includes('flash') ? 0.2 : 1.5)))));
-  const costEff = Math.round(100 - Math.min(85, Math.max(10, Math.log10((blended || 1) + 0.05) * 20 + 35)));
+  // 10. Cost Efficiency
+  const inputCost = Number(model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? model.inputCost ?? 1.5);
+  const outputCost = Number(model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? model.outputCost ?? 6.0);
+  let blended = explicitBlendedCost;
+  if (blended === null || blended === undefined || isNaN(blended)) {
+    blended = inputCost * 0.75 + outputCost * 0.25;
+  }
+  const costEff = Math.round(100 - Math.min(85, Math.max(10, Math.log10((Number(blended) || 1) + 0.05) * 20 + 35)));
 
   return {
-    coding: coding ?? baseNorm,
-    reasoning: reasoning ?? baseNorm,
-    math: math ?? baseNorm,
-    writing: writing ?? baseNorm,
-    research: research ?? baseNorm,
-    funcCalling: funcCalling ?? baseNorm,
-    longContext: longContext ?? 88,
-    multimodal: multimodal ?? 80,
-    speedNorm: speedNorm ?? 70,
-    speedVal: Math.round(speedVal) || 65,
-    costEff: costEff ?? 75,
-    blendedCost: blended || 1.5,
+    coding,
+    reasoning,
+    math,
+    writing,
+    research,
+    funcCalling,
+    longContext,
+    multimodal,
+    speedNorm,
+    speedVal: Math.round(speedVal) || 75,
+    costEff,
+    blendedCost: Number(blended) || 1.5,
     context_length: ctx,
     intelligence_index: reasoning
   };
