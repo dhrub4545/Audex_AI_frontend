@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { API_BASE_URL } from '../config';
 import { getCachedRawData, getCachedModelsList } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
@@ -111,16 +111,16 @@ const getNormalizedProvider = (provOrId) => {
 };
 
 const POPULAR_MODELS = [
-  { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5' },
-  { id: 'openai/gpt-5.5-pro', name: 'OpenAI: GPT-5.5 Pro' },
-  { id: 'google/gemini-3.5-flash', name: 'Google: Gemini 3.5 Flash' },
-  { id: 'anthropic/claude-opus-4.8', name: 'Anthropic: Claude Opus 4.8' },
-  { id: 'google/gemini-3.1-pro-preview', name: 'Google: Gemini 3.1 Pro' },
-  { id: 'x-ai/grok-4-20', name: 'xAI: Grok 4.20' },
-  { id: 'google/gemini-3-pro', name: 'Google: Gemini 3 Pro' },
-  { id: 'openai/gpt-5.4', name: 'OpenAI: GPT-5.4' },
+  { id: 'anthropic/claude-fable-5', name: 'Anthropic: Claude Fable 5 (Max, Opus 4.8 Fallback)' },
+  { id: 'openai/gpt-4o', name: "OpenAI: GPT-4o (Nov '24)" },
+  { id: 'anthropic/claude-3-5-sonnet', name: "Anthropic: Claude 3.5 Sonnet (Oct '24)" },
+  { id: 'google/gemini-3-5-flash', name: 'Google: Gemini 3.5 Flash (High)' },
+  { id: 'openai/gpt-5', name: 'OpenAI: GPT-5 (High)' },
+  { id: 'anthropic/claude-opus-4-8', name: 'Anthropic: Claude Opus 4.8 (Max)' },
+  { id: 'deepseek/deepseek-chat', name: 'DeepSeek: DeepSeek V3' },
+  { id: 'google/gemini-3-1-pro-preview', name: 'Google: Gemini 3.1 Pro Preview' },
   { id: 'alibaba/qwen3-7-max', name: 'Alibaba: Qwen 3.7 Max' },
-  { id: 'meta-llama/muse-spark', name: 'Meta: Muse Spark' }
+  { id: 'openai/gpt-4o-mini', name: 'OpenAI: GPT-4o mini' }
 ];
 
 function _formatCategoryName(key) {
@@ -426,6 +426,34 @@ export default function ModelAuditorView({
   const [results, setResults] = useState(null);
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
   const [availableModels, setAvailableModels] = useState(POPULAR_MODELS);
+
+  const modelOptions = useMemo(() => {
+    const popularIds = new Set(POPULAR_MODELS.map(m => m.id));
+    const opts = [
+      { isHeader: true, label: '── Popular Industry Baselines ──' }
+    ];
+
+    POPULAR_MODELS.forEach(pm => {
+      const dbMatch = availableModels.find(am => am.id === pm.id);
+      opts.push({
+        value: pm.id,
+        label: dbMatch?.name || pm.name
+      });
+    });
+
+    opts.push({ isHeader: true, label: '── All Benchmarked Models (A-Z) ──' });
+
+    availableModels.forEach(m => {
+      if (!popularIds.has(m.id)) {
+        opts.push({
+          value: m.id,
+          label: m.name || m.id
+        });
+      }
+    });
+
+    return opts;
+  }, [availableModels]);
   
   const [localOptimizationGoal, setLocalOptimizationGoal] = useState('performance');
   const [localCostCutPercentage, setLocalCostCutPercentage] = useState(50);
@@ -1117,7 +1145,7 @@ export default function ModelAuditorView({
                   <CustomSelect
                     value={currentModelId}
                     onChange={(val) => setCurrentModelId(val)}
-                    options={availableModels.map(model => ({ value: model.id, label: model.name }))}
+                    options={modelOptions}
                     placeholder="Select Baseline Model"
                   />
                 </div>
