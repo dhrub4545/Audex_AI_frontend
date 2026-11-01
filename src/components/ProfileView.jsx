@@ -175,7 +175,7 @@ export default function ProfileView({
               <Home size={14} /> Home
             </a>
             <ChevronRight size={14} />
-            <span style={{ color: '#0F172A', fontWeight: '700' }}>Account &amp; Subscription</span>
+            <span style={{ color: '#0F172A', fontWeight: '700' }}>Account Profile</span>
           </div>
 
           {/* Top User Profile Header Card */}
@@ -226,7 +226,7 @@ export default function ProfileView({
                     color: isEnterprise ? '#7C3AED' : isPro ? '#047857' : '#475569',
                     border: `1px solid ${isEnterprise ? '#DDD6FE' : isPro ? '#A7F3D0' : '#E2E8F0'}`
                   }}>
-                    {isEnterprise ? 'Enterprise' : isPro ? 'Professional' : 'Free Tier'}
+                    Active Account
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap', fontSize: '13px', color: '#64748B' }}>
@@ -264,26 +264,6 @@ export default function ProfileView({
                 <RefreshCw size={13} className={(refreshing || loading) ? 'spin-icon' : ''} />
                 <span>{refreshing ? 'Syncing...' : (loading && !subStatus) ? 'Loading...' : 'Refresh Status'}</span>
               </button>
-
-              <button
-                onClick={() => onPurchase(isEnterprise ? 'enterprise' : isPro ? 'enterprise' : 'pro')}
-                className="btn btn-green"
-                style={{
-                  padding: '9px 16px',
-                  borderRadius: '10px',
-                  fontSize: '13px',
-                  fontWeight: '750',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  background: (isPro || isEnterprise) ? 'linear-gradient(135deg, #7C3AED, #4F46E5)' : undefined,
-                  border: (isPro || isEnterprise) ? 'none' : undefined,
-                  color: '#FFFFFF',
-                  boxShadow: (isPro || isEnterprise) ? '0 4px 14px rgba(124, 58, 237, 0.25)' : undefined
-                }}
-              >
-                <Sparkles size={14} /> {isEnterprise ? 'Renew Enterprise' : isPro ? 'Upgrade to Enterprise' : 'Upgrade to Pro'}
-              </button>
             </div>
           </div>
 
@@ -297,7 +277,7 @@ export default function ProfileView({
           {/* Main Grid: Subscription Details & Entitlements */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
 
-            {/* Subscription & Expiration Status Card */}
+            {/* Account Details Card */}
             <div style={{
               backgroundColor: '#FFFFFF',
               borderRadius: '20px',
@@ -312,10 +292,10 @@ export default function ProfileView({
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                   <div>
                     <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: '800', letterSpacing: '0.04em' }}>
-                      Current Plan
+                      Account Status
                     </span>
                     <h2 style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', margin: '2px 0 0', fontFamily: 'var(--font-title)' }}>
-                      {isEnterprise ? 'Enterprise Plan' : isPro ? 'Professional Plan' : 'Free Tier'}
+                      Active Member
                     </h2>
                   </div>
 
@@ -327,172 +307,68 @@ export default function ProfileView({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '5px',
-                    backgroundColor: status === 'active' ? '#ECFDF5' : status === 'canceled' ? '#FEF3C7' : '#F1F5F9',
-                    color: status === 'active' ? '#047857' : status === 'canceled' ? '#B45309' : '#64748B',
-                    border: `1px solid ${status === 'active' ? '#A7F3D0' : status === 'canceled' ? '#FDE68A' : '#E2E8F0'}`
+                    backgroundColor: '#ECFDF5',
+                    color: '#047857',
+                    border: '1px solid #A7F3D0'
                   }}>
-                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: status === 'active' ? '#10B981' : status === 'canceled' ? '#F59E0B' : '#94A3B8' }}></span>
-                    {status === 'active' ? 'Active' : status === 'canceled' ? 'Cancels at Period End' : isFree ? 'Free Active' : 'Inactive'}
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10B981' }}></span>
+                    Active
                   </span>
                 </div>
 
-                {/* Price & Billing Info */}
-                <div style={{ backgroundColor: '#F8FAFC', borderRadius: '12px', padding: '14px 16px', border: '1px solid #E2E8F0', marginBottom: '18px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: '600' }}>Billing Rate:</span>
-                    <span style={{ fontSize: '16px', fontWeight: '850', color: '#0F172A' }}>
-                      {isEnterprise ? '₹8,499 / month' : isPro ? '₹2,499 / month' : '₹0 / forever'}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', backgroundColor: '#F8FAFC', borderRadius: '12px', padding: '14px 16px', border: '1px solid #E2E8F0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                      <User size={14} color="#64748B" /> Name:
                     </span>
+                    <strong style={{ color: '#0F172A', fontWeight: '750' }}>{user?.name || 'Audex AI Member'}</strong>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '6px' }}>
-                    <span style={{ fontSize: '13px', color: '#64748B', fontWeight: '600' }}>Payment Gateway:</span>
-                    <span style={{ fontSize: '12.5px', fontWeight: '750', color: '#047857' }}>
-                      Razorpay (UPI, GPay, PhonePe, Cards)
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                      <Mail size={14} color="#64748B" /> Primary Email:
                     </span>
+                    <strong style={{ color: '#0F172A', fontWeight: '750' }}>{user?.email || 'N/A'}</strong>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                      <Calendar size={14} color="#64748B" /> Member Since:
+                    </span>
+                    <strong style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '800' }}>
+                      {formatShortDate(user?.createdAt || startedAt)}
+                    </strong>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
+                    <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
+                      <ShieldCheck size={14} color="#10B981" /> Authentication:
+                    </span>
+                    <strong style={{ color: '#047857', fontWeight: '750' }}>Verified Session</strong>
                   </div>
                 </div>
 
-                {/* Subscription Timeline & Expiration Dates */}
-                {!isFree ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', backgroundColor: '#F8FAFC', borderRadius: '12px', padding: '14px 16px', border: '1px solid #E2E8F0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                      <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
-                        <Clock size={14} color="#64748B" /> Subscription Started:
-                      </span>
-                      <strong style={{ color: '#0F172A', fontWeight: '750' }}>{formatShortDate(startedAt)}</strong>
-                    </div>
-
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px' }}>
-                      <span style={{ color: '#475569', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}>
-                        <Calendar size={14} color="#64748B" /> Subscription Ends / Renews On:
-                      </span>
-                      <strong style={{ color: '#0F172A', fontSize: '13.5px', fontWeight: '800' }}>
-                        {formatDate(expiresAt)}
-                      </strong>
-                    </div>
-
-                    <div style={{
-                      marginTop: '4px',
-                      padding: '8px 12px',
-                      borderRadius: '8px',
-                      backgroundColor: daysRemaining <= 3 ? '#FEF2F2' : daysRemaining <= 7 ? '#FFFBEB' : '#ECFDF5',
-                      border: `1px solid ${daysRemaining <= 3 ? '#FCA5A5' : daysRemaining <= 7 ? '#FDE68A' : '#A7F3D0'}`,
-                      color: daysRemaining <= 3 ? '#B91C1C' : daysRemaining <= 7 ? '#B45309' : '#047857',
-                      fontSize: '12.5px',
-                      fontWeight: '800',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <Clock size={14} />
-                      <span>{daysRemaining !== null ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining in current 30-day billing cycle` : 'Active 30-day billing cycle'}</span>
-                    </div>
-                  </div>
-                ) : null}
-
-                {isFree && (
-                  <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.5', margin: '0 0 16px' }}>
-                    You are currently on the Free Tier with up to 2 audited tools per report. Upgrade to Pro (₹2,499) or Enterprise (₹8,499) via UPI to unlock unlimited frontier models and deep history tracking.
-                  </p>
-                )}
+                <p style={{ fontSize: '13px', color: '#64748B', lineHeight: '1.5', margin: '0 0 16px' }}>
+                  Your Audex AI account has access to the full AI audit and optimization suite. Run audits across your AI toolstack and export actionable spend reduction plans.
+                </p>
               </div>
 
-              {/* Action Buttons */}
+              {/* Fast Action Buttons */}
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', paddingTop: '12px', borderTop: '1px solid #F1F5F9' }}>
-                {isPro ? (
-                  <>
-                    <button
-                      onClick={() => onPurchase('enterprise')}
-                      className="btn"
-                      style={{
-                        flex: 1.3,
-                        padding: '11px',
-                        borderRadius: '10px',
-                        fontWeight: '800',
-                        fontSize: '13px',
-                        background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '6px',
-                        cursor: 'pointer',
-                        boxShadow: '0 4px 14px rgba(124, 58, 237, 0.25)'
-                      }}
-                    >
-                      <Sparkles size={14} /> Upgrade to Enterprise (₹8,499)
-                    </button>
-
-                    <button
-                      onClick={() => onPurchase('pro')}
-                      className="btn btn-outline"
-                      style={{
-                        padding: '11px 14px',
-                        borderRadius: '10px',
-                        fontWeight: '700',
-                        fontSize: '12px',
-                        color: '#047857',
-                        borderColor: '#A7F3D0',
-                        backgroundColor: '#ECFDF5',
-                        cursor: 'pointer'
-                      }}
-                      title="Renew or extend your current Professional plan"
-                    >
-                      <RefreshCw size={13} /> Renew Pro
-                    </button>
-                  </>
-                ) : isEnterprise ? (
-                  <button
-                    onClick={() => onPurchase('enterprise')}
-                    className="btn"
-                    style={{
-                      flex: 1,
-                      padding: '11px',
-                      borderRadius: '10px',
-                      fontWeight: '800',
-                      fontSize: '13px',
-                      background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <RefreshCw size={14} /> Extend Enterprise Subscription (₹8,499)
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => onPurchase('pro')}
-                      className="btn btn-green"
-                      style={{ flex: 1.2, padding: '11px', borderRadius: '10px', fontWeight: '750', fontSize: '13px', cursor: 'pointer' }}
-                    >
-                      <Sparkles size={14} /> Upgrade to Pro (₹2,499)
-                    </button>
-                    <button
-                      onClick={() => onPurchase('enterprise')}
-                      className="btn btn-outline"
-                      style={{ padding: '11px 14px', borderRadius: '10px', fontWeight: '700', fontSize: '12px', color: '#7C3AED', borderColor: '#DDD6FE', backgroundColor: '#F5F3FF', cursor: 'pointer' }}
-                    >
-                      Enterprise (₹8,499)
-                    </button>
-                  </>
-                )}
-
-                {!isFree && status === 'active' && (
-                  <button
-                    onClick={handleCancelSubscription}
-                    disabled={cancelling}
-                    className="btn btn-outline"
-                    style={{ padding: '11px 14px', borderRadius: '10px', fontWeight: '650', fontSize: '12px', color: '#EF4444', borderColor: '#FCA5A5', backgroundColor: '#FFFFFF', cursor: 'pointer' }}
-                  >
-                    {cancelling ? 'Cancelling...' : 'Cancel Subscription'}
-                  </button>
-                )}
+                <button
+                  onClick={onNavigateToStep1}
+                  className="btn btn-black"
+                  style={{ flex: 1, padding: '11px', borderRadius: '10px', fontWeight: '750', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <Sparkles size={14} color="#10B981" /> Start New Audit
+                </button>
+                <button
+                  onClick={onNavigateToHistory}
+                  className="btn btn-outline"
+                  style={{ flex: 1, padding: '11px', borderRadius: '10px', fontWeight: '700', fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                >
+                  <FileText size={14} /> Audit History
+                </button>
               </div>
             </div>
 
@@ -519,21 +395,21 @@ export default function ProfileView({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: '600' }}>Max Tools Audited:</span>
                     <strong style={{ fontSize: '13px', color: '#0F172A' }}>
-                      {isEnterprise ? 'Unlimited Tools' : isPro ? 'Up to 15 Tools' : 'Up to 2 Tools'}
+                      Unlimited Tools
                     </strong>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: '600' }}>Live AI Model Auditor:</span>
                     <strong style={{ fontSize: '13px', color: isEnterprise ? '#7C3AED' : '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {isEnterprise ? <><CheckCircle2 size={15} color="#7C3AED" /> Full Access</> : <><Lock size={14} /> Enterprise Only</>}
+                      <span style={{ color: '#047857', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={15} color="#10B981" /> Full Access</span>
                     </strong>
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: '600' }}>Audit History Retention:</span>
                     <strong style={{ fontSize: '13px', color: '#0F172A' }}>
-                      {isEnterprise ? 'Unlimited History' : isPro ? 'Last 10 Audits Saved' : 'No History Saving'}
+                      Saved History
                     </strong>
                   </div>
 
@@ -547,7 +423,7 @@ export default function ProfileView({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: '600' }}>PDF Exports &amp; Checklists:</span>
                     <strong style={{ fontSize: '13px', color: isFree ? '#94A3B8' : '#047857', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      {isFree ? <><Lock size={14} /> Pro &amp; Enterprise</> : <><CheckCircle2 size={15} color="#10B981" /> Enabled</>}
+                      <span style={{ color: '#047857', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={15} color="#10B981" /> Enabled</span>
                     </strong>
                   </div>
                 </div>
@@ -571,261 +447,6 @@ export default function ProfileView({
               </div>
             </div>
 
-          </div>
-
-          {/* Subscription Plans & Direct Activation Hub */}
-          <div style={{
-            backgroundColor: '#FFFFFF',
-            borderRadius: '20px',
-            border: '1px solid #E2E8F0',
-            padding: '28px 24px',
-            marginBottom: '24px',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.02)'
-          }}>
-            <div style={{ marginBottom: '22px' }}>
-              <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: '800', letterSpacing: '0.04em' }}>
-                Subscription Management
-              </span>
-              <h3 style={{ fontSize: '20px', fontWeight: '850', color: '#0F172A', margin: '2px 0 6px', fontFamily: 'var(--font-title)' }}>
-                Available Plans &amp; Direct Activation
-              </h3>
-              <p style={{ fontSize: '13.5px', color: '#64748B', margin: 0 }}>
-                Activate, renew, or switch between Audex AI subscription tiers with instant UPI and card verification.
-              </p>
-            </div>
-
-            {/* 3 Plan Cards Grid */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px', marginBottom: '20px' }}>
-              
-              {/* 1. Free Tier */}
-              <div style={{
-                backgroundColor: isFree ? '#F8FAFC' : '#FFFFFF',
-                borderRadius: '16px',
-                border: isFree ? '2px solid #64748B' : '1px solid #E2E8F0',
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Free Tier</h4>
-                    {isFree && (
-                      <span style={{ fontSize: '10.5px', fontWeight: '800', backgroundColor: '#F1F5F9', color: '#475569', padding: '2px 8px', borderRadius: '12px', border: '1px solid #CBD5E1' }}>
-                        ACTIVE
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', marginBottom: '14px' }}>
-                    ₹0 <span style={{ fontSize: '12px', fontWeight: '600', color: '#64748B' }}>/ forever</span>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', fontSize: '12.5px', color: '#475569', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Up to 2 Audited Tools</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Option A/B Spend Blueprints</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Full Market Intel Leaderboard</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}><Lock size={13} /> Live Model Auditor Access</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}><Lock size={13} /> Saved Audit History</li>
-                  </ul>
-                </div>
-                <button
-                  disabled={isFree}
-                  className="btn btn-outline"
-                  style={{
-                    width: '100%',
-                    padding: '9px',
-                    borderRadius: '8px',
-                    fontSize: '12.5px',
-                    fontWeight: '700',
-                    backgroundColor: isFree ? '#F1F5F9' : '#FFFFFF',
-                    borderColor: '#CBD5E1',
-                    color: isFree ? '#475569' : '#0F172A',
-                    cursor: isFree ? 'default' : 'pointer'
-                  }}
-                >
-                  {isFree ? 'Current Active Plan' : 'Base Included Tier'}
-                </button>
-              </div>
-
-              {/* 2. Professional Plan */}
-              <div style={{
-                backgroundColor: isPro ? '#F0FDF4' : '#FFFFFF',
-                borderRadius: '16px',
-                border: isPro ? '2px solid #10B981' : '1.5px solid #A7F3D0',
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative',
-                boxShadow: isPro ? '0 8px 24px -4px rgba(16,185,129,0.12)' : 'none'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Professional</h4>
-                    <span style={{ fontSize: '10.5px', fontWeight: '800', backgroundColor: isPro ? '#DCFCE7' : '#ECFDF5', color: '#047857', padding: '2px 8px', borderRadius: '12px', border: '1px solid #86EFAC' }}>
-                      {isPro ? 'CURRENT PLAN' : 'POPULAR'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', marginBottom: '14px' }}>
-                    ₹2,499 <span style={{ fontSize: '12px', fontWeight: '600', color: '#64748B' }}>/ month ($29)</span>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', fontSize: '12.5px', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '600' }}><Check size={14} color="#10B981" /> <strong>Up to 15 Audited Tools</strong></li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Full PDF Exports &amp; Checklists</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Last 10 Audits Saved in History</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Priority AI Spend Assistant</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#94A3B8' }}><Lock size={13} /> Live Model Auditor Access</li>
-                  </ul>
-                </div>
-                {isPro ? (
-                  <button
-                    onClick={() => onPurchase('pro')}
-                    className="btn btn-outline"
-                    style={{
-                      width: '100%',
-                      padding: '9px',
-                      borderRadius: '8px',
-                      fontSize: '12.5px',
-                      fontWeight: '750',
-                      backgroundColor: '#ECFDF5',
-                      borderColor: '#10B981',
-                      color: '#047857',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ✓ Active (Click to Renew)
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onPurchase('pro')}
-                    className="btn btn-green"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: '750',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Sparkles size={14} /> Activate Pro (₹2,499)
-                  </button>
-                )}
-              </div>
-
-              {/* 3. Enterprise Plan */}
-              <div style={{
-                backgroundColor: isEnterprise ? '#FAF5FF' : '#FFFFFF',
-                borderRadius: '16px',
-                border: isEnterprise ? '2px solid #8B5CF6' : '1.5px solid #DDD6FE',
-                padding: '20px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                position: 'relative',
-                boxShadow: '0 8px 24px -4px rgba(139,92,246,0.14)'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#0F172A', margin: 0 }}>Enterprise</h4>
-                    <span style={{ fontSize: '10.5px', fontWeight: '800', backgroundColor: '#F5F3FF', color: '#7C3AED', padding: '2px 8px', borderRadius: '12px', border: '1px solid #DDD6FE' }}>
-                      {isEnterprise ? 'CURRENT PLAN' : '⚡ FRONTIER ACCESS'}
-                    </span>
-                  </div>
-                  <div style={{ fontSize: '22px', fontWeight: '900', color: '#0F172A', marginBottom: '14px' }}>
-                    ₹8,499 <span style={{ fontSize: '12px', fontWeight: '600', color: '#64748B' }}>/ month ($99)</span>
-                  </div>
-                  <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', fontSize: '12.5px', color: '#334155', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#7C3AED' }}><Sparkles size={14} color="#7C3AED" /> <strong>Unlimited Tools Audited</strong></li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700', color: '#7C3AED' }}><Zap size={14} color="#7C3AED" /> <strong>Live AI Model Auditor (570+ Models)</strong></li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Unlimited Saved Audit Reports</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Head-to-Head Model Deep Dives</li>
-                    <li style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Check size={14} color="#10B981" /> Full PDF &amp; Executive Briefs</li>
-                  </ul>
-                </div>
-                {isEnterprise ? (
-                  <button
-                    onClick={() => onPurchase('enterprise')}
-                    className="btn btn-outline"
-                    style={{
-                      width: '100%',
-                      padding: '9px',
-                      borderRadius: '8px',
-                      fontSize: '12.5px',
-                      fontWeight: '750',
-                      backgroundColor: '#F5F3FF',
-                      borderColor: '#8B5CF6',
-                      color: '#7C3AED',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    ✓ Active (Click to Renew)
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => onPurchase('enterprise')}
-                    className="btn"
-                    style={{
-                      width: '100%',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      fontSize: '13px',
-                      fontWeight: '800',
-                      background: 'linear-gradient(135deg, #7C3AED, #4F46E5)',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '6px',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 14px rgba(124, 58, 237, 0.25)'
-                    }}
-                  >
-                    <Sparkles size={14} /> Upgrade to Enterprise (₹8,499)
-                  </button>
-                )}
-              </div>
-
-            </div>
-
-            {/* Single Report Unlock Banner */}
-            <div style={{
-              backgroundColor: '#F8FAFC',
-              borderRadius: '12px',
-              border: '1px dashed #CBD5E1',
-              padding: '14px 18px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: '12px'
-            }}>
-              <div>
-                <div style={{ fontSize: '13px', fontWeight: '750', color: '#0F172A', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <CreditCard size={15} color="#2563EB" /> Need to unlock a single comprehensive audit without monthly renewal?
-                </div>
-                <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                  Single Report Unlock provides lifetime access, PDF exports, and action plans for 1 audit up to 15 tools.
-                </div>
-              </div>
-              <button
-                onClick={() => onPurchase('single_unlock')}
-                className="btn btn-outline"
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  fontSize: '12.5px',
-                  fontWeight: '700',
-                  color: '#2563EB',
-                  borderColor: '#93C5FD',
-                  backgroundColor: '#EFF6FF',
-                  cursor: 'pointer'
-                }}
-              >
-                Unlock 1 Report (₹1,599)
-              </button>
-            </div>
           </div>
 
           {/* UPI Transaction History & Receipts Ledger */}

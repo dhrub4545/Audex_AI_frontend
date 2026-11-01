@@ -565,19 +565,18 @@ const INITIAL_TOOLS = [
       "AI Pro": [
         "Gemini 4 Argon (High)",
         "Gemini 3.8 Flash (High)",
-        "Gemini 3.1 Pro Preview",
-        "Gemini 3 Pro Preview (High)"
+        "Gemini 3.8 Flash (Medium)"
       ],
       "AI Ultra (100)": [
         "Gemini 4 Carbon (High)",
         "Gemini 4 Argon (High)",
-        "Gemini 3.1 Pro Preview",
+        "Gemini 3.8 Flash (High)",
         "Gemini 3 Deep Think"
       ],
       "AI Ultra (200)": [
         "Gemini 4 Carbon (High)",
         "Gemini 4 Argon (High)",
-        "Gemini 3.1 Pro Preview",
+        "Gemini 3.8 Flash (High)",
         "Gemini 3 Deep Think"
       ]
     },
@@ -2681,7 +2680,7 @@ const getViewFromUrl = () => {
       }
     }
     if (!v) {
-      if (window.location.hash === '#pricing') return 'pricing_scroll';
+      if (window.location.hash === '#pricing') return 'landing';
       return 'landing';
     }
     const normalized = v.toLowerCase().replace(/[-_]/g, '');
@@ -2696,7 +2695,7 @@ const getViewFromUrl = () => {
     if (normalized === 'signin' || normalized === 'login') return 'signin';
     if (normalized === 'signup' || normalized === 'register') return 'signup';
     if (normalized === 'profile' || normalized === 'account') return 'profile';
-    if (normalized === 'pricing') return 'pricing_scroll';
+    if (normalized === 'pricing') return 'landing';
     return 'landing';
   } catch {
     return 'landing';
@@ -3450,18 +3449,7 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       const targetView = getViewFromUrl();
-      if (targetView === 'pricing_scroll') {
-        setCurrentView('landing');
-        setTimeout(() => {
-          const el = document.getElementById('pricing');
-          if (el) {
-            if (window.lenis) window.lenis.scrollTo(el);
-            else el.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 150);
-      } else {
         setCurrentView(targetView);
-      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -3473,14 +3461,6 @@ export default function App() {
     const initialView = getViewFromUrl();
     if (initialView === 'sample_report' && !auditResult) {
       handleViewSample();
-    } else if (initialView === 'pricing_scroll') {
-      setTimeout(() => {
-        const el = document.getElementById('pricing');
-        if (el) {
-          if (window.lenis) window.lenis.scrollTo(el);
-          else el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }, 300);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

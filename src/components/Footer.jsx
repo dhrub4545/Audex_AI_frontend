@@ -156,11 +156,6 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
                 </a>
               </li>
               <li>
-                <a href="/?view=pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link" title="Audex AI Pricing & Plans">
-                  Pricing
-                </a>
-              </li>
-              <li>
                 <a href="/?view=sample" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link" title="View Sample Enterprise AI Audit Report">
                   Sample Report
                 </a>
@@ -184,7 +179,7 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
             <ul className="footer-links">
               <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Privacy & Security</a></li>
               <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Security Posture</a></li>
-              <li><a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} className="footer-link">Enterprise Compliance</a></li>
+              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Enterprise Compliance</a></li>
               <li><a href="mailto:support@audexai.in" className="footer-link">Contact Support</a></li>
             </ul>
           </div>
@@ -198,7 +193,7 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
           <div style={{ display: 'flex', gap: '24px', fontSize: '13px' }}>
             <span style={{ color: 'var(--color-text-muted)' }}>Audex AI v1.2</span>
             <a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Privacy</a>
-            <a href="#pricing" onClick={(e) => handleScrollToSection(e, 'pricing')} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Terms</a>
+            <a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} style={{ color: 'var(--color-text-muted)', textDecoration: 'none' }}>Terms</a>
           </div>
         </div>
       </div>

@@ -422,7 +422,7 @@ export const SAMPLE_AUDIT_DATA = {
           "includedModels": [
             "Gemini 4 Carbon (High)",
             "Gemini 4 Argon (High)",
-            "Gemini 3.1 Pro Preview",
+            "Gemini 3.8 Flash (High)",
             "Gemini 3 Deep Think"
           ],
           "modelId": "google/gemini-4-carbon",

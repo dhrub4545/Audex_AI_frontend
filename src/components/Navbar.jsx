@@ -60,29 +60,10 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     const howItWorksEl = document.getElementById('how-it-works');
     if (howItWorksEl) observer.observe(howItWorksEl);
 
-    const pricingEl = document.getElementById('pricing');
-    if (pricingEl) observer.observe(pricingEl);
-
     return () => {
       observer.disconnect();
     };
   }, [activeView]);
-
-  const handlePricingScroll = (e) => {
-    e.preventDefault();
-    setIsMobileMenuOpen(false);
-    onNavigateToLanding();
-    setTimeout(() => {
-      const el = document.getElementById('pricing');
-      if (el) {
-        if (window.lenis) {
-          window.lenis.scrollTo(el);
-        } else {
-          el.scrollIntoView({ behavior: 'smooth' });
-        }
-      }
-    }, 100);
-  };
 
   const handleHowItWorksScroll = (e) => {
     e.preventDefault();
@@ -347,9 +328,6 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           <a href="#how-it-works" onClick={handleHowItWorksScroll} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">
             How it works
           </a>
-          <a href="#pricing" onClick={handlePricingScroll} className={`nav-link ${activeSection === 'pricing' ? 'active' : ''}`} title="Audex AI Pricing & Plans">
-            Pricing
-          </a>
           <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
             Market Intel
           </a>
@@ -419,7 +397,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
                 <div className="user-menu-divider"></div>
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToProfile ? onNavigateToProfile() : null; }} className="user-menu-item">
                   <ShieldCheck size={14} color="#10B981" />
-                  <span style={{ fontWeight: '600', color: '#0F172A' }}>Account &amp; Plan</span>
+                  <span style={{ fontWeight: '600', color: '#0F172A' }}>Account Profile</span>
                 </button>
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToModelAuditor(); }} className="user-menu-item">
                   <Zap size={14} color="#10B981" />
@@ -429,10 +407,6 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
                 <button onClick={() => { setIsUserMenuOpen(false); onNavigateToHistory(); }} className="user-menu-item">
                   <FileText size={14} />
                   <span>Reports History</span>
-                </button>
-                <button onClick={(e) => { setIsUserMenuOpen(false); handlePricingScroll(e); }} className="user-menu-item">
-                  <DollarSign size={14} />
-                  <span>Pricing &amp; UPI</span>
                 </button>
                 <div className="user-menu-divider"></div>
                 <button onClick={() => { setIsUserMenuOpen(false); onLogout(); }} className="user-menu-item logout-item">
@@ -546,15 +520,6 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
               className={`mobile-link-item ${activeSection === 'how-it-works' ? 'active' : ''}`}
             >
               <span>How it works</span>
-              <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
-            </a>
-            
-            <a 
-              href="#pricing" 
-              onClick={handlePricingScroll} 
-              className={`mobile-link-item ${activeSection === 'pricing' ? 'active' : ''}`}
-            >
-              <span>Pricing & Plans</span>
               <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
             </a>
           </div>

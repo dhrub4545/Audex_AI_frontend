@@ -202,14 +202,6 @@ export default function FreeResultsView({
     }));
   };
 
-  const handlePricingScroll = () => {
-    onNavigateToView('landing');
-    setTimeout(() => {
-      const el = document.getElementById('pricing');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
-  };
-
   return (
     <div className="app-container" style={{ backgroundColor: '#FCFCFD', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {/* Navbar */}
@@ -258,13 +250,13 @@ export default function FreeResultsView({
                   Free Audit Summary
                 </h4>
                 <p style={{ fontSize: '13px', color: '#64748B', margin: 0, lineHeight: '1.5' }}>
-                  You are viewing estimated calculations. Sign in or upgrade to premium to access step-by-step route checklists, download developer migration scripts, and save reports to your history.
+                  You are viewing estimated calculations. Sign in to access step-by-step route checklists, download developer migration scripts, and save reports to your history.
                 </p>
               </div>
             </div>
             
             <button 
-              onClick={user ? handlePricingScroll : onNavigateToSignIn}
+              onClick={user ? () => onNavigateToView('step1') : onNavigateToSignIn}
               className="btn btn-black"
               style={{
                 display: 'inline-flex',
@@ -278,7 +270,7 @@ export default function FreeResultsView({
               }}
             >
               <Sparkles size={14} color="#10B981" />
-              <span>{user ? 'Upgrade to Unlock Plan' : 'Sign In to Unlock'}</span>
+              <span>{user ? 'Configure Full Audit' : 'Sign In to Unlock'}</span>
               <ArrowRight size={14} />
             </button>
           </div>
@@ -547,7 +539,7 @@ export default function FreeResultsView({
                 Unlock Your Enterprise Spend Blueprint
               </h3>
               <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
-                Don't leave massive cost savings on the table. Audex AI Premium provides the precise technical roadmap to implement these budget optimizations without compromising model performance.
+                Don't leave massive cost savings on the table. Audex AI Full Suite provides the precise technical roadmap to implement these budget optimizations without compromising model performance.
               </p>
               <div className="free-features-grid">
                 {[
@@ -585,10 +577,10 @@ export default function FreeResultsView({
                 Audex AI Premium
               </h4>
               <p style={{ fontSize: '13px', color: '#64748B', marginBottom: '24px', maxWidth: '300px' }}>
-                Get full access and start executing optimizations. Includes 10 credits (Starter) or 20 credits (Pro).
+                Get comprehensive optimization intelligence, detailed comparison charts, and developer migration scripts.
               </p>
               <button
-                onClick={user ? handlePricingScroll : onNavigateToSignIn}
+                onClick={user ? () => onNavigateToView('step1') : onNavigateToSignIn}
                 className="btn btn-green"
                 style={{
                   width: '100%',
@@ -599,7 +591,7 @@ export default function FreeResultsView({
                   borderRadius: '10px'
                 }}
               >
-                {user ? 'Upgrade to Pro / View Plans' : 'Sign In to Unlock Savings'}
+                {user ? 'Start Full Audit' : 'Sign In to Unlock Savings'}
               </button>
             </div>
           </div>
