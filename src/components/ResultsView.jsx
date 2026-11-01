@@ -1969,11 +1969,27 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   );
                 const isSameCurrentChoice = isSameApi || isSameSubscription || isAlreadyBest;
 
+                const baseScores = getBenchmarkScores(baseline, null, null, intelData);
+                const optScores = getBenchmarkScores(recommended, null, null, intelData);
+                const baseScore = Math.round(alloc?.performance_score || rec?.baselineScore || (alloc?.purpose === 'Coding' ? baseScores.coding : (alloc?.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
+                const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc?.purpose === 'Coding' ? optScores.coding : (alloc?.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
+                const scoreDelta = optScore - baseScore;
+
                 return (
                   <div key={rIdx} style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ width: '3px', height: '14px', backgroundColor: '#6366F1', borderRadius: '2px', display: 'inline-block' }}></span>
-                      Detailed Model Analysis: {alloc?.toolName || rec.tool.split(' (')[0]} {isAlreadyBest ? 'Verification' : 'Optimization'}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
+                      <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ width: '3px', height: '14px', backgroundColor: '#6366F1', borderRadius: '2px', display: 'inline-block' }}></span>
+                        Detailed Model Analysis: {alloc?.toolName || rec.tool.split(' (')[0]} {isAlreadyBest ? 'Verification' : 'Optimization'}
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
+                          Selected Category: {alloc?.purpose || 'Mixed'}
+                        </span>
+                        <span style={{ backgroundColor: scoreDelta > 0 ? '#DCFCE7' : '#EFF6FF', color: scoreDelta > 0 ? '#15803D' : '#2563EB', border: `1px solid ${scoreDelta > 0 ? '#BBF7D0' : '#BFDBFE'}`, padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
+                          Capability Score: {baseScore}/100 → {optScore}/100 {scoreDelta > 0 ? `(+${scoreDelta} pts)` : (isSameCurrentChoice ? '(100% Optimal)' : '(100% Preserved)')}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Model/Subscription Migration Visual Card */}
@@ -2011,6 +2027,9 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           </div>
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                             Provider: <span style={{ color: '#475569', fontWeight: '500' }}>{alloc?.type === 'subscription' ? (alloc?.toolName || 'Unknown') : (baseline.creator || 'Unknown')}</span>
+                          </div>
+                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#475569', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', padding: '2px 8px', borderRadius: '4px', marginTop: '6px' }}>
+                            Capability Score: <strong style={{ color: '#0F172A' }}>{baseScore}</strong>/100
                           </div>
                           {alloc?.type === 'subscription' && alloc?.baselineModels && alloc.baselineModels.length > 0 && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
@@ -2091,6 +2110,9 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               </div>
                               <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                                 Provider: <span style={{ color: '#475569', fontWeight: '500' }}>{choice === 'subscription' ? (rec.subscriptionOption?.planName?.split(' ')[0] || 'Unknown') : (recommended.creator || 'Unknown')}</span>
+                              </div>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#15803D', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px', marginTop: '6px' }}>
+                                Capability Score: <strong style={{ color: '#166534' }}>{optScore}</strong>/100
                               </div>
                               {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
@@ -2641,6 +2663,13 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   const currentPlan = alloc.plan ? `${alloc.plan} (${alloc.seats} Seat${alloc.seats > 1 ? 's' : ''})` : 'Direct API';
                   const improvementPct = currentCost > 0 ? ((savings / currentCost) * 100) : 0;
 
+                  const baseScores = getBenchmarkScores(baseline, null, null, intelData);
+                  const optScores = getBenchmarkScores(recommended, null, null, intelData);
+                  const baseScore = Math.round(alloc.performance_score || rec?.baselineScore || (alloc.purpose === 'Coding' ? baseScores.coding : (alloc.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
+                  const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc.purpose === 'Coding' ? optScores.coding : (alloc.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
+                  const scoreDelta = optScore - baseScore;
+                  const scoreDeltaPct = baseScore > 0 ? parseFloat((((optScore - baseScore) / baseScore) * 100).toFixed(1)) : 0;
+
                   let confidence = 'High';
                   if (recommended && baseline) {
                     const diffScore = Math.abs((recommended.intelligence_index || 80) - (baseline.intelligence_index || 80));
@@ -2658,7 +2687,11 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     optimizedCost,
                     savings,
                     improvement: savings !== 0 ? `${Math.abs(improvementPct).toFixed(0)}%` : '0%',
-                    confidence
+                    confidence,
+                    baseScore,
+                    optScore,
+                    scoreDelta,
+                    scoreDeltaPct
                   };
                 });
 
@@ -2677,9 +2710,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', color: '#334155' }}>
                           <thead>
                             <tr style={{ backgroundColor: '#F8FAFC', borderBottom: '1px solid var(--color-border)' }}>
-                              <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Service / Purpose</th>
+                              <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Service / Category</th>
                               <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Current Setup</th>
                               <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'left', color: '#475569' }}>Recommended Setup</th>
+                              <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'center', color: '#475569' }}>Score Comparison</th>
                               <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Monthly Savings</th>
                               <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'right', color: '#475569' }}>Cost Reduction</th>
                               <th style={{ padding: '14px 16px', fontWeight: '800', textAlign: 'center', color: '#475569' }}>Confidence</th>
@@ -2689,14 +2723,31 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                             {masterTableRows.map((row, idx) => (
                               <tr key={idx} style={{ borderBottom: idx < masterTableRows.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
                                 <td style={{ padding: '14px 16px', fontWeight: '700', color: '#0F172A' }}>
-                                  <div>{row.toolName}</div>
-                                  <div style={{ fontSize: '9.5px', color: '#64748B', fontWeight: '500', marginTop: '2px' }}>({row.purpose})</div>
+                                  <div style={{ fontSize: '12px' }}>{row.toolName}</div>
+                                  <div style={{ marginTop: '4px' }}>
+                                    <span style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      backgroundColor: '#EEF2FF',
+                                      color: '#4F46E5',
+                                      border: '1px solid #C7D2FE',
+                                      padding: '2px 8px',
+                                      borderRadius: '5px',
+                                      fontSize: '10px',
+                                      fontWeight: '750'
+                                    }}>
+                                      Category: {row.purpose}
+                                    </span>
+                                  </div>
                                 </td>
                                 <td style={{ padding: '14px 16px' }}>
                                   <div style={{ fontWeight: '600', color: '#334155' }}>{row.currentModel}</div>
                                   <div style={{ fontSize: '10px', color: '#64748B', marginTop: '2px' }}>{row.currentPlan}</div>
                                   <div style={{ fontSize: '11px', fontWeight: '700', color: '#0F172A', marginTop: '4px' }}>
                                     ${row.currentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
+                                  </div>
+                                  <div style={{ display: 'inline-block', fontSize: '10px', color: '#475569', fontWeight: '700', marginTop: '3px' }}>
+                                    Score: <strong style={{ color: '#0F172A' }}>{row.baseScore}</strong>/100
                                   </div>
                                 </td>
                                 <td style={{ padding: '14px 16px' }}>
@@ -2705,6 +2756,23 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                   <div style={{ fontSize: '11px', fontWeight: '750', color: '#0F172A', marginTop: '4px' }}>
                                     ${row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
                                   </div>
+                                  <div style={{ display: 'inline-block', fontSize: '10px', color: '#15803D', fontWeight: '700', marginTop: '3px' }}>
+                                    Score: <strong style={{ color: '#166534' }}>{row.optScore}</strong>/100
+                                  </div>
+                                </td>
+                                <td style={{ padding: '14px 16px', textAlign: 'center' }}>
+                                  <div style={{ fontSize: '12px', fontWeight: '800', color: row.scoreDelta > 0 ? '#15803D' : (row.scoreDelta === 0 ? '#2563EB' : '#475569') }}>
+                                    {row.baseScore} → {row.optScore}
+                                  </div>
+                                  {row.scoreDelta > 0 ? (
+                                    <span style={{ display: 'inline-block', backgroundColor: '#DCFCE7', color: '#15803D', border: '1px solid #BBF7D0', padding: '2px 7px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '750', marginTop: '3px' }}>
+                                      +{row.scoreDelta} pts ({row.scoreDeltaPct}% Improved)
+                                    </span>
+                                  ) : (
+                                    <span style={{ display: 'inline-block', backgroundColor: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', padding: '2px 7px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '750', marginTop: '3px' }}>
+                                      {row.savings === 0 ? '100% Optimal' : '100% Preserved'}
+                                    </span>
+                                  )}
                                 </td>
                                 <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
                                   {row.savings > 0 ? `+$${row.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo` : `$${row.savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo`}

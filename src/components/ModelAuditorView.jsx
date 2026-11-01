@@ -661,13 +661,18 @@ export default function ModelAuditorView({
     const clean = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
     const targetClean = clean(modelId);
     const baseSlug = (modelId.split('/')[1] || modelId).toLowerCase();
+    const cleanBaseSlug = clean(baseSlug);
 
-    let baseModel = catList.find(m => clean(m.modelId || '') === targetClean || clean(m.slug || '') === targetClean || (m.slug && m.slug.toLowerCase() === baseSlug));
+    let baseModel = catList.find(m => {
+      const mSlugClean = clean(m.slug || '');
+      const mIdClean = clean(m.modelId || '');
+      return mSlugClean === cleanBaseSlug || mIdClean === targetClean || mSlugClean === targetClean || (m.slug && m.slug.toLowerCase() === baseSlug);
+    });
     if (!baseModel) {
-      baseModel = catList.find(m => clean(m.name || '') === targetClean || clean(m.name || '').includes(targetClean));
+      baseModel = catList.find(m => clean(m.name || '') === targetClean || clean(m.name || '').includes(cleanBaseSlug));
     }
     if (!baseModel) {
-      baseModel = data.categories.overall?.find(m => clean(m.modelId || '') === targetClean || clean(m.slug || '') === targetClean);
+      baseModel = data.categories.overall?.find(m => clean(m.slug || '') === cleanBaseSlug || clean(m.modelId || '') === targetClean);
     }
     if (!baseModel) baseModel = catList[0];
 
@@ -679,6 +684,21 @@ export default function ModelAuditorView({
     };
 
     const getScore = (m) => {
+      const ev = m.evaluations || {};
+      if (normUse === 'coding') {
+        if (typeof ev.livecodebench === 'number' && ev.livecodebench > 0) return Math.min(99, Math.round((ev.livecodebench / 90) * 100));
+        if (typeof ev.artificial_analysis_coding_index === 'number' && ev.artificial_analysis_coding_index > 0) return Math.min(99, Math.round(ev.artificial_analysis_coding_index));
+      }
+      if (normUse === 'math') {
+        if (typeof ev.aime === 'number' && ev.aime > 0) return Math.min(99, Math.round(ev.aime));
+        if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return Math.min(99, Math.round((ev.artificial_analysis_math_index / 67) * 98));
+      }
+      if (typeof ev.artificial_analysis_intelligence_index === 'number' && ev.artificial_analysis_intelligence_index > 0) {
+        return Math.min(99, Math.round(ev.artificial_analysis_intelligence_index));
+      }
+      if (typeof ev.gpqa === 'number' && ev.gpqa > 0) {
+        return Math.min(99, Math.round(ev.gpqa));
+      }
       if (m.rating && typeof m.rating === 'number') {
         return Math.round(50 + ((m.rating - 1000) / 327) * 49);
       }
@@ -733,8 +753,9 @@ export default function ModelAuditorView({
 
     let recs = [];
     if (goal === 'performance') {
+      const minScore = Math.round(baseScore * 0.95);
       recs = candidates
-        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : c.performance_score > baseScore) && c.monthly_cost < baseCost)
+        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : true) && c.monthly_cost < baseCost && c.performance_score >= minScore)
         .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
     } else if (goal === 'cost') {
       const maxBudget = baseCost * (1 - (cutPct || 50) / 100);
@@ -744,12 +765,14 @@ export default function ModelAuditorView({
     } else if (goal === 'quality') {
       recs = candidates.sort((a, b) => a.category_rank - b.category_rank);
     } else {
+      const minScore = Math.round(baseScore * 0.95);
       recs = candidates
-        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : c.performance_score > baseScore) && c.monthly_cost < baseCost)
+        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : true) && c.monthly_cost < baseCost && c.performance_score >= minScore)
         .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
     }
 
     return {
+      selectedCategory: useCase || 'Mixed',
       currentBaseline: {
         _id: baseModel.modelId,
         modelId: baseModel.modelId,
@@ -1588,6 +1611,14 @@ export default function ModelAuditorView({
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
                         Index capability: <strong style={{ color: '#047857' }}>{results.currentBaseline.performance_score}</strong>/100 {results.currentBaseline.category_rank ? `(#${results.currentBaseline.category_rank} in category)` : ''} {results.currentBaseline.tokens_per_second ? `· ${results.currentBaseline.tokens_per_second} t/s` : ''}
                       </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                        <span style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: '2px 8px', borderRadius: '5px', fontSize: '10.5px', fontWeight: '750' }}>
+                          Category: {results.selectedCategory || targetUseCase}
+                        </span>
+                        <span style={{ backgroundColor: '#F0FDF4', color: '#166534', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '5px', fontSize: '10.5px', fontWeight: '750' }}>
+                          Score: {results.currentBaseline.performance_score}/100
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1692,7 +1723,7 @@ export default function ModelAuditorView({
                                     </span>
                                   )}
                                   <span style={{ fontSize: '11px', color: '#64748B' }}>
-                                    · Index: <strong style={{ color: '#047857' }}>{rec.performance_score}</strong>/100
+                                    · Score Comparison: <strong>{results.currentBaseline?.performance_score}</strong> → <strong style={{ color: '#047857' }}>{rec.performance_score}</strong>/100
                                   </span>
                                 </div>
                               </span>
@@ -1926,6 +1957,14 @@ export default function ModelAuditorView({
                       <p style={{ fontSize: '13.5px', color: '#15803D', lineHeight: 1.5, margin: 0 }}>
                         Your baseline model (<strong>{results?.currentBaseline?.name || modelOptions.find(o => o.value === currentModelId || (o.value && o.value.toLowerCase() === currentModelId.toLowerCase()) || (o.value && currentModelId && o.value.split('/')[1] === currentModelId.split('/')[1]))?.label || POPULAR_MODELS.find(m => m.id === currentModelId || m.id.split('/')[1] === currentModelId.split('/')[1])?.name || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
                       </p>
+                      <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0', padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: '750' }}>
+                          Category: {results?.selectedCategory || targetUseCase}
+                        </span>
+                        <span style={{ backgroundColor: '#DCFCE7', color: '#166534', border: '1px solid #BBF7D0', padding: '3px 10px', borderRadius: '6px', fontSize: '11.5px', fontWeight: '750' }}>
+                          Capability Score: {results?.currentBaseline?.performance_score || 'Frontier'}/100 (Optimal)
+                        </span>
+                      </div>
                     </div>
                   ) : optimizationGoal === 'cost' ? (
                     <p style={{ fontSize: '14px', color: 'var(--color-text-muted)', margin: 0 }}>
