@@ -482,10 +482,15 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
     if (!nameOrId) return null;
     const pool = [
       ...(Array.isArray(llms) ? llms : []),
+      ...(intelData?.sources?.llms?.data || []),
+      ...(Array.isArray(intelData?.sources?.coding?.data) ? intelData.sources.coding.data : []),
+      ...(Array.isArray(intelData?.sources?.reasoning?.data) ? intelData.sources.reasoning.data : []),
+      ...(Array.isArray(intelData?.sources?.math?.data) ? intelData.sources.math.data : []),
       ...(intelData?.categories?.overall || []),
       ...(intelData?.categories?.coding || []),
       ...(intelData?.categories?.reasoning || []),
-      ...(intelData?.categories?.math || [])
+      ...(intelData?.categories?.math || []),
+      ...Object.values(intelData?.categories || {}).flat()
     ];
     if (!pool || pool.length === 0) return null;
 
@@ -2151,7 +2156,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               </div>
                               {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                                  {rec.subscriptionOption.includedModels.slice(0, 3).map((m, idx) => (
+                                  {rec.subscriptionOption.includedModels.slice(0, 6).map((m, idx) => (
                                     <span key={idx} style={{
                                       fontSize: '10px',
                                       fontWeight: '600',
@@ -2167,7 +2172,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                       {m}
                                     </span>
                                   ))}
-                                  {rec.subscriptionOption.includedModels.length > 3 && (
+                                  {rec.subscriptionOption.includedModels.length > 6 && (
                                     <span style={{
                                       fontSize: '9px',
                                       fontWeight: '700',
@@ -2181,7 +2186,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                       alignItems: 'center',
                                       justifyContent: 'center'
                                     }}>
-                                      +{rec.subscriptionOption.includedModels.length - 3} more
+                                      +{rec.subscriptionOption.includedModels.length - 6} more
                                     </span>
                                   )}
                                 </div>

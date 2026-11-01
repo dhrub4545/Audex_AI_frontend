@@ -781,7 +781,9 @@ export default function WizardFlow({
   const subscriptionTools = tools.filter(t => 
     t.type === 'subscription' && (
       t.name.toLowerCase().includes(subSearchQuery.toLowerCase()) ||
-      t.desc.toLowerCase().includes(subSearchQuery.toLowerCase())
+      t.desc.toLowerCase().includes(subSearchQuery.toLowerCase()) ||
+      (t.allModels && t.allModels.some(m => m.toLowerCase().includes(subSearchQuery.toLowerCase()))) ||
+      (t.plans && t.plans.some(p => p.toLowerCase().includes(subSearchQuery.toLowerCase())))
     )
   );
 
@@ -1664,6 +1666,40 @@ export default function WizardFlow({
                           <div className="tool-card-info" style={{ minWidth: 0, flex: 1 }}>
                             <span className="tool-card-name">{tool.name}</span>
                             <span className="tool-card-desc">{tool.desc}</span>
+                            {tool.allModels && tool.allModels.length > 0 && (
+                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                                {tool.allModels.slice(0, 3).map((m, mi) => (
+                                  <span key={mi} style={{
+                                    fontSize: '9.5px',
+                                    fontWeight: '600',
+                                    color: '#047857',
+                                    backgroundColor: '#ECFDF5',
+                                    border: '1px solid #A7F3D0',
+                                    padding: '1px 6px',
+                                    borderRadius: '4px',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    maxWidth: '120px'
+                                  }}>
+                                    {m}
+                                  </span>
+                                ))}
+                                {tool.allModels.length > 3 && (
+                                  <span style={{
+                                    fontSize: '9px',
+                                    fontWeight: '750',
+                                    color: '#059669',
+                                    backgroundColor: '#F0FDF4',
+                                    border: '1px solid #BBF7D0',
+                                    padding: '1px 5px',
+                                    borderRadius: '4px'
+                                  }}>
+                                    +{tool.allModels.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                         
@@ -2167,6 +2203,74 @@ export default function WizardFlow({
                             🗑
                           </button>
                         )}
+
+                        {/* Dynamic Models Included for Selected Subscription Plan */}
+                        {tool.type === 'subscription' && (() => {
+                          const planModels = tool.planModels?.[config.plan] || 
+                                             tool.tiers?.find(t => t.plan === config.plan)?.rawModels || 
+                                             tool.allModels || [];
+                          const planDetail = tool.planDetails?.[config.plan];
+                          
+                          return (
+                            <div style={{
+                              width: '100%',
+                              backgroundColor: '#FFFFFF',
+                              border: '1px solid #E2E8F0',
+                              borderRadius: '8px',
+                              padding: '10px 14px',
+                              marginTop: '8px',
+                              boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: planModels.length > 0 ? '6px' : 0 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <Sparkles size={13} style={{ color: '#10B981' }} />
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                                    Models Included in {config.plan || 'Selected Plan'} ({planModels.length})
+                                  </span>
+                                </div>
+                                {planDetail?.monthlyPrice !== undefined && (
+                                  <span style={{ fontSize: '11px', fontWeight: '700', color: '#059669', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '4px' }}>
+                                    {planDetail.monthlyPrice === 0 ? 'Free Tier' : `$${planDetail.monthlyPrice}/mo/seat`}
+                                  </span>
+                                )}
+                              </div>
+
+                              {planModels.length > 0 ? (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                                  {planModels.map((modelName, mi) => (
+                                    <span 
+                                      key={mi}
+                                      style={{
+                                        fontSize: '11px',
+                                        fontWeight: '600',
+                                        color: '#0F766E',
+                                        backgroundColor: '#F0FDFA',
+                                        border: '1px solid #CCFBF1',
+                                        padding: '3px 8px',
+                                        borderRadius: '6px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                      }}
+                                    >
+                                      <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: '#14B8A6' }}></span>
+                                      {modelName}
+                                    </span>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span style={{ fontSize: '11.5px', color: '#94A3B8' }}>Included models information available on provider tier.</span>
+                              )}
+
+                              {planDetail?.limits && (
+                                <div style={{ fontSize: '11px', color: '#64748B', marginTop: '6px', borderTop: '1px dashed #E2E8F0', paddingTop: '6px', display: 'flex', alignItems: 'flex-start', gap: '4px' }}>
+                                  <Info size={12} style={{ color: '#94A3B8', marginTop: '2px', flexShrink: 0 }} />
+                                  <span>{planDetail.limits}</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>
