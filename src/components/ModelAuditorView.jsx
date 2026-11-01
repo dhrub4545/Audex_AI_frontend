@@ -629,89 +629,124 @@ export default function ModelAuditorView({
   // Resilient client-side fallback computation from cached intelData
   const computeClientFallback = useCallback((modelId, useCase, totalTokens, inRatio, goal, cutPct, data) => {
     if (!data?.categories) return null;
+    const normUse = (useCase || 'overall').toLowerCase().trim().replace(/\s+/g, '-');
     const catKey = {
-      'Coding': 'coding',
-      'Reasoning': 'reasoning',
-      'Math': 'math',
-      'Writing': 'creative-writing',
-      'Research': 'research',
-      'Mixed': 'overall'
-    }[useCase] || 'overall';
+      'coding': 'coding',
+      'math': 'math',
+      'writing': 'creative-writing',
+      'creative-writing': 'creative-writing',
+      'research': 'research',
+      'reasoning': 'reasoning',
+      'mixed': 'overall',
+      'overall': 'overall',
+      'software': 'industry-software-and-it-services',
+      'business': 'industry-business-and-management-and-financial-operations',
+      'healthcare': 'industry-medicine-and-healthcare',
+      'legal': 'industry-legal-and-government',
+      'science': 'industry-life-and-physical-and-social-science',
+      'math-industry': 'industry-mathematical',
+      'media': 'industry-entertainment-and-sports-and-media',
+      'literature': 'industry-writing-and-literature-and-language',
+      'instruction-following': 'instruction-following',
+      'multi-turn': 'multi-turn',
+      'longer-query': 'longer-query',
+      'hard-prompts': 'hard-prompts',
+      'hard-prompts-english': 'hard-prompts-english',
+      'expert': 'expert'
+    }[normUse] || (data.categories[normUse] ? normUse : 'overall');
 
     const catList = data.categories[catKey] || data.categories.overall || [];
     if (!catList || catList.length === 0) return null;
 
+    const clean = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const targetClean = clean(modelId);
     const baseSlug = (modelId.split('/')[1] || modelId).toLowerCase();
-    let baseModel = catList.find(m => (m.modelId && m.modelId.toLowerCase() === modelId.toLowerCase()) || (m.slug && m.slug.toLowerCase() === baseSlug)) ||
-                    data.categories.overall?.find(m => (m.modelId && m.modelId.toLowerCase() === modelId.toLowerCase()) || (m.slug && m.slug.toLowerCase() === baseSlug));
+
+    let baseModel = catList.find(m => clean(m.modelId || '') === targetClean || clean(m.slug || '') === targetClean || (m.slug && m.slug.toLowerCase() === baseSlug));
+    if (!baseModel) {
+      baseModel = catList.find(m => clean(m.name || '') === targetClean || clean(m.name || '').includes(targetClean));
+    }
+    if (!baseModel) {
+      baseModel = data.categories.overall?.find(m => clean(m.modelId || '') === targetClean || clean(m.slug || '') === targetClean);
+    }
     if (!baseModel) baseModel = catList[0];
 
     const calcCost = (m) => {
-      const inP = Number(m.pricing?.price_1m_input_tokens || 1.5);
-      const outP = Number(m.pricing?.price_1m_output_tokens || 6.0);
+      const inP = Number(m.pricing?.price_1m_input_tokens || 0);
+      const outP = Number(m.pricing?.price_1m_output_tokens || 0);
+      if (inP <= 0 || outP <= 0) return 0;
       return (totalTokens * inRatio / 1000000 * inP) + (totalTokens * (1 - inRatio) / 1000000 * outP);
     };
 
-    const normRating = (r) => r ? Math.round(Math.min(99, Math.max(35, 50 + ((Number(r) - 1000) / 327) * 49))) : 75;
-    const normRank = (rk) => {
-      if (!rk || rk <= 0) return 75;
-      if (rk === 1) return 99;
-      if (rk <= 3) return 98;
-      if (rk <= 10) return Math.round(97 - (rk - 3) * 0.4);
-      if (rk <= 50) return Math.round(94 - ((rk - 10) / 40) * 6);
-      return Math.round(Math.max(40, 88 - ((rk - 50) / 250) * 20));
-    };
-
     const getScore = (m) => {
-      const rkScore = normRank(m.rank);
-      const rScore = normRating(m.rating);
-      return Math.round(rScore * 0.6 + rkScore * 0.4);
+      if (m.rating && typeof m.rating === 'number') {
+        return Math.round(50 + ((m.rating - 1000) / 327) * 49);
+      }
+      return 75;
     };
 
-    const baseCost = calcCost(baseModel);
+    const baseCost = calcCost(baseModel) || ((totalTokens * inRatio / 1000000 * 3) + (totalTokens * (1 - inRatio) / 1000000 * 15));
     const baseScore = getScore(baseModel);
+    const baseRank = parseInt(baseModel.rank) || 999;
 
     const candidates = catList
-      .filter(m => m.slug !== baseModel.slug && m.modelId !== baseModel.modelId)
+      .filter(m => {
+        if (m.slug === baseModel.slug || m.modelId === baseModel.modelId) return false;
+        const inP = Number(m.pricing?.price_1m_input_tokens || 0);
+        const outP = Number(m.pricing?.price_1m_output_tokens || 0);
+        return inP > 0 && outP > 0;
+      })
       .map(m => {
         const cost = calcCost(m);
         const score = getScore(m);
         const savingsMo = baseCost - cost;
         const savingsYr = savingsMo * 12;
         const savingsPct = baseCost > 0 ? (savingsMo / baseCost) * 100 : 0;
+        const rankDelta = (baseRank !== 999 && m.rank) ? (baseRank - m.rank) : 0;
+        const perfDelta = baseScore > 0 ? parseFloat((((score - baseScore) / baseScore) * 100).toFixed(1)) : 0;
         return {
-          _id: m.modelId,
-          modelId: m.modelId,
+          _id: m.modelId || `unknown/${m.slug}`,
+          modelId: m.modelId || `unknown/${m.slug}`,
           slug: m.slug,
           name: m.name,
-          developer: m.organization || 'Unknown',
-          provider: m.organization || 'Unknown',
-          cost_per_m_input: m.pricing?.price_1m_input_tokens || 1,
-          cost_per_m_output: m.pricing?.price_1m_output_tokens || 4,
+          developer: m.organization || 'AI Provider',
+          provider: m.organization || 'AI Provider',
+          cost_per_m_input: m.pricing?.price_1m_input_tokens || 0,
+          cost_per_m_output: m.pricing?.price_1m_output_tokens || 0,
           monthly_cost: Math.round(cost),
           annual_cost: Math.round(cost * 12),
-          category_score: score,
-          category_rank: m.rank,
+          performance_score: score,
+          category_rank: parseInt(m.rank) || 999,
+          baseline_rank: baseRank,
+          rank_delta: rankDelta,
+          performance_delta_percentage: perfDelta,
           rating: m.rating,
           projected_monthly_savings: Math.round(savingsMo),
           projected_annual_savings: Math.round(savingsYr),
           projected_savings_percentage: Math.round(savingsPct),
-          tokens_per_second: Math.round(m.median_output_tokens_per_second || 75),
-          time_to_first_token_ms: Math.round((m.median_time_to_first_token_seconds || 0.4) * 1000),
+          tokens_per_second: m.median_output_tokens_per_second ? Math.round(m.median_output_tokens_per_second) : null,
+          time_to_first_token_ms: m.median_time_to_first_token_seconds ? Math.round(m.median_time_to_first_token_seconds * 1000) : null,
           evaluations: m.evaluations || {},
           pricing: m.pricing || {}
         };
       });
 
     let recs = [];
-    if (goal === 'cost') {
+    if (goal === 'performance') {
+      recs = candidates
+        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : c.performance_score > baseScore) && c.monthly_cost < baseCost)
+        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
+    } else if (goal === 'cost') {
       const maxBudget = baseCost * (1 - (cutPct || 50) / 100);
-      recs = candidates.filter(c => c.monthly_cost <= maxBudget).sort((a, b) => b.category_score - a.category_score);
+      recs = candidates
+        .filter(c => c.monthly_cost <= maxBudget)
+        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
     } else if (goal === 'quality') {
-      recs = candidates.sort((a, b) => b.category_score - a.category_score);
+      recs = candidates.sort((a, b) => a.category_rank - b.category_rank);
     } else {
-      // performance preservation (tolerance -3%)
-      recs = candidates.filter(c => c.category_score >= (baseScore - 3) && c.monthly_cost < baseCost).sort((a, b) => a.monthly_cost - b.monthly_cost);
+      recs = candidates
+        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : c.performance_score > baseScore) && c.monthly_cost < baseCost)
+        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
     }
 
     return {
@@ -720,16 +755,16 @@ export default function ModelAuditorView({
         modelId: baseModel.modelId,
         slug: baseModel.slug,
         name: baseModel.name,
-        developer: baseModel.organization || 'Google',
-        provider: baseModel.organization || 'Google',
-        cost_per_m_input: baseModel.pricing?.price_1m_input_tokens || 1,
-        cost_per_m_output: baseModel.pricing?.price_1m_output_tokens || 4,
+        developer: baseModel.organization || 'AI Provider',
+        provider: baseModel.organization || 'AI Provider',
+        cost_per_m_input: baseModel.pricing?.price_1m_input_tokens || 0,
+        cost_per_m_output: baseModel.pricing?.price_1m_output_tokens || 0,
         monthly_cost: Math.round(baseCost),
-        category_score: baseScore,
-        category_rank: baseModel.rank,
+        performance_score: baseScore,
+        category_rank: baseRank,
         rating: baseModel.rating,
-        tokens_per_second: Math.round(baseModel.median_output_tokens_per_second || 75),
-        time_to_first_token_ms: Math.round((baseModel.median_time_to_first_token_seconds || 0.5) * 1000),
+        tokens_per_second: baseModel.median_output_tokens_per_second ? Math.round(baseModel.median_output_tokens_per_second) : null,
+        time_to_first_token_ms: baseModel.median_time_to_first_token_seconds ? Math.round(baseModel.median_time_to_first_token_seconds * 1000) : null,
         evaluations: baseModel.evaluations || {},
         pricing: baseModel.pricing || {}
       },
@@ -1546,7 +1581,7 @@ export default function ModelAuditorView({
                     <div style={{ textAlign: 'left', minWidth: 0 }}>
                       <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{results.currentBaseline.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
-                        Index capability: <strong style={{ color: '#047857' }}>{results.currentBaseline.performance_score}</strong>/100 · <strong style={{ color: '#1E293B' }}>{results.currentBaseline.tokens_per_second}</strong> t/s
+                        Index capability: <strong style={{ color: '#047857' }}>{results.currentBaseline.performance_score}</strong>/100 {results.currentBaseline.category_rank ? `(#${results.currentBaseline.category_rank} in category)` : ''} {results.currentBaseline.tokens_per_second ? `· ${results.currentBaseline.tokens_per_second} t/s` : ''}
                       </div>
                     </div>
                   </div>
@@ -1607,6 +1642,54 @@ export default function ModelAuditorView({
                                 <small style={{ color: '#64748B', fontSize: '11.5px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                   {rec.developer || 'AI Provider'} · {(rec.modelId || '').includes('/') ? rec.modelId.split('/')[1] : (rec.modelId || 'model')}
                                 </small>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                                  {rec.rank_delta > 0 ? (
+                                    <span style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      fontSize: '11px',
+                                      fontWeight: '700',
+                                      color: '#15803D',
+                                      backgroundColor: '#DCFCE7',
+                                      padding: '2px 7px',
+                                      borderRadius: '5px'
+                                    }}>
+                                      ↑ {rec.performance_delta_percentage >= 0 ? `+${rec.performance_delta_percentage}%` : `${rec.performance_delta_percentage}%`} capability ({rec.rank_delta} ranks higher)
+                                    </span>
+                                  ) : rec.rank_delta < 0 ? (
+                                    <span style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      fontSize: '11px',
+                                      fontWeight: '700',
+                                      color: '#B45309',
+                                      backgroundColor: '#FEF3C7',
+                                      padding: '2px 7px',
+                                      borderRadius: '5px'
+                                    }}>
+                                      ↓ {rec.performance_delta_percentage}% capability ({Math.abs(rec.rank_delta)} ranks lower)
+                                    </span>
+                                  ) : (
+                                    <span style={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: '3px',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      color: '#64748B',
+                                      backgroundColor: '#F1F5F9',
+                                      padding: '2px 7px',
+                                      borderRadius: '5px'
+                                    }}>
+                                      Equal Category Rank (#{rec.category_rank || 'N/A'})
+                                    </span>
+                                  )}
+                                  <span style={{ fontSize: '11px', color: '#64748B' }}>
+                                    · Index: <strong style={{ color: '#047857' }}>{rec.performance_score}</strong>/100
+                                  </span>
+                                </div>
                               </span>
                             </div>
                           </div>
@@ -1698,9 +1781,15 @@ export default function ModelAuditorView({
                         <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
                           <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700 }}>Inference speedup</div>
                           <div style={{ fontSize: '20px', fontWeight: '800', color: 'var(--color-green-text)', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                            {(selectedRecommendation.tokens_per_second / (results?.currentBaseline?.tokens_per_second || 1)).toFixed(1)}x
+                            {selectedRecommendation.tokens_per_second && results?.currentBaseline?.tokens_per_second ? (
+                              `${(selectedRecommendation.tokens_per_second / results.currentBaseline.tokens_per_second).toFixed(1)}x`
+                            ) : (
+                              'N/A'
+                            )}
                           </div>
-                          <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>{selectedRecommendation.tokens_per_second} vs {results?.currentBaseline?.tokens_per_second} tokens/s</div>
+                          <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                            {selectedRecommendation.tokens_per_second ? `${selectedRecommendation.tokens_per_second} t/s` : 'N/A'} vs {results?.currentBaseline?.tokens_per_second ? `${results.currentBaseline.tokens_per_second} t/s` : 'N/A'}
+                          </div>
                         </div>
 
                         <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
@@ -1725,28 +1814,28 @@ export default function ModelAuditorView({
                           <tbody>
                             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                               <td style={{ padding: '10px 16px', fontWeight: '600' }}>Input price / million</td>
-                              <td style={{ padding: '10px 16px' }}>${results?.currentBaseline?.cost_per_m_input.toFixed(2)}</td>
+                              <td style={{ padding: '10px 16px' }}>${results?.currentBaseline?.cost_per_m_input?.toFixed(2) ?? '0.00'}</td>
                               <td style={{ padding: '10px 16px', color: 'var(--color-green-text)', fontWeight: '600' }}>
-                                ${selectedRecommendation.cost_per_m_input.toFixed(2)}
+                                ${selectedRecommendation.cost_per_m_input?.toFixed(2) ?? '0.00'}
                               </td>
                             </tr>
                             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                               <td style={{ padding: '10px 16px', fontWeight: '600' }}>Output price / million</td>
-                              <td style={{ padding: '10px 16px' }}>${results?.currentBaseline?.cost_per_m_output.toFixed(2)}</td>
+                              <td style={{ padding: '10px 16px' }}>${results?.currentBaseline?.cost_per_m_output?.toFixed(2) ?? '0.00'}</td>
                               <td style={{ padding: '10px 16px', color: 'var(--color-green-text)', fontWeight: '600' }}>
-                                ${selectedRecommendation.cost_per_m_output.toFixed(2)}
+                                ${selectedRecommendation.cost_per_m_output?.toFixed(2) ?? '0.00'}
                               </td>
                             </tr>
                             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                               <td style={{ padding: '10px 16px', fontWeight: '600' }}>Prompt cache read / million</td>
                               <td style={{ padding: '10px 16px' }}>-</td>
-                              <td style={{ padding: '10px 16px' }}>${selectedRecommendation.cache_read_cost_per_m.toFixed(2)}</td>
+                              <td style={{ padding: '10px 16px' }}>{selectedRecommendation.cache_read_cost_per_m ? `$${selectedRecommendation.cache_read_cost_per_m.toFixed(2)}` : '-'}</td>
                             </tr>
                             <tr style={{ borderBottom: '1px solid var(--color-border)' }}>
                               <td style={{ padding: '10px 16px', fontWeight: '600' }}>Time To First Token</td>
-                              <td style={{ padding: '10px 16px' }}>{results?.currentBaseline?.time_to_first_token_ms}ms</td>
-                              <td style={{ padding: '10px 16px', color: selectedRecommendation.time_to_first_token_ms <= results?.currentBaseline?.time_to_first_token_ms ? 'var(--color-green-text)' : 'inherit' }}>
-                                {selectedRecommendation.time_to_first_token_ms}ms
+                              <td style={{ padding: '10px 16px' }}>{results?.currentBaseline?.time_to_first_token_ms ? `${results.currentBaseline.time_to_first_token_ms}ms` : 'N/A'}</td>
+                              <td style={{ padding: '10px 16px', color: (selectedRecommendation.time_to_first_token_ms && results?.currentBaseline?.time_to_first_token_ms && selectedRecommendation.time_to_first_token_ms <= results?.currentBaseline?.time_to_first_token_ms) ? 'var(--color-green-text)' : 'inherit' }}>
+                                {selectedRecommendation.time_to_first_token_ms ? `${selectedRecommendation.time_to_first_token_ms}ms` : 'N/A'}
                               </td>
                             </tr>
                             <tr>

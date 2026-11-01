@@ -500,10 +500,26 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
   // Determine baseline identifier
   let baselineIdentifier = '';
   if (alloc) {
-    if (alloc.baselineModelId) {
+    if (alloc.topModelId) {
+      baselineIdentifier = alloc.topModelId;
+    } else if (alloc.topModelName) {
+      baselineIdentifier = alloc.topModelName;
+    } else if (alloc.baselineModelId) {
       baselineIdentifier = alloc.baselineModelId;
     } else if (alloc.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0) {
-      baselineIdentifier = alloc.baselineModels[0];
+      let topInList = alloc.baselineModels[0];
+      const rankList = intelData?.categories?.[(alloc.purpose || 'overall').toLowerCase()] || intelData?.categories?.overall || [];
+      if (rankList.length > 0) {
+        let bestRk = 99999;
+        for (const rm of alloc.baselineModels) {
+          const entry = rankList.find(m => m.name && (m.name.toLowerCase().includes(rm.toLowerCase()) || rm.toLowerCase().includes(m.name.toLowerCase())));
+          if (entry && entry.rank < bestRk) {
+            bestRk = entry.rank;
+            topInList = entry.modelId || entry.slug || entry.name;
+          }
+        }
+      }
+      baselineIdentifier = topInList;
     } else {
       baselineIdentifier = alloc.modelId || alloc.baselineModelName || alloc.modelName || alloc.plan || '';
     }
@@ -512,10 +528,26 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
   // Determine recommended identifier
   let recommendedIdentifier = '';
   if (opt) {
-    if (opt.modelId) {
+    if (opt.topModelId) {
+      recommendedIdentifier = opt.topModelId;
+    } else if (opt.topModelName) {
+      recommendedIdentifier = opt.topModelName;
+    } else if (opt.modelId) {
       recommendedIdentifier = opt.modelId;
     } else if (choice === 'subscription' && opt.includedModels && opt.includedModels.length > 0) {
-      recommendedIdentifier = opt.includedModels[0];
+      let topInList = opt.includedModels[0];
+      const rankList = intelData?.categories?.[(alloc?.purpose || 'overall').toLowerCase()] || intelData?.categories?.overall || [];
+      if (rankList.length > 0) {
+        let bestRk = 99999;
+        for (const rm of opt.includedModels) {
+          const entry = rankList.find(m => m.name && (m.name.toLowerCase().includes(rm.toLowerCase()) || rm.toLowerCase().includes(m.name.toLowerCase())));
+          if (entry && entry.rank < bestRk) {
+            bestRk = entry.rank;
+            topInList = entry.modelId || entry.slug || entry.name;
+          }
+        }
+      }
+      recommendedIdentifier = topInList;
     } else {
       recommendedIdentifier = opt.name || opt.recommendedModel || opt.planName || '';
     }
