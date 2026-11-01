@@ -31,7 +31,8 @@ import {
   Layers,
   Bot,
   Check,
-  X
+  X,
+  Info
 } from 'lucide-react';
 
 export function isDiscontinuedModel(name = '') {
