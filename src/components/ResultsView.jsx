@@ -194,25 +194,24 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   if (!model) {
     return {
-      coding: 78,
-      reasoning: 80,
-      math: 75,
-      writing: 82,
-      research: 76,
-      funcCalling: 79,
-      longContext: 85,
-      multimodal: 80,
-      speedNorm: 70,
-      speedVal: 75,
-      costEff: 75,
-      blendedCost: 2.5,
-      context_length: 128000,
-      intelligence_index: 80
+      coding: null,
+      reasoning: null,
+      math: null,
+      writing: null,
+      research: null,
+      funcCalling: null,
+      longContext: null,
+      multimodal: null,
+      speedNorm: null,
+      speedVal: null,
+      costEff: null,
+      blendedCost: null,
+      context_length: null,
+      intelligence_index: null
     };
   }
 
   const ev = model.evaluations || {};
-  const nameSlug = `${model.slug || ''} ${model.modelId || ''} ${model.name || ''}`.toLowerCase();
 
   // Helper to normalize Elo rating from Artificial Analysis bounds (1000 - 1327) to 0-100 scale
   const normRating = (r) => {
@@ -222,7 +221,7 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // Helper to normalize category rank
   const normRank = (rank) => {
-    if (!rank || isNaN(rank) || rank <= 0) return 75;
+    if (!rank || isNaN(rank) || rank <= 0) return null;
     const rk = Number(rank);
     if (rk === 1) return 99;
     if (rk === 2) return 98;
@@ -235,18 +234,18 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   };
 
   const getCatScore = (catItem, fallbackRating) => {
-    if (!catItem) return normRating(fallbackRating) || 75;
-    const rScore = normRating(catItem.rating || fallbackRating) || 75;
+    if (!catItem) return normRating(fallbackRating);
+    const rScore = normRating(catItem.rating || fallbackRating);
     const rk = Number(catItem.rank);
     if (rk && rk > 0) {
       const rkScore = normRank(rk);
-      return Math.round(rScore * 0.4 + rkScore * 0.6);
+      return rScore ? Math.round(rScore * 0.4 + rkScore * 0.6) : rkScore;
     }
     return rScore;
   };
 
-  const rating = Number(model.rating || model.arena_elo || 1200);
-  const baseNorm = normRating(rating) || 80;
+  const rating = Number(model.rating || model.arena_elo);
+  const baseNorm = !isNaN(rating) && rating > 0 ? normRating(rating) : null;
 
   // Helper to find in intelData categories by flexible slug / modelId / name match
   const findInCat = (catName) => {
@@ -293,16 +292,20 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   // 1. CODING
   let coding = null;
   if (evCombined.livecodebench) {
-    coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.livecodebench) / 90) * 100)));
+    const v = Number(evCombined.livecodebench);
+    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v / 90) * 100)));
   } else if (evCombined.artificial_analysis_coding_index) {
     const v = Number(evCombined.artificial_analysis_coding_index);
     coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
+  } else if (evCombined.terminalbench_v2_1) {
+    const v = Number(evCombined.terminalbench_v2_1);
+    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : v)));
   } else if (codeCat) {
     coding = getCatScore(codeCat, model.rating);
   } else if (evCombined.scicode) {
     coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   }
-  if (!coding) coding = baseNorm;
+  if (coding === null) coding = baseNorm;
 
   // 2. MATH
   let math = null;
@@ -316,12 +319,14 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (mathCat) {
     math = getCatScore(mathCat, model.rating);
   }
-  if (!math) math = baseNorm;
+  if (math === null) math = baseNorm;
 
   // 3. REASONING
   let reasoning = null;
   if (evCombined.gpqa) {
     reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
+  } else if (evCombined.hle) {
+    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
   } else if (evCombined.artificial_analysis_intelligence_index) {
     const v = Number(evCombined.artificial_analysis_intelligence_index);
     reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
@@ -330,14 +335,14 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (reasonCat) {
     reasoning = getCatScore(reasonCat, model.rating);
   }
-  if (!reasoning) reasoning = baseNorm;
+  if (reasoning === null) reasoning = baseNorm;
 
   // 4. WRITING
   let writing = null;
   if (writeCat) {
     writing = getCatScore(writeCat, model.rating);
   }
-  if (!writing) writing = baseNorm;
+  if (writing === null) writing = baseNorm;
 
   // 5. RESEARCH (HLE / GPQA / MMLU)
   let research = null;
@@ -348,7 +353,7 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (resCat) {
     research = getCatScore(resCat, model.rating);
   }
-  if (!research) research = baseNorm;
+  if (research === null) research = baseNorm;
 
   // 6. FUNCTION CALLING / AGENTIC
   let funcCalling = null;
@@ -360,39 +365,40 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (fnCat) {
     funcCalling = getCatScore(fnCat, model.rating);
   }
-  if (!funcCalling) funcCalling = reasoning ? Math.min(99, Math.round(reasoning * 0.98)) : baseNorm;
+  if (funcCalling === null) funcCalling = baseNorm;
 
   // 7. Context Length
-  const ctx = Number(model.context_length || 128000);
-  let longContext = 88;
-  if (ctx >= 1000000) longContext = 99;
-  else if (ctx >= 200000) longContext = 95;
-  else if (ctx >= 128000) longContext = 88;
-  else if (ctx >= 32000) longContext = 78;
-  else if (ctx >= 8000) longContext = 65;
-  else longContext = 50;
+  const ctx = model.context_length ? Number(model.context_length) : null;
+  let longContext = null;
+  if (ctx) {
+    if (ctx >= 1000000) longContext = 99;
+    else if (ctx >= 200000) longContext = 95;
+    else if (ctx >= 128000) longContext = 88;
+    else if (ctx >= 32000) longContext = 78;
+    else if (ctx >= 8000) longContext = 65;
+    else longContext = 50;
+  }
 
   // 8. Multimodal
   let multimodal = null;
   if (visCat) {
     multimodal = getCatScore(visCat, model.rating);
-  } else {
-    const isMulti = nameSlug.includes('gemini') || nameSlug.includes('gpt') || nameSlug.includes('claude') || nameSlug.includes('vision') || nameSlug.includes('pixtral') || nameSlug.includes('omni');
-    multimodal = isMulti ? baseNorm : Math.max(35, baseNorm - 20);
   }
+  if (multimodal === null) multimodal = baseNorm;
 
   // 9. Speed
-  const speedVal = Number(explicitTps || model.median_output_tokens_per_second || codeCat?.median_output_tokens_per_second || model.tokens_per_second || model.throughput || 75);
-  const speedNorm = Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100)));
+  const speedRaw = explicitTps || model.median_output_tokens_per_second || codeCat?.median_output_tokens_per_second || model.tokens_per_second || model.throughput || null;
+  const speedVal = speedRaw ? Number(speedRaw) : null;
+  const speedNorm = speedVal ? Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100))) : null;
 
   // 10. Cost Efficiency
-  const inputCost = Number(model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? codeCat?.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? model.inputCost ?? 1.5);
-  const outputCost = Number(model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? codeCat?.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? model.outputCost ?? 6.0);
+  const inputCost = model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? codeCat?.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? model.inputCost ?? null;
+  const outputCost = model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? codeCat?.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? model.outputCost ?? null;
   let blended = explicitBlendedCost;
-  if (blended === null || blended === undefined || isNaN(blended)) {
-    blended = inputCost * 0.75 + outputCost * 0.25;
+  if ((blended === null || blended === undefined || isNaN(blended)) && inputCost !== null && outputCost !== null) {
+    blended = Number(inputCost) * 0.75 + Number(outputCost) * 0.25;
   }
-  const costEff = Math.round(100 - Math.min(85, Math.max(10, Math.log10((Number(blended) || 1) + 0.05) * 20 + 35)));
+  const costEff = blended !== null ? Math.round(100 - Math.min(85, Math.max(10, Math.log10(Number(blended) + 0.05) * 20 + 35))) : null;
 
   return {
     coding,
@@ -404,9 +410,9 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     longContext,
     multimodal,
     speedNorm,
-    speedVal: Math.round(speedVal) || 75,
+    speedVal: speedVal ? Math.round(speedVal) : null,
     costEff,
-    blendedCost: Number(blended) || 1.5,
+    blendedCost: blended !== null ? Number(blended) : null,
     context_length: ctx,
     intelligence_index: reasoning
   };

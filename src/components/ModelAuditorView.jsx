@@ -686,28 +686,49 @@ export default function ModelAuditorView({
     const getScore = (m) => {
       const ev = m.evaluations || {};
       if (normUse === 'coding') {
-        if (typeof ev.livecodebench === 'number' && ev.livecodebench > 0) return Math.min(99, Math.round((ev.livecodebench / 90) * 100));
-        if (typeof ev.artificial_analysis_coding_index === 'number' && ev.artificial_analysis_coding_index > 0) return Math.min(99, Math.round(ev.artificial_analysis_coding_index));
+        if (typeof ev.livecodebench === 'number' && ev.livecodebench > 0) return parseFloat((ev.livecodebench <= 1 ? ev.livecodebench * 100 : ev.livecodebench).toFixed(1));
+        if (typeof ev.artificial_analysis_coding_index === 'number' && ev.artificial_analysis_coding_index > 0) return parseFloat(ev.artificial_analysis_coding_index.toFixed(1));
+        if (typeof ev.terminalbench_v2_1 === 'number' && ev.terminalbench_v2_1 > 0) return parseFloat((ev.terminalbench_v2_1 <= 1 ? ev.terminalbench_v2_1 * 100 : ev.terminalbench_v2_1).toFixed(1));
+        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
+        if (typeof m.category_scores?.coding === 'number' && m.category_scores.coding > 0) return parseFloat(m.category_scores.coding.toFixed(1));
+        return null;
       }
       if (normUse === 'math') {
-        if (typeof ev.aime === 'number' && ev.aime > 0) return Math.min(99, Math.round(ev.aime));
-        if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return Math.min(99, Math.round((ev.artificial_analysis_math_index / 67) * 98));
+        if (typeof ev.aime === 'number' && ev.aime > 0) return parseFloat((ev.aime <= 1 ? ev.aime * 100 : ev.aime).toFixed(1));
+        if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return parseFloat(ev.artificial_analysis_math_index.toFixed(1));
+        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
+        if (typeof m.category_scores?.math === 'number' && m.category_scores.math > 0) return parseFloat(m.category_scores.math.toFixed(1));
+        return null;
+      }
+      if (normUse === 'reasoning') {
+        if (typeof ev.gpqa === 'number' && ev.gpqa > 0) return parseFloat((ev.gpqa <= 1 ? ev.gpqa * 100 : ev.gpqa).toFixed(1));
+        if (typeof ev.hle === 'number' && ev.hle > 0) return parseFloat((ev.hle <= 1 ? ev.hle * 100 : ev.hle).toFixed(1));
+        if (typeof ev.artificial_analysis_intelligence_index === 'number' && ev.artificial_analysis_intelligence_index > 0) return parseFloat(ev.artificial_analysis_intelligence_index.toFixed(1));
+        if (typeof m.category_scores?.reasoning === 'number' && m.category_scores.reasoning > 0) return parseFloat(m.category_scores.reasoning.toFixed(1));
+        return null;
+      }
+      if (normUse === 'research') {
+        if (typeof ev.hle === 'number' && ev.hle > 0) return parseFloat((ev.hle <= 1 ? ev.hle * 100 : ev.hle).toFixed(1));
+        if (typeof ev.lcr === 'number' && ev.lcr > 0) return parseFloat((ev.lcr <= 1 ? ev.lcr * 100 : ev.lcr).toFixed(1));
+        if (typeof ev.gpqa === 'number' && ev.gpqa > 0) return parseFloat((ev.gpqa <= 1 ? ev.gpqa * 100 : ev.gpqa).toFixed(1));
+        return null;
+      }
+      if (normUse === 'instruction' || normUse === 'instruction-following') {
+        if (typeof ev.ifbench === 'number' && ev.ifbench > 0) return parseFloat((ev.ifbench <= 1 ? ev.ifbench * 100 : ev.ifbench).toFixed(1));
+        return null;
       }
       if (typeof ev.artificial_analysis_intelligence_index === 'number' && ev.artificial_analysis_intelligence_index > 0) {
-        return Math.min(99, Math.round(ev.artificial_analysis_intelligence_index));
+        return parseFloat(ev.artificial_analysis_intelligence_index.toFixed(1));
       }
-      if (typeof ev.gpqa === 'number' && ev.gpqa > 0) {
-        return Math.min(99, Math.round(ev.gpqa));
-      }
-      if (m.rating && typeof m.rating === 'number') {
-        return Math.round(50 + ((m.rating - 1000) / 327) * 49);
-      }
-      return 75;
+      if (typeof m.final_score === 'number' && m.final_score > 0) return parseFloat(m.final_score.toFixed(1));
+      if (typeof m.rating === 'number' && m.rating > 0) return parseFloat(m.rating.toFixed(1));
+      if (typeof m.arena_elo === 'number' && m.arena_elo > 0) return parseFloat(m.arena_elo.toFixed(1));
+      return null;
     };
 
     const baseCost = calcCost(baseModel) || ((totalTokens * inRatio / 1000000 * 3) + (totalTokens * (1 - inRatio) / 1000000 * 15));
     const baseScore = getScore(baseModel);
-    const baseRank = parseInt(baseModel.rank) || 999;
+    const baseRank = (typeof baseModel.rank === 'number' && baseModel.rank > 0) ? baseModel.rank : (parseInt(baseModel.rank) || null);
 
     const candidates = catList
       .filter(m => {
@@ -722,8 +743,11 @@ export default function ModelAuditorView({
         const savingsMo = baseCost - cost;
         const savingsYr = savingsMo * 12;
         const savingsPct = baseCost > 0 ? (savingsMo / baseCost) * 100 : 0;
-        const rankDelta = (baseRank !== 999 && m.rank) ? (baseRank - m.rank) : 0;
-        const perfDelta = baseScore > 0 ? parseFloat((((score - baseScore) / baseScore) * 100).toFixed(1)) : 0;
+        const itemRank = (typeof m.rank === 'number' && m.rank > 0) ? m.rank : (parseInt(m.rank) || null);
+        const rankDelta = (baseRank !== null && itemRank !== null) ? (baseRank - itemRank) : null;
+        const perfDelta = (baseScore !== null && score !== null && baseScore > 0) ? parseFloat((((score - baseScore) / baseScore) * 100).toFixed(1)) : null;
+        const perfRetained = (baseScore !== null && score !== null && baseScore > 0) ? parseFloat(((score / baseScore) * 100).toFixed(1)) : null;
+
         return {
           _id: m.modelId || `unknown/${m.slug}`,
           modelId: m.modelId || `unknown/${m.slug}`,
@@ -736,11 +760,12 @@ export default function ModelAuditorView({
           monthly_cost: Math.round(cost),
           annual_cost: Math.round(cost * 12),
           performance_score: score,
-          category_rank: parseInt(m.rank) || 999,
+          category_rank: itemRank,
           baseline_rank: baseRank,
           rank_delta: rankDelta,
           performance_delta_percentage: perfDelta,
-          rating: m.rating,
+          performance_retained_percentage: perfRetained,
+          rating: m.rating || null,
           projected_monthly_savings: Math.round(savingsMo),
           projected_annual_savings: Math.round(savingsYr),
           projected_savings_percentage: Math.round(savingsPct),
@@ -753,26 +778,53 @@ export default function ModelAuditorView({
 
     let recs = [];
     if (goal === 'performance') {
-      const minScore = Math.round(baseScore * 0.95);
       recs = candidates
-        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : true) && c.monthly_cost < baseCost && c.performance_score >= minScore)
-        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
+        .filter(c => {
+          if (c.monthly_cost >= baseCost) return false;
+          if (baseRank !== null && c.category_rank !== null && c.category_rank >= baseRank) return false;
+          if (baseScore !== null && c.performance_score !== null && c.performance_score < baseScore) return false;
+          return true;
+        })
+        .sort((a, b) => {
+          const rkA = a.category_rank ?? 99999;
+          const rkB = b.category_rank ?? 99999;
+          return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
+        });
     } else if (goal === 'cost') {
       const maxBudget = baseCost * (1 - (cutPct || 50) / 100);
       recs = candidates
         .filter(c => c.monthly_cost <= maxBudget)
-        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
+        .sort((a, b) => {
+          const rkA = a.category_rank ?? 99999;
+          const rkB = b.category_rank ?? 99999;
+          return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
+        });
     } else if (goal === 'quality') {
-      recs = candidates.sort((a, b) => a.category_rank - b.category_rank);
+      recs = candidates.sort((a, b) => {
+        const rkA = a.category_rank ?? 99999;
+        const rkB = b.category_rank ?? 99999;
+        return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
+      });
     } else {
-      const minScore = Math.round(baseScore * 0.95);
       recs = candidates
-        .filter(c => (baseRank !== 999 ? c.category_rank < baseRank : true) && c.monthly_cost < baseCost && c.performance_score >= minScore)
-        .sort((a, b) => (a.category_rank - b.category_rank) || (a.monthly_cost - b.monthly_cost));
+        .filter(c => {
+          if (c.monthly_cost >= baseCost) return false;
+          if (baseRank !== null && c.category_rank !== null && c.category_rank >= baseRank) return false;
+          if (baseScore !== null && c.performance_score !== null && c.performance_score < baseScore) return false;
+          return true;
+        })
+        .sort((a, b) => {
+          const rkA = a.category_rank ?? 99999;
+          const rkB = b.category_rank ?? 99999;
+          return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
+        });
     }
+
+    const isAlreadyOptimized = (recs.length === 0 && goal === 'performance');
 
     return {
       selectedCategory: useCase || 'Mixed',
+      alreadyOptimized: isAlreadyOptimized,
       currentBaseline: {
         _id: baseModel.modelId,
         modelId: baseModel.modelId,
@@ -785,7 +837,7 @@ export default function ModelAuditorView({
         monthly_cost: Math.round(baseCost),
         performance_score: baseScore,
         category_rank: baseRank,
-        rating: baseModel.rating,
+        rating: baseModel.rating || null,
         tokens_per_second: baseModel.median_output_tokens_per_second ? Math.round(baseModel.median_output_tokens_per_second) : null,
         time_to_first_token_ms: baseModel.median_time_to_first_token_seconds ? Math.round(baseModel.median_time_to_first_token_seconds * 1000) : null,
         evaluations: baseModel.evaluations || {},
@@ -1691,7 +1743,7 @@ export default function ModelAuditorView({
                                       padding: '2px 7px',
                                       borderRadius: '5px'
                                     }}>
-                                      ↑ {rec.performance_delta_percentage >= 0 ? `+${rec.performance_delta_percentage}%` : `${rec.performance_delta_percentage}%`} capability ({rec.rank_delta} ranks higher)
+                                      ↑ {rec.performance_delta_percentage !== null ? (rec.performance_delta_percentage >= 0 ? `+${rec.performance_delta_percentage}%` : `${rec.performance_delta_percentage}%`) : `${rec.rank_delta} ranks`} capability ({rec.rank_delta} ranks higher)
                                     </span>
                                   ) : rec.rank_delta < 0 ? (
                                     <span style={{
@@ -1705,7 +1757,7 @@ export default function ModelAuditorView({
                                       padding: '2px 7px',
                                       borderRadius: '5px'
                                     }}>
-                                      ↓ {rec.performance_delta_percentage}% capability ({Math.abs(rec.rank_delta)} ranks lower)
+                                      ↓ {rec.performance_delta_percentage !== null ? `${rec.performance_delta_percentage}%` : `${Math.abs(rec.rank_delta)} ranks`} capability ({Math.abs(rec.rank_delta)} ranks lower)
                                     </span>
                                   ) : (
                                     <span style={{
@@ -1723,7 +1775,7 @@ export default function ModelAuditorView({
                                     </span>
                                   )}
                                   <span style={{ fontSize: '11px', color: '#64748B' }}>
-                                    · Score Comparison: <strong>{results.currentBaseline?.performance_score}</strong> → <strong style={{ color: '#047857' }}>{rec.performance_score}</strong>/100
+                                    · Score Comparison: <strong>{results.currentBaseline?.performance_score != null ? results.currentBaseline.performance_score : 'N/A'}</strong> → <strong style={{ color: '#047857' }}>{rec.performance_score != null ? `${rec.performance_score}/100` : 'N/A'}</strong>
                                   </span>
                                 </div>
                               </span>
@@ -1830,10 +1882,12 @@ export default function ModelAuditorView({
 
                         <div style={{ backgroundColor: '#FFFFFF', padding: '16px', borderRadius: '10px', border: '1px solid var(--color-border)' }}>
                           <div style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--color-text-muted)', fontWeight: 700 }}>Quality retainment</div>
-                          <div style={{ fontSize: '20px', fontWeight: '800', color: selectedRecommendation.performance_retained_percentage >= 100 ? '#10B981' : '#F59E0B', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
-                            {selectedRecommendation.performance_retained_percentage}%
+                          <div style={{ fontSize: '20px', fontWeight: '800', color: selectedRecommendation.performance_retained_percentage != null ? (selectedRecommendation.performance_retained_percentage >= 100 ? '#10B981' : '#F59E0B') : 'var(--color-text-muted)', fontFamily: 'var(--font-title)', marginTop: '4px' }}>
+                            {selectedRecommendation.performance_retained_percentage != null ? `${selectedRecommendation.performance_retained_percentage}%` : 'N/A'}
                           </div>
-                          <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>{selectedRecommendation.performance_score} vs {results?.currentBaseline?.performance_score} index score</div>
+                          <div style={{ fontSize: '10px', color: 'var(--color-text-muted)' }}>
+                            {selectedRecommendation.performance_score != null ? `${selectedRecommendation.performance_score} index score` : 'N/A'} vs {results?.currentBaseline?.performance_score != null ? `${results.currentBaseline.performance_score} index score` : 'N/A'}
+                          </div>
                         </div>
 
                       </div>
