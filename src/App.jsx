@@ -24,6 +24,7 @@ const INITIAL_TOOLS = [
   {
     "id": "ChatGPT",
     "name": "ChatGPT",
+    "provider": "OpenAI",
     "desc": "OpenAI ChatGPT",
     "icon": "🟢",
     "type": "subscription",
@@ -34,129 +35,224 @@ const INITIAL_TOOLS = [
       "ChatGPT Pro",
       "Business"
     ],
-    "defaultPlan": "ChatGPT Plus",
+    "defaultPlan": "ChatGPT Go",
     "defaultSeats": 1,
     "planModels": {
       "Free": [
         "GPT-5.5 Instant (June 2026)",
-        "GPT-5.5 Instant (May 2026)",
         "GPT-5.4 nano (Xhigh)",
-        "GPT-5.4 mini (Xhigh)"
+        "GPT-5.4 mini (Xhigh)",
+        "GPT-5.1 Codex mini (High)"
       ],
       "ChatGPT Go": [
-        "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
         "GPT-5.5 Instant (June 2026)",
-        "GPT-5.5 Instant (May 2026)",
-        "GPT-5.4 nano (Xhigh)"
+        "GPT-5.4 nano (Xhigh)",
+        "GPT-5.4 mini (Xhigh)",
+        "GPT-5.1 Codex mini (High)"
       ],
       "ChatGPT Plus": [
-        "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "GPT-6.1 Sol (High)",
-        "GPT-6.1 Sol (Medium)",
-        "GPT-6.1 Sol (Low)",
-        "GPT-6 Sol (High)"
+        "GPT-6.1 Sol (Xhigh)",
+        "GPT-6 Sol (Xhigh)",
+        "GPT-6 Luna (Medium)",
+        "GPT-6 Astra (Medium)",
+        "GPT-5.6 Sol (Xhigh)"
       ],
       "ChatGPT Pro": [
         "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "GPT-6.1 Terra (High)",
-        "GPT-6.1 Terra (Medium)",
-        "GPT-6.1 Sol (High)",
-        "GPT-6.1 Sol (Medium)"
+        "GPT-6.1 Sol (Max)",
+        "GPT-6 Sol (Max)",
+        "GPT-5.6 Terra (Max)",
+        "GPT-5.6 Sol (Max)"
       ],
       "Business": [
         "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "GPT-6.1 Sol (High)",
-        "GPT-6.1 Sol (Medium)",
-        "GPT-6.1 Sol (Low)",
-        "GPT-6 Sol (High)"
+        "GPT-6.1 Sol (Max)",
+        "GPT-6 Sol (Max)",
+        "GPT-5.6 Terra (Max)",
+        "GPT-5.6 Sol (Max)"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Limited usage. Dynamic rate limits apply. GPT-5.5 Mini serves as fallback when limits are reached.",
-        "models": [
-          "GPT-5.5 Instant (June 2026)",
-          "GPT-5.5 Instant (May 2026)",
-          "GPT-5.4 nano (Xhigh)",
-          "GPT-5.4 mini (Xhigh)"
-        ]
+        "isPerSeat": false,
+        "limits": "Limited usage. Dynamic rate limits apply. GPT-5.5 Mini serves as fallback when limits are reached."
       },
       "ChatGPT Go": {
         "monthlyPrice": 8,
         "annualPrice": 96,
-        "limits": "160 messages every 3 hours; basic image generation; 32K context window.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "GPT-5.5 Instant (June 2026)",
-          "GPT-5.5 Instant (May 2026)",
-          "GPT-5.4 nano (Xhigh)"
-        ]
+        "isPerSeat": false,
+        "limits": "160 messages every 3 hours; basic image generation; 32K context window."
       },
       "ChatGPT Plus": {
         "monthlyPrice": 20,
         "annualPrice": 0,
-        "limits": "Includes GPT-5.5 Thinking with 'Medium' and 'High' reasoning levels. Canvas is not available with GPT-5.5 models.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "GPT-6.1 Sol (High)",
-          "GPT-6.1 Sol (Medium)",
-          "GPT-6.1 Sol (Low)",
-          "GPT-6 Sol (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Includes GPT-5.5 Thinking with 'Medium' and 'High' reasoning levels. Canvas is not available with GPT-5.5 models."
       },
       "ChatGPT Pro": {
         "monthlyPrice": 200,
         "annualPrice": 0,
-        "limits": "Highest level of access. Includes 'Ultra' reasoning for Thinking and full access to GPT-5.5 Pro.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "GPT-6.1 Terra (High)",
-          "GPT-6.1 Terra (Medium)",
-          "GPT-6.1 Sol (High)",
-          "GPT-6.1 Sol (Medium)"
-        ]
+        "isPerSeat": false,
+        "limits": "Highest level of access. Includes 'Ultra' reasoning for Thinking and full access to GPT-5.5 Pro."
       },
       "Business": {
         "monthlyPrice": 25,
         "annualPrice": 300,
-        "limits": "Per-user pricing. $25/user/month billed annually ($300/user/year). Includes 'Ultra' reasoning for Thinking. GPT-5.5 Pro available as add-on.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "GPT-6.1 Sol (High)",
-          "GPT-6.1 Sol (Medium)",
-          "GPT-6.1 Sol (Low)",
-          "GPT-6 Sol (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Per-user pricing. $25/user/month billed annually ($300/user/year). Includes 'Ultra' reasoning for Thinking. GPT-5.5 Pro available as add-on."
       }
     },
     "allModels": [
-      "GPT-6.1 Terra (Max)",
-      "GPT-6.1 Terra (Xhigh)",
-      "GPT-6.1 Terra (High)",
-      "GPT-6.1 Terra (Medium)",
-      "GPT-6.1 Sol (High)",
-      "GPT-6.1 Sol (Medium)",
-      "GPT-6.1 Sol (Low)",
-      "GPT-6 Sol (High)",
       "GPT-5.5 Instant (June 2026)",
-      "GPT-5.5 Instant (May 2026)",
       "GPT-5.4 nano (Xhigh)",
-      "GPT-5.4 mini (Xhigh)"
+      "GPT-5.4 mini (Xhigh)",
+      "GPT-5.1 Codex mini (High)",
+      "GPT-6.1 Sol (Xhigh)",
+      "GPT-6 Sol (Xhigh)",
+      "GPT-6 Luna (Medium)",
+      "GPT-6 Astra (Medium)",
+      "GPT-5.6 Sol (Xhigh)",
+      "GPT-6.1 Terra (Max)",
+      "GPT-6.1 Sol (Max)",
+      "GPT-6 Sol (Max)",
+      "GPT-5.6 Terra (Max)",
+      "GPT-5.6 Sol (Max)"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "OpenAI",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-5-5-instant-06-26",
+          "openai/gpt-5-4-nano",
+          "openai/gpt-5-4-mini",
+          "openai/gpt-5-1-codex-mini"
+        ],
+        "rawModels": [
+          "GPT-5.5 Instant (June 2026)",
+          "GPT-5.4 nano (Xhigh)",
+          "GPT-5.4 mini (Xhigh)",
+          "GPT-5.1 Codex mini (High)"
+        ],
+        "limits": "Limited usage. Dynamic rate limits apply. GPT-5.5 Mini serves as fallback when limits are reached.",
+        "last_synced_at": "2026-11-01T12:04:32.837Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "OpenAI",
+        "plan": "ChatGPT Go",
+        "monthlyPrice": 8,
+        "annualPrice": 96,
+        "annualPriceEquiv": 8,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-5-5-instant-06-26",
+          "openai/gpt-5-4-nano",
+          "openai/gpt-5-4-mini",
+          "openai/gpt-5-1-codex-mini"
+        ],
+        "rawModels": [
+          "GPT-5.5 Instant (June 2026)",
+          "GPT-5.4 nano (Xhigh)",
+          "GPT-5.4 mini (Xhigh)",
+          "GPT-5.1 Codex mini (High)"
+        ],
+        "limits": "160 messages every 3 hours; basic image generation; 32K context window.",
+        "last_synced_at": "2026-11-01T12:04:32.847Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "OpenAI",
+        "plan": "ChatGPT Plus",
+        "monthlyPrice": 20,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-6-1-sol-xhigh",
+          "openai/gpt-6-sol-xhigh",
+          "openai/gpt-6-luna-medium",
+          "openai/gpt-6-astra-medium",
+          "openai/gpt-5-6-sol-xhigh"
+        ],
+        "rawModels": [
+          "GPT-6.1 Sol (Xhigh)",
+          "GPT-6 Sol (Xhigh)",
+          "GPT-6 Luna (Medium)",
+          "GPT-6 Astra (Medium)",
+          "GPT-5.6 Sol (Xhigh)"
+        ],
+        "limits": "Includes GPT-5.5 Thinking with 'Medium' and 'High' reasoning levels. Canvas is not available with GPT-5.5 models.",
+        "last_synced_at": "2026-11-01T12:04:32.848Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "OpenAI",
+        "plan": "ChatGPT Pro",
+        "monthlyPrice": 200,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-6-1-terra",
+          "openai/gpt-6-1-sol",
+          "openai/gpt-6-sol",
+          "openai/gpt-5-6-terra",
+          "openai/gpt-5-6-sol"
+        ],
+        "rawModels": [
+          "GPT-6.1 Terra (Max)",
+          "GPT-6.1 Sol (Max)",
+          "GPT-6 Sol (Max)",
+          "GPT-5.6 Terra (Max)",
+          "GPT-5.6 Sol (Max)"
+        ],
+        "limits": "Highest level of access. Includes 'Ultra' reasoning for Thinking and full access to GPT-5.5 Pro.",
+        "last_synced_at": "2026-11-01T12:04:32.848Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "OpenAI",
+        "plan": "Business",
+        "monthlyPrice": 25,
+        "annualPrice": 300,
+        "annualPriceEquiv": 25,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-6-1-terra",
+          "openai/gpt-6-1-sol",
+          "openai/gpt-6-sol",
+          "openai/gpt-5-6-terra",
+          "openai/gpt-5-6-sol"
+        ],
+        "rawModels": [
+          "GPT-6.1 Terra (Max)",
+          "GPT-6.1 Sol (Max)",
+          "GPT-6 Sol (Max)",
+          "GPT-5.6 Terra (Max)",
+          "GPT-5.6 Sol (Max)"
+        ],
+        "limits": "Per-user pricing. $25/user/month billed annually ($300/user/year). Includes 'Ultra' reasoning for Thinking. GPT-5.5 Pro available as add-on.",
+        "last_synced_at": "2026-11-01T12:04:32.849Z"
+      }
     ]
   },
   {
     "id": "Claude",
     "name": "Claude",
+    "provider": "Anthropic",
     "desc": "Anthropic assistant",
     "icon": "🟧",
     "type": "subscription",
@@ -174,152 +270,275 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Free": [
         "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
-        "Claude Haiku 5.5 (High)"
+        "Claude 4.5 Haiku (Reasoning)",
+        "Claude 3.5 Haiku"
       ],
       "Claude Pro": [
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Sonnet 5.5 (High, Default Fallback)",
-        "Claude Sonnet 5.5 (Medium, Default Fallback)",
-        "Claude Sonnet 5.5 (Low, Default Fallback)"
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Sonnet 5 (Max)",
+        "Claude Sonnet 4.6 (Max)"
       ],
       "Claude Max 5x": [
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Opus 5.5 (Max, Default Fallback)"
+        "Claude Opus 5.5 (Max, Default Fallback)",
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Opus 5 (Max)"
       ],
       "Claude Max 20x": [
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Opus 5.5 (Max, Default Fallback)"
+        "Claude Opus 5.5 (Max, Default Fallback)",
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Opus 5 (Max)"
       ],
       "Team Standard": [
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Sonnet 5.5 (High, Default Fallback)",
-        "Claude Sonnet 5.5 (Medium, Default Fallback)",
-        "Claude Sonnet 5.5 (Low, Default Fallback)"
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Sonnet 5 (Max)",
+        "Claude Sonnet 4.6 (Max)"
       ],
       "Team Premium": [
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Opus 5.5 (Max, Default Fallback)"
+        "Claude Opus 5.5 (Max, Default Fallback)",
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Opus 5 (Max)"
       ],
       "Enterprise": [
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
         "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Claude Opus 5.5 (Max, Default Fallback)"
+        "Claude Opus 5.5 (Max, Default Fallback)",
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Opus 5 (Max)"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Limited daily usage. Free for everyone.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Claude Haiku 5.5 (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Limited daily usage. Free for everyone."
       },
       "Claude Pro": {
         "monthlyPrice": 20,
         "annualPrice": 200,
-        "limits": "More usage than Free plan. Access to unlimited projects.",
-        "models": [
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Sonnet 5.5 (High, Default Fallback)",
-          "Claude Sonnet 5.5 (Medium, Default Fallback)",
-          "Claude Sonnet 5.5 (Low, Default Fallback)"
-        ]
+        "isPerSeat": false,
+        "limits": "More usage than Free plan. Access to unlimited projects."
       },
       "Claude Max 5x": {
         "monthlyPrice": 100,
         "annualPrice": 0,
-        "limits": "Approximately 5× higher usage limits than Pro. Early access to advanced features.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Opus 5.5 (Max, Default Fallback)"
-        ]
+        "isPerSeat": false,
+        "limits": "Approximately 5× higher usage limits than Pro. Early access to advanced features."
       },
       "Claude Max 20x": {
         "monthlyPrice": 200,
         "annualPrice": 0,
-        "limits": "Approximately 20× higher usage limits than Pro. Highest usage limits available.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Opus 5.5 (Max, Default Fallback)"
-        ]
+        "isPerSeat": false,
+        "limits": "Approximately 20× higher usage limits than Pro. Highest usage limits available."
       },
       "Team Standard": {
         "monthlyPrice": 25,
         "annualPrice": 240,
-        "limits": "For teams of 5 to 150. Standard seat: All Claude features, plus more usage than Pro. $20/seat/month billed annually, $25 billed monthly. Mix and match seat types. Model training is off by default.",
-        "models": [
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Sonnet 5.5 (High, Default Fallback)",
-          "Claude Sonnet 5.5 (Medium, Default Fallback)",
-          "Claude Sonnet 5.5 (Low, Default Fallback)"
-        ]
+        "isPerSeat": true,
+        "limits": "For teams of 5 to 150. Standard seat: All Claude features, plus more usage than Pro. $20/seat/month billed annually, $25 billed monthly. Mix and match seat types. Model training is off by default."
       },
       "Team Premium": {
         "monthlyPrice": 125,
         "annualPrice": 1200,
-        "limits": "For teams of 5 to 150. Premium seat: 5x more usage than standard seats. $100/seat/month billed annually, $125 billed monthly. Mix and match seat types. Model training is off by default.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Opus 5.5 (Max, Default Fallback)"
-        ]
+        "isPerSeat": true,
+        "limits": "For teams of 5 to 150. Premium seat: 5x more usage than standard seats. $100/seat/month billed annually, $125 billed monthly. Mix and match seat types. Model training is off by default."
       },
       "Enterprise": {
         "monthlyPrice": 20,
         "annualPrice": 240,
-        "limits": "For large businesses operating at scale. Seat price + usage at API rates. $20/seat. Usage cost scales with model and task. Includes admin spend limits, role-based access control, SCIM, audit logs, compliance API, network-level access control, and HIPAA compliance.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Claude Opus 5.5 (Max, Default Fallback)"
-        ]
+        "isPerSeat": true,
+        "limits": "For large businesses operating at scale. Seat price + usage at API rates. $20/seat. Usage cost scales with model and task. Includes admin spend limits, role-based access control, SCIM, audit logs, compliance API, network-level access control, and HIPAA compliance."
       }
     },
     "allModels": [
       "Claude Haiku 5.5 (Max)",
-      "Claude Haiku 5.5 (Xhigh)",
-      "Claude Haiku 5.5 (High)",
+      "Claude 4.5 Haiku (Reasoning)",
+      "Claude 3.5 Haiku",
       "Claude Sonnet 5.5 (Max, Default Fallback)",
-      "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-      "Claude Sonnet 5.5 (High, Default Fallback)",
-      "Claude Sonnet 5.5 (Medium, Default Fallback)",
-      "Claude Sonnet 5.5 (Low, Default Fallback)",
-      "Claude Opus 5.5 (Max, Default Fallback)"
+      "Claude Fable 5.1 (Medium, Default Fallback)",
+      "Claude Sonnet 5 (Max)",
+      "Claude Sonnet 4.6 (Max)",
+      "Claude Opus 5.5 (Max, Default Fallback)",
+      "Claude Opus 5 (Max)"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-haiku-5-5",
+          "anthropic/claude-4-5-haiku-reasoning",
+          "anthropic/claude-3-5-haiku"
+        ],
+        "rawModels": [
+          "Claude Haiku 5.5 (Max)",
+          "Claude 4.5 Haiku (Reasoning)",
+          "Claude 3.5 Haiku"
+        ],
+        "limits": "Limited daily usage. Free for everyone.",
+        "last_synced_at": "2026-11-01T12:04:32.849Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Claude Pro",
+        "monthlyPrice": 20,
+        "annualPrice": 200,
+        "annualPriceEquiv": 16.67,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-sonnet-5",
+          "anthropic/claude-sonnet-4-6-adaptive"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Sonnet 5 (Max)",
+          "Claude Sonnet 4.6 (Max)"
+        ],
+        "limits": "More usage than Free plan. Access to unlimited projects.",
+        "last_synced_at": "2026-11-01T12:04:32.850Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Claude Max 5x",
+        "monthlyPrice": 100,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-opus-5"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Opus 5 (Max)"
+        ],
+        "limits": "Approximately 5× higher usage limits than Pro. Early access to advanced features.",
+        "last_synced_at": "2026-11-01T12:04:32.850Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Claude Max 20x",
+        "monthlyPrice": 200,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-opus-5"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Opus 5 (Max)"
+        ],
+        "limits": "Approximately 20× higher usage limits than Pro. Highest usage limits available.",
+        "last_synced_at": "2026-11-01T12:04:32.851Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Team Standard",
+        "monthlyPrice": 25,
+        "annualPrice": 240,
+        "annualPriceEquiv": 20,
+        "annualDiscount": true,
+        "isPerSeat": true,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-sonnet-5",
+          "anthropic/claude-sonnet-4-6-adaptive"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Sonnet 5 (Max)",
+          "Claude Sonnet 4.6 (Max)"
+        ],
+        "limits": "For teams of 5 to 150. Standard seat: All Claude features, plus more usage than Pro. $20/seat/month billed annually, $25 billed monthly. Mix and match seat types. Model training is off by default.",
+        "last_synced_at": "2026-11-01T12:04:32.851Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Team Premium",
+        "monthlyPrice": 125,
+        "annualPrice": 1200,
+        "annualPriceEquiv": 100,
+        "annualDiscount": true,
+        "isPerSeat": true,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-opus-5"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Opus 5 (Max)"
+        ],
+        "limits": "For teams of 5 to 150. Premium seat: 5x more usage than standard seats. $100/seat/month billed annually, $125 billed monthly. Mix and match seat types. Model training is off by default.",
+        "last_synced_at": "2026-11-01T12:04:32.852Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Anthropic",
+        "plan": "Enterprise",
+        "monthlyPrice": 20,
+        "annualPrice": 240,
+        "annualPriceEquiv": 20,
+        "annualDiscount": false,
+        "isPerSeat": true,
+        "models": [
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5",
+          "anthropic/claude-fable-5-1-medium",
+          "anthropic/claude-opus-5"
+        ],
+        "rawModels": [
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)",
+          "Claude Fable 5.1 (Medium, Default Fallback)",
+          "Claude Opus 5 (Max)"
+        ],
+        "limits": "For large businesses operating at scale. Seat price + usage at API rates. $20/seat. Usage cost scales with model and task. Includes admin spend limits, role-based access control, SCIM, audit logs, compliance API, network-level access control, and HIPAA compliance.",
+        "last_synced_at": "2026-11-01T12:04:32.852Z"
+      }
     ]
   },
   {
     "id": "Gemini",
     "name": "Gemini",
-    "desc": "Google AI model",
+    "provider": "Google",
+    "desc": "Google's AI model",
     "icon": "🔷",
     "type": "subscription",
     "plans": [
@@ -333,117 +552,204 @@ const INITIAL_TOOLS = [
     "defaultSeats": 1,
     "planModels": {
       "Free": [
-        "Gemini 4 Carbon (High)",
-        "Gemini 4 Argon (High)",
-        "Gemini 3.8 Flash (High)"
+        "Gemini 3.8 Flash (High)",
+        "Gemini 3.7 Flash (High)",
+        "Gemini 3.6 Flash (High)"
       ],
       "AI Plus": [
-        "Gemini 4 Carbon (High)",
-        "Gemini 4 Argon (High)",
         "Gemini 3.8 Flash (High)",
+        "Gemini 3.7 Flash (High)",
         "DiffusionGemma 26B A4B",
-        "Gemma 4 12B (Reasoning)"
+        "Gemma 4 31B (Reasoning)"
       ],
       "AI Pro": [
+        "Gemini 4 Argon (High)",
         "Gemini 3.8 Flash (High)",
-        "Gemini 3.8 Flash (Medium)",
-        "Gemma 4 12B (Reasoning)",
-        "Gemma 4 12B (Non-reasoning)",
-        "Gemma 4 E4B (Non-reasoning)",
-        "Gemma 4 E4B (Reasoning)"
+        "Gemini 3.1 Pro Preview",
+        "Gemini 3 Pro Preview (High)"
       ],
       "AI Ultra (100)": [
-        "Gemma 4 12B (Reasoning)",
-        "Gemma 4 12B (Non-reasoning)",
-        "Gemma 4 E4B (Non-reasoning)",
-        "Gemma 4 E4B (Reasoning)",
-        "Gemma 4 31B (Reasoning)"
+        "Gemini 4 Carbon (High)",
+        "Gemini 4 Argon (High)",
+        "Gemini 3.1 Pro Preview",
+        "Gemini 3 Deep Think"
       ],
       "AI Ultra (200)": [
-        "Gemma 4 12B (Reasoning)",
-        "Gemma 4 12B (Non-reasoning)",
-        "Gemma 4 E4B (Non-reasoning)",
-        "Gemma 4 E4B (Reasoning)",
-        "Gemma 4 31B (Reasoning)"
+        "Gemini 4 Carbon (High)",
+        "Gemini 4 Argon (High)",
+        "Gemini 3.1 Pro Preview",
+        "Gemini 3 Deep Think"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "32K token context window. Standard usage limits. US users have access to Pro for advanced thinking with daily limits.",
-        "models": [
-          "Gemini 4 Carbon (High)",
-          "Gemini 4 Argon (High)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "32K token context window. Standard usage limits. US users have access to Pro for advanced thinking with daily limits."
       },
       "AI Plus": {
         "monthlyPrice": 4.99,
         "annualPrice": 0,
-        "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
-        "models": [
-          "Gemini 4 Carbon (High)",
-          "Gemini 4 Argon (High)",
-          "Gemini 3.8 Flash (High)",
-          "DiffusionGemma 26B A4B",
-          "Gemma 4 12B (Reasoning)"
-        ]
+        "isPerSeat": false,
+        "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash."
       },
       "AI Pro": {
         "monthlyPrice": 19.99,
         "annualPrice": 199.99,
-        "limits": "4x higher usage limits than Free. 1M token context window (1,500 pages of text or 30,000 lines of code). 5TB cloud storage. YouTube Premium Lite included. Google Home Premium and Health Premium included. Higher AI Studio limits.",
-        "models": [
-          "Gemini 3.8 Flash (High)",
-          "Gemini 3.8 Flash (Medium)",
-          "Gemma 4 12B (Reasoning)",
-          "Gemma 4 12B (Non-reasoning)",
-          "Gemma 4 E4B (Non-reasoning)",
-          "Gemma 4 E4B (Reasoning)"
-        ]
+        "isPerSeat": false,
+        "limits": "4x higher usage limits than Free. 1M token context window (1,500 pages of text or 30,000 lines of code). 5TB cloud storage. YouTube Premium Lite included. Google Home Premium and Health Premium included. Higher AI Studio limits."
       },
       "AI Ultra (100)": {
         "monthlyPrice": 100,
         "annualPrice": 0,
-        "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users.",
-        "models": [
-          "Gemma 4 12B (Reasoning)",
-          "Gemma 4 12B (Non-reasoning)",
-          "Gemma 4 E4B (Non-reasoning)",
-          "Gemma 4 E4B (Reasoning)",
-          "Gemma 4 31B (Reasoning)"
-        ]
+        "isPerSeat": false,
+        "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users."
       },
       "AI Ultra (200)": {
         "monthlyPrice": 200,
         "annualPrice": 0,
-        "limits": "20x higher usage limit than Pro. 30TB cloud storage. All features of the $100 Ultra plan plus Project Genie (experimental world-building with Street View-powered capabilities). Previously $250/month, reduced to $200 at I/O 2026.",
-        "models": [
-          "Gemma 4 12B (Reasoning)",
-          "Gemma 4 12B (Non-reasoning)",
-          "Gemma 4 E4B (Non-reasoning)",
-          "Gemma 4 E4B (Reasoning)",
-          "Gemma 4 31B (Reasoning)"
-        ]
+        "isPerSeat": false,
+        "limits": "20x higher usage limit than Pro. 30TB cloud storage. All features of the $100 Ultra plan plus Project Genie (experimental world-building with Street View-powered capabilities). Previously $250/month, reduced to $200 at I/O 2026."
       }
     },
     "allModels": [
-      "Gemini 4 Carbon (High)",
-      "Gemini 4 Argon (High)",
       "Gemini 3.8 Flash (High)",
-      "Gemini 3.8 Flash (Medium)",
+      "Gemini 3.7 Flash (High)",
+      "Gemini 3.6 Flash (High)",
       "DiffusionGemma 26B A4B",
-      "Gemma 4 12B (Reasoning)",
-      "Gemma 4 12B (Non-reasoning)",
-      "Gemma 4 E4B (Non-reasoning)",
-      "Gemma 4 E4B (Reasoning)",
-      "Gemma 4 31B (Reasoning)"
+      "Gemma 4 31B (Reasoning)",
+      "Gemini 4 Argon (High)",
+      "Gemini 3.1 Pro Preview",
+      "Gemini 3 Pro Preview (High)",
+      "Gemini 4 Carbon (High)",
+      "Gemini 3 Deep Think"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Google",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-3-8-flash",
+          "google/gemini-3-7-flash",
+          "google/gemini-3-6-flash"
+        ],
+        "rawModels": [
+          "Gemini 3.8 Flash (High)",
+          "Gemini 3.7 Flash (High)",
+          "Gemini 3.6 Flash (High)"
+        ],
+        "limits": "32K token context window. Standard usage limits. US users have access to Pro for advanced thinking with daily limits.",
+        "last_synced_at": "2026-11-01T12:04:32.852Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Google",
+        "plan": "AI Plus",
+        "monthlyPrice": 4.99,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-3-8-flash",
+          "google/gemini-3-7-flash",
+          "google/diffusiongemma-26b-a4b",
+          "google/gemma-4-31b"
+        ],
+        "rawModels": [
+          "Gemini 3.8 Flash (High)",
+          "Gemini 3.7 Flash (High)",
+          "DiffusionGemma 26B A4B",
+          "Gemma 4 31B (Reasoning)"
+        ],
+        "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
+        "last_synced_at": "2026-11-01T12:04:32.852Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Google",
+        "plan": "AI Pro",
+        "monthlyPrice": 19.99,
+        "annualPrice": 199.99,
+        "annualPriceEquiv": 16.67,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-argon",
+          "google/gemini-3-8-flash",
+          "google/gemini-3-1-pro-preview",
+          "google/gemini-3-pro"
+        ],
+        "rawModels": [
+          "Gemini 4 Argon (High)",
+          "Gemini 3.8 Flash (High)",
+          "Gemini 3.1 Pro Preview",
+          "Gemini 3 Pro Preview (High)"
+        ],
+        "limits": "4x higher usage limits than Free. 1M token context window (1,500 pages of text or 30,000 lines of code). 5TB cloud storage. YouTube Premium Lite included. Google Home Premium and Health Premium included. Higher AI Studio limits.",
+        "last_synced_at": "2026-11-01T12:04:32.853Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Google",
+        "plan": "AI Ultra (100)",
+        "monthlyPrice": 100,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-carbon",
+          "google/gemini-4-argon",
+          "google/gemini-3-1-pro-preview",
+          "google/gemini-3-deep-think"
+        ],
+        "rawModels": [
+          "Gemini 4 Carbon (High)",
+          "Gemini 4 Argon (High)",
+          "Gemini 3.1 Pro Preview",
+          "Gemini 3 Deep Think"
+        ],
+        "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users.",
+        "last_synced_at": "2026-11-01T12:04:32.853Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Google",
+        "plan": "AI Ultra (200)",
+        "monthlyPrice": 200,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-carbon",
+          "google/gemini-4-argon",
+          "google/gemini-3-1-pro-preview",
+          "google/gemini-3-deep-think"
+        ],
+        "rawModels": [
+          "Gemini 4 Carbon (High)",
+          "Gemini 4 Argon (High)",
+          "Gemini 3.1 Pro Preview",
+          "Gemini 3 Deep Think"
+        ],
+        "limits": "20x higher usage limit than Pro. 30TB cloud storage. All features of the $100 Ultra plan plus Project Genie (experimental world-building with Street View-powered capabilities). Previously $250/month, reduced to $200 at I/O 2026.",
+        "last_synced_at": "2026-11-01T12:04:32.853Z"
+      }
     ]
   },
   {
     "id": "DeepSeek",
     "name": "DeepSeek",
+    "provider": "DeepSeek",
     "desc": "DeepSeek assistant",
     "icon": "🐳",
     "type": "subscription",
@@ -455,37 +761,60 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Consumer": [
         "DeepSeek V4.1 Flash 1017 (Max)",
-        "DeepSeek V4.1 Flash 1017 (Non-reasoning)",
         "DeepSeek V4.1 Flash (Max)",
-        "DeepSeek V4.1 Flash (Non-reasoning)",
-        "DeepSeek V4 Flash Vision (Max)"
+        "DeepSeek V4 Flash Vision (Max)",
+        "DeepSeek V4 Pro 0813 (Max)",
+        "DeepSeek V4 Flash 0731 (Max)"
       ]
     },
     "planDetails": {
       "Consumer": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
-        "models": [
-          "DeepSeek V4.1 Flash 1017 (Max)",
-          "DeepSeek V4.1 Flash 1017 (Non-reasoning)",
-          "DeepSeek V4.1 Flash (Max)",
-          "DeepSeek V4.1 Flash (Non-reasoning)",
-          "DeepSeek V4 Flash Vision (Max)"
-        ]
+        "isPerSeat": false,
+        "limits": "Completely free on web and app with no ads. No paid consumer plans available."
       }
     },
     "allModels": [
       "DeepSeek V4.1 Flash 1017 (Max)",
-      "DeepSeek V4.1 Flash 1017 (Non-reasoning)",
       "DeepSeek V4.1 Flash (Max)",
-      "DeepSeek V4.1 Flash (Non-reasoning)",
-      "DeepSeek V4 Flash Vision (Max)"
+      "DeepSeek V4 Flash Vision (Max)",
+      "DeepSeek V4 Pro 0813 (Max)",
+      "DeepSeek V4 Flash 0731 (Max)"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "DeepSeek",
+        "plan": "Consumer",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "deepseek/deepseek-v4-1-flash-1017",
+          "deepseek/deepseek-v4-1-flash",
+          "deepseek/deepseek-v4-flash-vision",
+          "deepseek/deepseek-v4-pro",
+          "deepseek/deepseek-v4-flash"
+        ],
+        "rawModels": [
+          "DeepSeek V4.1 Flash 1017 (Max)",
+          "DeepSeek V4.1 Flash (Max)",
+          "DeepSeek V4 Flash Vision (Max)",
+          "DeepSeek V4 Pro 0813 (Max)",
+          "DeepSeek V4 Flash 0731 (Max)"
+        ],
+        "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
+        "last_synced_at": "2026-11-01T12:04:32.853Z"
+      }
     ]
   },
   {
     "id": "Mistral",
     "name": "Mistral",
+    "provider": "Mistral",
     "desc": "Mistral Le Chat",
     "icon": "🍊",
     "type": "subscription",
@@ -498,52 +827,92 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Free": [
         "Mistral Small 4 (Non-reasoning)",
-        "Mistral Small 4 (Reasoning)",
-        "Devstral Small 2"
+        "Devstral Small 2",
+        "Ministral 3 14B"
       ],
       "Le Chat Pro": [
         "Mistral Large 4 (High)",
-        "Mistral Large 4 (Medium)",
         "Mistral Large 4 Preview",
-        "Mistral Medium 3.5"
+        "Mistral Medium 3.5",
+        "Devstral 2"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Limited access to Vibe, latest models, chat, search, creation. Limited image generations.",
-        "models": [
-          "Mistral Small 4 (Non-reasoning)",
-          "Mistral Small 4 (Reasoning)",
-          "Devstral Small 2"
-        ]
+        "isPerSeat": false,
+        "limits": "Limited access to Vibe, latest models, chat, search, creation. Limited image generations."
       },
       "Le Chat Pro": {
         "monthlyPrice": 14.99,
         "annualPrice": 0,
-        "limits": "Higher limits across chat, more messages and web searches, more extended thinking and deep research reports, expanded Mistral Vibe capacity, chat and email support. Student discount available.",
-        "models": [
-          "Mistral Large 4 (High)",
-          "Mistral Large 4 (Medium)",
-          "Mistral Large 4 Preview",
-          "Mistral Medium 3.5"
-        ]
+        "isPerSeat": false,
+        "limits": "Higher limits across chat, more messages and web searches, more extended thinking and deep research reports, expanded Mistral Vibe capacity, chat and email support. Student discount available."
       }
     },
     "allModels": [
+      "Mistral Small 4 (Non-reasoning)",
+      "Devstral Small 2",
+      "Ministral 3 14B",
       "Mistral Large 4 (High)",
-      "Mistral Large 4 (Medium)",
       "Mistral Large 4 Preview",
       "Mistral Medium 3.5",
-      "Mistral Small 4 (Non-reasoning)",
-      "Mistral Small 4 (Reasoning)",
-      "Devstral Small 2"
+      "Devstral 2"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Mistral",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "mistralai/mistral-small-4-non-reasoning",
+          "mistralai/devstral-small-2",
+          "mistralai/ministral-3-14b"
+        ],
+        "rawModels": [
+          "Mistral Small 4 (Non-reasoning)",
+          "Devstral Small 2",
+          "Ministral 3 14B"
+        ],
+        "limits": "Limited access to Vibe, latest models, chat, search, creation. Limited image generations.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Mistral",
+        "plan": "Le Chat Pro",
+        "monthlyPrice": 14.99,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "mistralai/mistral-large-4",
+          "mistralai/mistral-large-4-preview",
+          "mistralai/mistral-medium-3-5",
+          "mistralai/devstral-2"
+        ],
+        "rawModels": [
+          "Mistral Large 4 (High)",
+          "Mistral Large 4 Preview",
+          "Mistral Medium 3.5",
+          "Devstral 2"
+        ],
+        "limits": "Higher limits across chat, more messages and web searches, more extended thinking and deep research reports, expanded Mistral Vibe capacity, chat and email support. Student discount available.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      }
     ]
   },
   {
     "id": "Meta",
     "name": "Meta",
+    "provider": "Meta",
     "desc": "Meta AI assistant",
     "icon": "♾️",
     "type": "subscription",
@@ -556,51 +925,92 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Free": [
         "Muse Spark Open (Xhigh)",
-        "Muse Wonder Full (Max)",
-        "Muse Wonder (Max)",
-        "Muse Spark 1.3 (Xhigh)"
+        "Muse Spark 1.3 (Xhigh)",
+        "Muse Spark 1.2 (Xhigh)"
       ],
       "Meta One Plus": [
-        "Muse Spark Open (Xhigh)",
         "Muse Wonder Full (Max)",
         "Muse Wonder (Max)",
-        "Muse Spark 1.3 (Xhigh)"
+        "Hermes 4 - Llama-3.1 405B (Reasoning)",
+        "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Meta AI is free across all Meta apps with unlimited conversational chat. Image generation, video creation, and Thinking mode are capped for free users. Available in 200+ countries with multi-language support.",
-        "models": [
-          "Muse Spark Open (Xhigh)",
-          "Muse Wonder Full (Max)",
-          "Muse Wonder (Max)",
-          "Muse Spark 1.3 (Xhigh)"
-        ]
+        "isPerSeat": false,
+        "limits": "Meta AI is free across all Meta apps with unlimited conversational chat. Image generation, video creation, and Thinking mode are capped for free users. Available in 200+ countries with multi-language support."
       },
       "Meta One Plus": {
         "monthlyPrice": 7.99,
         "annualPrice": 0,
-        "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
-        "models": [
-          "Muse Spark Open (Xhigh)",
-          "Muse Wonder Full (Max)",
-          "Muse Wonder (Max)",
-          "Muse Spark 1.3 (Xhigh)"
-        ]
+        "isPerSeat": false,
+        "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12]."
       }
     },
     "allModels": [
       "Muse Spark Open (Xhigh)",
+      "Muse Spark 1.3 (Xhigh)",
+      "Muse Spark 1.2 (Xhigh)",
       "Muse Wonder Full (Max)",
       "Muse Wonder (Max)",
-      "Muse Spark 1.3 (Xhigh)"
+      "Hermes 4 - Llama-3.1 405B (Reasoning)",
+      "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Meta",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "meta-llama/muse-spark-open",
+          "meta-llama/muse-spark-1-3-xhigh",
+          "meta-llama/muse-spark-1-2"
+        ],
+        "rawModels": [
+          "Muse Spark Open (Xhigh)",
+          "Muse Spark 1.3 (Xhigh)",
+          "Muse Spark 1.2 (Xhigh)"
+        ],
+        "limits": "Meta AI is free across all Meta apps with unlimited conversational chat. Image generation, video creation, and Thinking mode are capped for free users. Available in 200+ countries with multi-language support.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      },
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Meta",
+        "plan": "Meta One Plus",
+        "monthlyPrice": 7.99,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "meta-llama/muse-wonder-full",
+          "meta-llama/muse-wonder",
+          "nous-research/hermes-4-llama-3-1-405b-reasoning",
+          "nvidia/llama-3-1-nemotron-ultra-253b-v1-reasoning"
+        ],
+        "rawModels": [
+          "Muse Wonder Full (Max)",
+          "Muse Wonder (Max)",
+          "Hermes 4 - Llama-3.1 405B (Reasoning)",
+          "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)"
+        ],
+        "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      }
     ]
   },
   {
     "id": "xAI",
     "name": "xAI",
+    "provider": "xAI",
     "desc": "xAI Grok search",
     "icon": "🐦",
     "type": "subscription",
@@ -611,100 +1021,196 @@ const INITIAL_TOOLS = [
       "SuperGrok",
       "SuperGrok Heavy"
     ],
-    "defaultPlan": "Grok Free",
+    "defaultPlan": "X Premium",
     "defaultSeats": 1,
     "planModels": {
       "Grok Free": [
-        "Grok 3 mini Reasoning (High)"
+        "Grok 4.1 Fast (Reasoning)",
+        "Grok 4 Fast (Reasoning)"
       ],
       "X Premium": [
-        "Grok 4.7 (High)",
-        "Grok 4.7 (Xhigh)",
-        "Grok 4.7 (Low)"
+        "Grok 4.6 (High)",
+        "Grok 4.6 (Xhigh)",
+        "Grok 4.3 (Medium)"
       ],
       "SuperGrok Lite": [
-        "Grok 4.7 (High)",
-        "Grok 4.7 (Xhigh)",
-        "Grok 4.7 (Low)",
-        "Grok 4.6 (High)"
+        "Grok 4.6 (High)",
+        "Grok 4.6 (Xhigh)",
+        "Grok 4.3 (Medium)"
       ],
       "SuperGrok": [
         "Grok 4.7 (High)",
         "Grok 4.7 (Xhigh)",
-        "Grok 4.7 (Low)",
-        "Grok 4.6 (High)"
+        "Grok 4.6 (High)",
+        "Grok 4.3 (Medium)"
       ],
       "SuperGrok Heavy": [
         "Grok 4.7 (High)",
         "Grok 4.7 (Xhigh)",
-        "Grok 4.7 (Low)",
-        "Grok 4.6 (High)"
+        "Grok 4.6 (High)",
+        "Grok 4.3 (Medium)"
       ]
     },
     "planDetails": {
       "Grok Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Limited daily usage with access to Grok and basic multimodal features.",
-        "models": [
-          "Grok 3 mini Reasoning (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Limited daily usage with access to Grok and basic multimodal features."
       },
       "X Premium": {
         "monthlyPrice": 8,
         "annualPrice": 84,
-        "limits": "Basic Grok access inside X app.",
-        "models": [
-          "Grok 4.7 (High)",
-          "Grok 4.7 (Xhigh)",
-          "Grok 4.7 (Low)"
-        ]
+        "isPerSeat": false,
+        "limits": "Basic Grok access inside X app."
       },
       "SuperGrok Lite": {
         "monthlyPrice": 10,
         "annualPrice": 120,
-        "limits": "2x longer context window; basic image/video generation; 1 AI agent in Expert mode.",
-        "models": [
-          "Grok 4.7 (High)",
-          "Grok 4.7 (Xhigh)",
-          "Grok 4.7 (Low)",
-          "Grok 4.6 (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "2x longer context window; basic image/video generation; 1 AI agent in Expert mode."
       },
       "SuperGrok": {
         "monthlyPrice": 30,
         "annualPrice": 0,
-        "limits": "Higher rate limits, Grok 4 access, frontier models, image/video generation, connectors, and Expert mode.[reference:27]",
-        "models": [
-          "Grok 4.7 (High)",
-          "Grok 4.7 (Xhigh)",
-          "Grok 4.7 (Low)",
-          "Grok 4.6 (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Higher rate limits, Grok 4 access, frontier models, image/video generation, connectors, and Expert mode.[reference:27]"
       },
       "SuperGrok Heavy": {
         "monthlyPrice": 300,
         "annualPrice": 0,
-        "limits": "Highest consumer/business tier with maximum rate limits and access to advanced Grok capabilities.[reference:28]",
-        "models": [
-          "Grok 4.7 (High)",
-          "Grok 4.7 (Xhigh)",
-          "Grok 4.7 (Low)",
-          "Grok 4.6 (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Highest consumer/business tier with maximum rate limits and access to advanced Grok capabilities.[reference:28]"
       }
     },
     "allModels": [
-      "Grok 4.7 (High)",
-      "Grok 4.7 (Xhigh)",
-      "Grok 4.7 (Low)",
+      "Grok 4.1 Fast (Reasoning)",
+      "Grok 4 Fast (Reasoning)",
       "Grok 4.6 (High)",
-      "Grok 3 mini Reasoning (High)"
+      "Grok 4.6 (Xhigh)",
+      "Grok 4.3 (Medium)",
+      "Grok 4.7 (High)",
+      "Grok 4.7 (Xhigh)"
+    ],
+    "tiers": [
+      {
+        "category": "Search & Research",
+        "provider": "xAI",
+        "plan": "Grok Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "x-ai/grok-4-1-fast-reasoning",
+          "x-ai/grok-4-fast-reasoning"
+        ],
+        "rawModels": [
+          "Grok 4.1 Fast (Reasoning)",
+          "Grok 4 Fast (Reasoning)"
+        ],
+        "limits": "Limited daily usage with access to Grok and basic multimodal features.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "xAI",
+        "plan": "X Premium",
+        "monthlyPrice": 8,
+        "annualPrice": 84,
+        "annualPriceEquiv": 7,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "x-ai/grok-4-6",
+          "x-ai/grok-4-6-xhigh",
+          "x-ai/grok-4-3-medium"
+        ],
+        "rawModels": [
+          "Grok 4.6 (High)",
+          "Grok 4.6 (Xhigh)",
+          "Grok 4.3 (Medium)"
+        ],
+        "limits": "Basic Grok access inside X app.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "xAI",
+        "plan": "SuperGrok Lite",
+        "monthlyPrice": 10,
+        "annualPrice": 120,
+        "annualPriceEquiv": 10,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "x-ai/grok-4-6",
+          "x-ai/grok-4-6-xhigh",
+          "x-ai/grok-4-3-medium"
+        ],
+        "rawModels": [
+          "Grok 4.6 (High)",
+          "Grok 4.6 (Xhigh)",
+          "Grok 4.3 (Medium)"
+        ],
+        "limits": "2x longer context window; basic image/video generation; 1 AI agent in Expert mode.",
+        "last_synced_at": "2026-11-01T12:04:32.854Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "xAI",
+        "plan": "SuperGrok",
+        "monthlyPrice": 30,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "x-ai/grok-4-7-high",
+          "x-ai/grok-4-7",
+          "x-ai/grok-4-6",
+          "x-ai/grok-4-3-medium"
+        ],
+        "rawModels": [
+          "Grok 4.7 (High)",
+          "Grok 4.7 (Xhigh)",
+          "Grok 4.6 (High)",
+          "Grok 4.3 (Medium)"
+        ],
+        "limits": "Higher rate limits, Grok 4 access, frontier models, image/video generation, connectors, and Expert mode.[reference:27]",
+        "last_synced_at": "2026-11-01T12:04:32.855Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "xAI",
+        "plan": "SuperGrok Heavy",
+        "monthlyPrice": 300,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "x-ai/grok-4-7-high",
+          "x-ai/grok-4-7",
+          "x-ai/grok-4-6",
+          "x-ai/grok-4-3-medium"
+        ],
+        "rawModels": [
+          "Grok 4.7 (High)",
+          "Grok 4.7 (Xhigh)",
+          "Grok 4.6 (High)",
+          "Grok 4.3 (Medium)"
+        ],
+        "limits": "Highest consumer/business tier with maximum rate limits and access to advanced Grok capabilities.[reference:28]",
+        "last_synced_at": "2026-11-01T12:04:32.855Z"
+      }
     ]
   },
   {
     "id": "Perplexity",
     "name": "Perplexity",
+    "provider": "Perplexity",
     "desc": "AI search companion",
     "icon": "🔍",
     "type": "subscription",
@@ -717,65 +1223,131 @@ const INITIAL_TOOLS = [
     "defaultSeats": 1,
     "planModels": {
       "Free": [
-        "Sonar Reasoning",
-        "Sonar Reasoning Pro"
+        "Claude Haiku 5.5 (Max)",
+        "Gemini 3.8 Flash (High)",
+        "Sonar Reasoning"
       ],
       "Pro": [
-        "GPT-6.1 Terra (Max)",
-        "Claude Haiku 5.5 (Max)",
-        "Sonar Reasoning",
-        "Sonar Reasoning Pro"
+        "Gemini 4 Argon (High)",
+        "GPT-6.1 Sol (Xhigh)",
+        "Claude Sonnet 5.5 (Max, Default Fallback)",
+        "Sonar Reasoning"
       ],
       "Max": [
+        "Gemini 4 Carbon (High)",
         "GPT-6.1 Terra (Max)",
-        "Claude Haiku 5.5 (Max)",
-        "Sonar Reasoning",
-        "Sonar Reasoning Pro"
+        "Claude Opus 5.5 (Max, Default Fallback)",
+        "Sonar Reasoning"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Free AI search with limited Pro searches per day.",
-        "models": [
-          "Sonar Reasoning",
-          "Sonar Reasoning Pro"
-        ]
+        "isPerSeat": false,
+        "limits": "Free AI search with limited Pro searches per day."
       },
       "Pro": {
         "monthlyPrice": 20,
         "annualPrice": 200,
-        "limits": "Includes unlimited Quick searches, daily Pro searches, Labs, Deep Research, and access to premium AI models. Annual billing: $200/year (save ~17%).",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "Claude Haiku 5.5 (Max)",
-          "Sonar Reasoning",
-          "Sonar Reasoning Pro"
-        ]
+        "isPerSeat": false,
+        "limits": "Includes unlimited Quick searches, daily Pro searches, Labs, Deep Research, and access to premium AI models. Annual billing: $200/year (save ~17%)."
       },
       "Max": {
         "monthlyPrice": 200,
         "annualPrice": 2000,
-        "limits": "Highest consumer tier with significantly increased usage limits and priority access. Includes Computer access, 10,000 monthly credits.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "Claude Haiku 5.5 (Max)",
-          "Sonar Reasoning",
-          "Sonar Reasoning Pro"
-        ]
+        "isPerSeat": false,
+        "limits": "Highest consumer tier with significantly increased usage limits and priority access. Includes Computer access, 10,000 monthly credits."
       }
     },
     "allModels": [
-      "GPT-6.1 Terra (Max)",
       "Claude Haiku 5.5 (Max)",
+      "Gemini 3.8 Flash (High)",
       "Sonar Reasoning",
-      "Sonar Reasoning Pro"
+      "Gemini 4 Argon (High)",
+      "GPT-6.1 Sol (Xhigh)",
+      "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "Gemini 4 Carbon (High)",
+      "GPT-6.1 Terra (Max)",
+      "Claude Opus 5.5 (Max, Default Fallback)"
+    ],
+    "tiers": [
+      {
+        "category": "Search & Research",
+        "provider": "Perplexity",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-haiku-5-5",
+          "google/gemini-3-8-flash",
+          "perplexity/sonar-reasoning"
+        ],
+        "rawModels": [
+          "Claude Haiku 5.5 (Max)",
+          "Gemini 3.8 Flash (High)",
+          "Sonar Reasoning"
+        ],
+        "limits": "Free AI search with limited Pro searches per day.",
+        "last_synced_at": "2026-11-01T12:04:32.855Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "Perplexity",
+        "plan": "Pro",
+        "monthlyPrice": 20,
+        "annualPrice": 200,
+        "annualPriceEquiv": 16.67,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-argon",
+          "openai/gpt-6-1-sol-xhigh",
+          "anthropic/claude-sonnet-5-5",
+          "perplexity/sonar-reasoning"
+        ],
+        "rawModels": [
+          "Gemini 4 Argon (High)",
+          "GPT-6.1 Sol (Xhigh)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Sonar Reasoning"
+        ],
+        "limits": "Includes unlimited Quick searches, daily Pro searches, Labs, Deep Research, and access to premium AI models. Annual billing: $200/year (save ~17%).",
+        "last_synced_at": "2026-11-01T12:04:32.857Z"
+      },
+      {
+        "category": "Search & Research",
+        "provider": "Perplexity",
+        "plan": "Max",
+        "monthlyPrice": 200,
+        "annualPrice": 2000,
+        "annualPriceEquiv": 166.67,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-carbon",
+          "openai/gpt-6-1-terra",
+          "anthropic/claude-opus-5-5",
+          "perplexity/sonar-reasoning"
+        ],
+        "rawModels": [
+          "Gemini 4 Carbon (High)",
+          "GPT-6.1 Terra (Max)",
+          "Claude Opus 5.5 (Max, Default Fallback)",
+          "Sonar Reasoning"
+        ],
+        "limits": "Highest consumer tier with significantly increased usage limits and priority access. Includes Computer access, 10,000 monthly credits.",
+        "last_synced_at": "2026-11-01T12:04:32.857Z"
+      }
     ]
   },
   {
     "id": "GitHub Copilot",
     "name": "GitHub Copilot",
+    "provider": "GitHub",
     "desc": "GitHub AI assistant",
     "icon": "🤖",
     "type": "subscription",
@@ -789,72 +1361,127 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Copilot Free": [
         "Claude Haiku 5.5 (Max)",
+        "Gemini 3.8 Flash (High)",
         "GPT-5.5 Instant (June 2026)"
       ],
       "Copilot Pro": [
-        "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Gemini 3.8 Flash (High)"
+        "Gemini 4 Argon (High)",
+        "GPT-6.1 Sol (Xhigh)",
+        "Claude Sonnet 5.5 (Max, Default Fallback)"
       ],
       "Copilot Pro+": [
+        "Gemini 4 Carbon (High)",
         "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
-        "Gemini 3.8 Flash (High)"
+        "Claude Sonnet 5.5 (Max, Default Fallback)",
+        "Claude Opus 5.5 (Max, Default Fallback)"
       ]
     },
     "planDetails": {
       "Copilot Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "2,000 code completions/month.[reference:14] 50 chat/agent messages/month.[reference:15][reference:16] Limited access to select models.[reference:17]",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "GPT-5.5 Instant (June 2026)"
-        ]
+        "isPerSeat": false,
+        "limits": "2,000 code completions/month.[reference:14] 50 chat/agent messages/month.[reference:15][reference:16] Limited access to select models.[reference:17]"
       },
       "Copilot Pro": {
         "monthlyPrice": 10,
         "annualPrice": 0,
-        "limits": "$10/month. Includes $10 base credits + $5 flex allotment = $15 total included usage.[reference:18][reference:19] Code completions and next-edit suggestions unlimited and do not consume credits.[reference:20]",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "$10/month. Includes $10 base credits + $5 flex allotment = $15 total included usage.[reference:18][reference:19] Code completions and next-edit suggestions unlimited and do not consume credits.[reference:20]"
       },
       "Copilot Pro+": {
         "monthlyPrice": 39,
         "annualPrice": 0,
-        "limits": "$39/month. Includes $39 base credits + $31 flex allotment = $70 total included usage.[reference:21][reference:22] Access to premium models.[reference:23]",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "$39/month. Includes $39 base credits + $31 flex allotment = $70 total included usage.[reference:21][reference:22] Access to premium models.[reference:23]"
       }
     },
     "allModels": [
-      "GPT-6.1 Terra (Max)",
-      "GPT-6.1 Terra (Xhigh)",
       "Claude Haiku 5.5 (Max)",
-      "Claude Haiku 5.5 (Xhigh)",
-      "Claude Sonnet 5.5 (Max, Default Fallback)",
-      "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
       "Gemini 3.8 Flash (High)",
-      "GPT-5.5 Instant (June 2026)"
+      "GPT-5.5 Instant (June 2026)",
+      "Gemini 4 Argon (High)",
+      "GPT-6.1 Sol (Xhigh)",
+      "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "Gemini 4 Carbon (High)",
+      "GPT-6.1 Terra (Max)",
+      "Claude Opus 5.5 (Max, Default Fallback)"
+    ],
+    "tiers": [
+      {
+        "category": "Code & Agents",
+        "provider": "GitHub",
+        "plan": "Copilot Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-haiku-5-5",
+          "google/gemini-3-8-flash",
+          "openai/gpt-5-5-instant-06-26"
+        ],
+        "rawModels": [
+          "Claude Haiku 5.5 (Max)",
+          "Gemini 3.8 Flash (High)",
+          "GPT-5.5 Instant (June 2026)"
+        ],
+        "limits": "2,000 code completions/month.[reference:14] 50 chat/agent messages/month.[reference:15][reference:16] Limited access to select models.[reference:17]",
+        "last_synced_at": "2026-11-01T12:04:32.858Z"
+      },
+      {
+        "category": "Code & Agents",
+        "provider": "GitHub",
+        "plan": "Copilot Pro",
+        "monthlyPrice": 10,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-argon",
+          "openai/gpt-6-1-sol-xhigh",
+          "anthropic/claude-sonnet-5-5"
+        ],
+        "rawModels": [
+          "Gemini 4 Argon (High)",
+          "GPT-6.1 Sol (Xhigh)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)"
+        ],
+        "limits": "$10/month. Includes $10 base credits + $5 flex allotment = $15 total included usage.[reference:18][reference:19] Code completions and next-edit suggestions unlimited and do not consume credits.[reference:20]",
+        "last_synced_at": "2026-11-01T12:04:32.859Z"
+      },
+      {
+        "category": "Code & Agents",
+        "provider": "GitHub",
+        "plan": "Copilot Pro+",
+        "monthlyPrice": 39,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-carbon",
+          "openai/gpt-6-1-terra",
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5"
+        ],
+        "rawModels": [
+          "Gemini 4 Carbon (High)",
+          "GPT-6.1 Terra (Max)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)"
+        ],
+        "limits": "$39/month. Includes $39 base credits + $31 flex allotment = $70 total included usage.[reference:21][reference:22] Access to premium models.[reference:23]",
+        "last_synced_at": "2026-11-01T12:04:32.860Z"
+      }
     ]
   },
   {
     "id": "Windsurf",
     "name": "Windsurf",
+    "provider": "Windsurf",
     "desc": "AI-powered IDE",
     "icon": "⛵",
     "type": "subscription",
@@ -867,52 +1494,88 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Free": [
         "Claude Haiku 5.5 (Max)",
+        "Gemini 3.8 Flash (High)",
         "GPT-5.5 Instant (June 2026)"
       ],
       "Pro": [
-        "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Gemini 3.8 Flash (High)"
+        "Gemini 4 Argon (High)",
+        "GPT-6.1 Sol (Xhigh)",
+        "Claude Sonnet 5.5 (Max, Default Fallback)"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "25 prompt credits/month. Light daily and weekly quota. Unlimited Tab autocomplete. Unlimited previews. Basic models only.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "GPT-5.5 Instant (June 2026)"
-        ]
+        "isPerSeat": false,
+        "limits": "25 prompt credits/month. Light daily and weekly quota. Unlimited Tab autocomplete. Unlimited previews. Basic models only."
       },
       "Pro": {
         "monthlyPrice": 20,
         "annualPrice": 0,
-        "limits": "500 prompt credits/month. Standard daily and weekly quota. Unlimited Tab autocomplete. Access to all premium models including SWE-1.5, Claude Sonnet 4.6, and GPT-5.4. Additional credits available for purchase.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "500 prompt credits/month. Standard daily and weekly quota. Unlimited Tab autocomplete. Access to all premium models including SWE-1.5, Claude Sonnet 4.6, and GPT-5.4. Additional credits available for purchase."
       }
     },
     "allModels": [
-      "GPT-6.1 Terra (Max)",
-      "GPT-6.1 Terra (Xhigh)",
       "Claude Haiku 5.5 (Max)",
-      "Claude Sonnet 5.5 (Max, Default Fallback)",
-      "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
       "Gemini 3.8 Flash (High)",
-      "GPT-5.5 Instant (June 2026)"
+      "GPT-5.5 Instant (June 2026)",
+      "Gemini 4 Argon (High)",
+      "GPT-6.1 Sol (Xhigh)",
+      "Claude Sonnet 5.5 (Max, Default Fallback)"
+    ],
+    "tiers": [
+      {
+        "category": "Code & Agents",
+        "provider": "Windsurf",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-haiku-5-5",
+          "google/gemini-3-8-flash",
+          "openai/gpt-5-5-instant-06-26"
+        ],
+        "rawModels": [
+          "Claude Haiku 5.5 (Max)",
+          "Gemini 3.8 Flash (High)",
+          "GPT-5.5 Instant (June 2026)"
+        ],
+        "limits": "25 prompt credits/month. Light daily and weekly quota. Unlimited Tab autocomplete. Unlimited previews. Basic models only.",
+        "last_synced_at": "2026-11-01T12:04:32.861Z"
+      },
+      {
+        "category": "Code & Agents",
+        "provider": "Windsurf",
+        "plan": "Pro",
+        "monthlyPrice": 20,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-argon",
+          "openai/gpt-6-1-sol-xhigh",
+          "anthropic/claude-sonnet-5-5"
+        ],
+        "rawModels": [
+          "Gemini 4 Argon (High)",
+          "GPT-6.1 Sol (Xhigh)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)"
+        ],
+        "limits": "500 prompt credits/month. Standard daily and weekly quota. Unlimited Tab autocomplete. Access to all premium models including SWE-1.5, Claude Sonnet 4.6, and GPT-5.4. Additional credits available for purchase.",
+        "last_synced_at": "2026-11-01T12:04:32.862Z"
+      }
     ]
   },
   {
     "id": "Cursor",
     "name": "Cursor",
+    "provider": "Cursor",
     "desc": "AI code editor",
     "icon": "💻",
     "type": "subscription",
@@ -926,72 +1589,127 @@ const INITIAL_TOOLS = [
     "planModels": {
       "Free": [
         "Claude Haiku 5.5 (Max)",
+        "Gemini 3.8 Flash (High)",
         "GPT-5.5 Instant (June 2026)"
       ],
       "Pro": [
-        "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-        "Gemini 3.8 Flash (High)"
+        "Gemini 4 Argon (High)",
+        "GPT-6.1 Sol (Xhigh)",
+        "Claude Sonnet 5.5 (Max, Default Fallback)"
       ],
       "Business": [
+        "Gemini 4 Carbon (High)",
         "GPT-6.1 Terra (Max)",
-        "GPT-6.1 Terra (Xhigh)",
-        "Claude Haiku 5.5 (Max)",
-        "Claude Haiku 5.5 (Xhigh)",
-        "Gemini 3.8 Flash (High)"
+        "Claude Sonnet 5.5 (Max, Default Fallback)",
+        "Claude Opus 5.5 (Max, Default Fallback)"
       ]
     },
     "planDetails": {
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "Two-week Pro trial, then 50 slow requests/month with basic completions.",
-        "models": [
-          "Claude Haiku 5.5 (Max)",
-          "GPT-5.5 Instant (June 2026)"
-        ]
+        "isPerSeat": false,
+        "limits": "Two-week Pro trial, then 50 slow requests/month with basic completions."
       },
       "Pro": {
         "monthlyPrice": 20,
         "annualPrice": 240,
-        "limits": "Unlimited fast completions, 500 fast premium requests per month, and unlimited slow requests.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": false,
+        "limits": "Unlimited fast completions, 500 fast premium requests per month, and unlimited slow requests."
       },
       "Business": {
         "monthlyPrice": 40,
         "annualPrice": 480,
-        "limits": "Centralized billing, admin dashboard, privacy mode enforced, and SAML/SSO.",
-        "models": [
-          "GPT-6.1 Terra (Max)",
-          "GPT-6.1 Terra (Xhigh)",
-          "Claude Haiku 5.5 (Max)",
-          "Claude Haiku 5.5 (Xhigh)",
-          "Gemini 3.8 Flash (High)"
-        ]
+        "isPerSeat": true,
+        "limits": "Centralized billing, admin dashboard, privacy mode enforced, and SAML/SSO."
       }
     },
     "allModels": [
-      "GPT-6.1 Terra (Max)",
-      "GPT-6.1 Terra (Xhigh)",
       "Claude Haiku 5.5 (Max)",
-      "Claude Haiku 5.5 (Xhigh)",
-      "Claude Sonnet 5.5 (Max, Default Fallback)",
-      "Claude Sonnet 5.5 (Xhigh, Default Fallback)",
       "Gemini 3.8 Flash (High)",
-      "GPT-5.5 Instant (June 2026)"
+      "GPT-5.5 Instant (June 2026)",
+      "Gemini 4 Argon (High)",
+      "GPT-6.1 Sol (Xhigh)",
+      "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "Gemini 4 Carbon (High)",
+      "GPT-6.1 Terra (Max)",
+      "Claude Opus 5.5 (Max, Default Fallback)"
+    ],
+    "tiers": [
+      {
+        "category": "Code & Dev",
+        "provider": "Cursor",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "anthropic/claude-haiku-5-5",
+          "google/gemini-3-8-flash",
+          "openai/gpt-5-5-instant-06-26"
+        ],
+        "rawModels": [
+          "Claude Haiku 5.5 (Max)",
+          "Gemini 3.8 Flash (High)",
+          "GPT-5.5 Instant (June 2026)"
+        ],
+        "limits": "Two-week Pro trial, then 50 slow requests/month with basic completions.",
+        "last_synced_at": "2026-11-01T12:04:32.862Z"
+      },
+      {
+        "category": "Code & Dev",
+        "provider": "Cursor",
+        "plan": "Pro",
+        "monthlyPrice": 20,
+        "annualPrice": 240,
+        "annualPriceEquiv": 20,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "google/gemini-4-argon",
+          "openai/gpt-6-1-sol-xhigh",
+          "anthropic/claude-sonnet-5-5"
+        ],
+        "rawModels": [
+          "Gemini 4 Argon (High)",
+          "GPT-6.1 Sol (Xhigh)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)"
+        ],
+        "limits": "Unlimited fast completions, 500 fast premium requests per month, and unlimited slow requests.",
+        "last_synced_at": "2026-11-01T12:04:32.863Z"
+      },
+      {
+        "category": "Code & Dev",
+        "provider": "Cursor",
+        "plan": "Business",
+        "monthlyPrice": 40,
+        "annualPrice": 480,
+        "annualPriceEquiv": 40,
+        "annualDiscount": false,
+        "isPerSeat": true,
+        "models": [
+          "google/gemini-4-carbon",
+          "openai/gpt-6-1-terra",
+          "anthropic/claude-sonnet-5-5",
+          "anthropic/claude-opus-5-5"
+        ],
+        "rawModels": [
+          "Gemini 4 Carbon (High)",
+          "GPT-6.1 Terra (Max)",
+          "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "Claude Opus 5.5 (Max, Default Fallback)"
+        ],
+        "limits": "Centralized billing, admin dashboard, privacy mode enforced, and SAML/SSO.",
+        "last_synced_at": "2026-11-01T12:04:32.864Z"
+      }
     ]
   },
   {
     "id": "Verdent AI",
     "name": "Verdent AI",
+    "provider": "Verdent AI",
     "desc": "Verdent AI AI integration",
     "icon": "🔧",
     "type": "subscription",
@@ -1014,15 +1732,8 @@ const INITIAL_TOOLS = [
       "Starter": {
         "monthlyPrice": 19,
         "annualPrice": 0,
-        "limits": "480 credits/month (320 base + 160 current promotional bonus). Eco Mode for light usage. Access to all models. Suitable for occasional use and small tasks.",
-        "models": [
-          "GPT-5.5 (xhigh)",
-          "GLM-5.1 (Reasoning)",
-          "Gemini 3.1 Pro",
-          "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
-          "Claude Sonnet 4.6 (Non-reasoning, High Effort)",
-          "Kimi K2.6"
-        ]
+        "isPerSeat": false,
+        "limits": "480 credits/month (320 base + 160 current promotional bonus). Eco Mode for light usage. Access to all models. Suitable for occasional use and small tasks."
       }
     },
     "allModels": [
@@ -1032,11 +1743,42 @@ const INITIAL_TOOLS = [
       "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
       "Claude Sonnet 4.6 (Non-reasoning, High Effort)",
       "Kimi K2.6"
+    ],
+    "tiers": [
+      {
+        "category": "Code & Agents",
+        "provider": "Verdent AI",
+        "plan": "Starter",
+        "monthlyPrice": 19,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "openai/gpt-5.5",
+          "google/gemini-3.1-pro",
+          "anthropic/claude-opus-4.8",
+          "anthropic/claude-sonnet-4.6",
+          "zhipu/glm-5.1",
+          "moonshot/kimi-k2.6"
+        ],
+        "rawModels": [
+          "GPT-5.5 (xhigh)",
+          "GLM-5.1 (Reasoning)",
+          "Gemini 3.1 Pro",
+          "Claude Opus 4.8 (Adaptive Reasoning, Max Effort)",
+          "Claude Sonnet 4.6 (Non-reasoning, High Effort)",
+          "Kimi K2.6"
+        ],
+        "limits": "480 credits/month (320 base + 160 current promotional bonus). Eco Mode for light usage. Access to all models. Suitable for occasional use and small tasks.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "Midjourney",
     "name": "Midjourney",
+    "provider": "Midjourney",
     "desc": "AI image generator",
     "icon": "🎨",
     "type": "subscription",
@@ -1045,7 +1787,7 @@ const INITIAL_TOOLS = [
       "Standard",
       "Pro"
     ],
-    "defaultPlan": "Pro",
+    "defaultPlan": "Basic",
     "defaultSeats": 1,
     "planModels": {
       "Basic": [
@@ -1071,35 +1813,20 @@ const INITIAL_TOOLS = [
       "Basic": {
         "monthlyPrice": 10,
         "annualPrice": 96,
-        "limits": "Approximately 3.3 Fast GPU hours/month. No Relax Mode. No Turbo Mode. Annual billing saves approximately 17% (effective $8/month).",
-        "models": [
-          "Midjourney V8.1",
-          "Midjourney V8",
-          "Midjourney V7",
-          "Niji 7"
-        ]
+        "isPerSeat": false,
+        "limits": "Approximately 3.3 Fast GPU hours/month. No Relax Mode. No Turbo Mode. Annual billing saves approximately 17% (effective $8/month)."
       },
       "Standard": {
         "monthlyPrice": 30,
         "annualPrice": 288,
-        "limits": "Approximately 15 Fast GPU hours/month. Unlimited Relax Mode. Annual billing saves approximately 20% (effective $24/month).",
-        "models": [
-          "Midjourney V8.1",
-          "Midjourney V8",
-          "Midjourney V7",
-          "Niji 7"
-        ]
+        "isPerSeat": false,
+        "limits": "Approximately 15 Fast GPU hours/month. Unlimited Relax Mode. Annual billing saves approximately 20% (effective $24/month)."
       },
       "Pro": {
         "monthlyPrice": 60,
         "annualPrice": 576,
-        "limits": "Increased Fast GPU hours. Includes Stealth Mode and Turbo Mode. Video generation available. Annual billing saves approximately 20% (effective $48/month).",
-        "models": [
-          "Midjourney V8.1",
-          "Midjourney V8",
-          "Midjourney V7",
-          "Niji 7"
-        ]
+        "isPerSeat": false,
+        "limits": "Increased Fast GPU hours. Includes Stealth Mode and Turbo Mode. Video generation available. Annual billing saves approximately 20% (effective $48/month)."
       }
     },
     "allModels": [
@@ -1107,11 +1834,92 @@ const INITIAL_TOOLS = [
       "Midjourney V8",
       "Midjourney V7",
       "Niji 7"
+    ],
+    "tiers": [
+      {
+        "category": "Media (Image)",
+        "provider": "Midjourney",
+        "plan": "Basic",
+        "monthlyPrice": 10,
+        "annualPrice": 96,
+        "annualPriceEquiv": 8,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "midjourney/v8.1",
+          "midjourney/v8",
+          "midjourney/v7",
+          "midjourney/v6.1",
+          "midjourney/niji-7",
+          "midjourney/niji-6"
+        ],
+        "rawModels": [
+          "Midjourney V8.1",
+          "Midjourney V8",
+          "Midjourney V7",
+          "Niji 7"
+        ],
+        "limits": "Approximately 3.3 Fast GPU hours/month. No Relax Mode. No Turbo Mode. Annual billing saves approximately 17% (effective $8/month).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Image)",
+        "provider": "Midjourney",
+        "plan": "Standard",
+        "monthlyPrice": 30,
+        "annualPrice": 288,
+        "annualPriceEquiv": 24,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "midjourney/v8.1",
+          "midjourney/v8",
+          "midjourney/v7",
+          "midjourney/v6.1",
+          "midjourney/niji-7",
+          "midjourney/niji-6"
+        ],
+        "rawModels": [
+          "Midjourney V8.1",
+          "Midjourney V8",
+          "Midjourney V7",
+          "Niji 7"
+        ],
+        "limits": "Approximately 15 Fast GPU hours/month. Unlimited Relax Mode. Annual billing saves approximately 20% (effective $24/month).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Image)",
+        "provider": "Midjourney",
+        "plan": "Pro",
+        "monthlyPrice": 60,
+        "annualPrice": 576,
+        "annualPriceEquiv": 48,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "midjourney/v8.1",
+          "midjourney/v8",
+          "midjourney/v7",
+          "midjourney/v6.1",
+          "midjourney/niji-7",
+          "midjourney/niji-6"
+        ],
+        "rawModels": [
+          "Midjourney V8.1",
+          "Midjourney V8",
+          "Midjourney V7",
+          "Niji 7"
+        ],
+        "limits": "Increased Fast GPU hours. Includes Stealth Mode and Turbo Mode. Video generation available. Annual billing saves approximately 20% (effective $48/month).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "Runway",
     "name": "Runway",
+    "provider": "Runway",
     "desc": "AI video generator",
     "icon": "🎬",
     "type": "subscription",
@@ -1121,7 +1929,7 @@ const INITIAL_TOOLS = [
       "Pro",
       "Unlimited"
     ],
-    "defaultPlan": "Pro",
+    "defaultPlan": "Standard",
     "defaultSeats": 1,
     "planModels": {
       "Free": [
@@ -1160,30 +1968,108 @@ const INITIAL_TOOLS = [
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "125 one-time credits. Includes Gen-4 Turbo (Image to Video), Gen-4 Image (Text to Image, References), Gemini 3 Pro, Gemini 2.5, Image Apps, Generative Audio, Text to Speech, Audio Apps. 3 video editor projects, 5GB asset storage.",
-        "models": [
-          "Gen-4 Turbo",
-          "Gen-4 Image"
-        ]
+        "isPerSeat": false,
+        "limits": "125 one-time credits. Includes Gen-4 Turbo (Image to Video), Gen-4 Image (Text to Image, References), Gemini 3 Pro, Gemini 2.5, Image Apps, Generative Audio, Text to Speech, Audio Apps. 3 video editor projects, 5GB asset storage."
       },
       "Standard": {
         "monthlyPrice": 15,
         "annualPrice": 144,
-        "limits": "625 credits/month = 52s of Gen-4.5, 104s of Gen-4 Turbo, or 78 Gen-4 Images (1080p). No watermarks. 4K upscaling. Access to all AI images and video models (Gen-4.5, Nano Banana Pro, Aleph, Veo 3.1, and more). Annual billing: $12/month (save $36/year).",
+        "isPerSeat": false,
+        "limits": "625 credits/month = 52s of Gen-4.5, 104s of Gen-4 Turbo, or 78 Gen-4 Images (1080p). No watermarks. 4K upscaling. Access to all AI images and video models (Gen-4.5, Nano Banana Pro, Aleph, Veo 3.1, and more). Annual billing: $12/month (save $36/year)."
+      },
+      "Pro": {
+        "monthlyPrice": 35,
+        "annualPrice": 336,
+        "isPerSeat": false,
+        "limits": "2250 credits/month = 187s of Gen-4.5, 375s of Gen-4 Turbo, or 281 Gen-4 Images (1080p). Create Custom Voices for Lip Sync and Text to Speech. 500GB asset storage. Access to best models (Gen-4.5, Seedance 2.0, Kling 3.0, Nano Banana Pro, and more). Annual billing: $28/month (save $84/year)."
+      },
+      "Unlimited": {
+        "monthlyPrice": 95,
+        "annualPrice": 912,
+        "isPerSeat": false,
+        "limits": "Replaces Unlimited plan as of June 1, 2026. 9500 credits/month = 791s of Gen-4.5, 1900s of Gen-4 Turbo, or 1187 Gen-4 Images (1080p). Roll over unused credits for 1 month. First access to newest models. Highest generation volume. Annual billing: $76/month (save $228/year). Existing Unlimited subscribers automatically move to Max on September 1, 2026 at the same price."
+      }
+    },
+    "allModels": [
+      "Gen-4 Turbo",
+      "Gen-4 Image",
+      "Gen-4.5",
+      "Gen-4 Image Turbo",
+      "Aleph 2.0",
+      "Nano Banana 2",
+      "Act-One",
+      "Seedance 2.0"
+    ],
+    "tiers": [
+      {
+        "category": "Media (Video)",
+        "provider": "Runway",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
         "models": [
+          "runway/gen-4-turbo",
+          "runway/gen-4-image"
+        ],
+        "rawModels": [
+          "Gen-4 Turbo",
+          "Gen-4 Image"
+        ],
+        "limits": "125 one-time credits. Includes Gen-4 Turbo (Image to Video), Gen-4 Image (Text to Image, References), Gemini 3 Pro, Gemini 2.5, Image Apps, Generative Audio, Text to Speech, Audio Apps. 3 video editor projects, 5GB asset storage.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Video)",
+        "provider": "Runway",
+        "plan": "Standard",
+        "monthlyPrice": 15,
+        "annualPrice": 144,
+        "annualPriceEquiv": 12,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "runway/gen-4.5",
+          "runway/gen-4",
+          "runway/gen-4-turbo",
+          "runway/gen-4-image",
+          "runway/gen-4-image-turbo",
+          "runway/aleph-2.0",
+          "runway/nano-banana-2"
+        ],
+        "rawModels": [
           "Gen-4.5",
           "Gen-4 Turbo",
           "Gen-4 Image",
           "Gen-4 Image Turbo",
           "Aleph 2.0",
           "Nano Banana 2"
-        ]
+        ],
+        "limits": "625 credits/month = 52s of Gen-4.5, 104s of Gen-4 Turbo, or 78 Gen-4 Images (1080p). No watermarks. 4K upscaling. Access to all AI images and video models (Gen-4.5, Nano Banana Pro, Aleph, Veo 3.1, and more). Annual billing: $12/month (save $36/year).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
       },
-      "Pro": {
+      {
+        "category": "Media (Video)",
+        "provider": "Runway",
+        "plan": "Pro",
         "monthlyPrice": 35,
         "annualPrice": 336,
-        "limits": "2250 credits/month = 187s of Gen-4.5, 375s of Gen-4 Turbo, or 281 Gen-4 Images (1080p). Create Custom Voices for Lip Sync and Text to Speech. 500GB asset storage. Access to best models (Gen-4.5, Seedance 2.0, Kling 3.0, Nano Banana Pro, and more). Annual billing: $28/month (save $84/year).",
+        "annualPriceEquiv": 28,
+        "annualDiscount": true,
+        "isPerSeat": false,
         "models": [
+          "runway/gen-4.5",
+          "runway/gen-4",
+          "runway/gen-4-turbo",
+          "runway/gen-4-image",
+          "runway/gen-4-image-turbo",
+          "runway/aleph-2.0",
+          "runway/act-one",
+          "runway/nano-banana-2"
+        ],
+        "rawModels": [
           "Gen-4.5",
           "Gen-4 Turbo",
           "Gen-4 Image",
@@ -1191,13 +2077,31 @@ const INITIAL_TOOLS = [
           "Aleph 2.0",
           "Act-One",
           "Nano Banana 2"
-        ]
+        ],
+        "limits": "2250 credits/month = 187s of Gen-4.5, 375s of Gen-4 Turbo, or 281 Gen-4 Images (1080p). Create Custom Voices for Lip Sync and Text to Speech. 500GB asset storage. Access to best models (Gen-4.5, Seedance 2.0, Kling 3.0, Nano Banana Pro, and more). Annual billing: $28/month (save $84/year).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
       },
-      "Unlimited": {
+      {
+        "category": "Media (Video)",
+        "provider": "Runway",
+        "plan": "Unlimited",
         "monthlyPrice": 95,
         "annualPrice": 912,
-        "limits": "Replaces Unlimited plan as of June 1, 2026. 9500 credits/month = 791s of Gen-4.5, 1900s of Gen-4 Turbo, or 1187 Gen-4 Images (1080p). Roll over unused credits for 1 month. First access to newest models. Highest generation volume. Annual billing: $76/month (save $228/year). Existing Unlimited subscribers automatically move to Max on September 1, 2026 at the same price.",
+        "annualPriceEquiv": 76,
+        "annualDiscount": true,
+        "isPerSeat": false,
         "models": [
+          "runway/gen-4.5",
+          "runway/gen-4",
+          "runway/gen-4-turbo",
+          "runway/gen-4-image",
+          "runway/gen-4-image-turbo",
+          "runway/aleph-2.0",
+          "runway/act-one",
+          "runway/seedance-2.0",
+          "runway/nano-banana-2"
+        ],
+        "rawModels": [
           "Gen-4.5",
           "Gen-4 Turbo",
           "Gen-4 Image",
@@ -1206,23 +2110,16 @@ const INITIAL_TOOLS = [
           "Act-One",
           "Seedance 2.0",
           "Nano Banana 2"
-        ]
+        ],
+        "limits": "Replaces Unlimited plan as of June 1, 2026. 9500 credits/month = 791s of Gen-4.5, 1900s of Gen-4 Turbo, or 1187 Gen-4 Images (1080p). Roll over unused credits for 1 month. First access to newest models. Highest generation volume. Annual billing: $76/month (save $228/year). Existing Unlimited subscribers automatically move to Max on September 1, 2026 at the same price.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
       }
-    },
-    "allModels": [
-      "Gen-4.5",
-      "Gen-4 Turbo",
-      "Gen-4 Image",
-      "Gen-4 Image Turbo",
-      "Aleph 2.0",
-      "Act-One",
-      "Seedance 2.0",
-      "Nano Banana 2"
     ]
   },
   {
     "id": "ElevenLabs",
     "name": "ElevenLabs",
+    "provider": "ElevenLabs",
     "desc": "AI voice generator",
     "icon": "🗣️",
     "type": "subscription",
@@ -1231,7 +2128,7 @@ const INITIAL_TOOLS = [
       "Starter",
       "Creator"
     ],
-    "defaultPlan": "Free",
+    "defaultPlan": "Starter",
     "defaultSeats": 1,
     "planModels": {
       "Free": [
@@ -1257,35 +2154,20 @@ const INITIAL_TOOLS = [
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "10,000 credits/month. Non-commercial use only with attribution. 3 custom voice slots. No instant voice cloning.",
-        "models": [
-          "Eleven v3",
-          "Flash v2.5",
-          "Eleven Multilingual v2",
-          "Scribe v2"
-        ]
+        "isPerSeat": false,
+        "limits": "10,000 credits/month. Non-commercial use only with attribution. 3 custom voice slots. No instant voice cloning."
       },
       "Starter": {
         "monthlyPrice": 5,
         "annualPrice": 50,
-        "limits": "30,000 credits/month. Commercial license included. Instant voice cloning. 20 Studio projects.",
-        "models": [
-          "Eleven v3",
-          "Flash v2.5",
-          "Eleven Multilingual v2",
-          "Scribe v2"
-        ]
+        "isPerSeat": false,
+        "limits": "30,000 credits/month. Commercial license included. Instant voice cloning. 20 Studio projects."
       },
       "Creator": {
         "monthlyPrice": 22,
         "annualPrice": 220,
-        "limits": "100,000 credits/month. 192kbps audio quality. Professional Voice Cloning. First month 50% off ($11). Overage ~$0.30/min (TTS) and ~$0.22/min (STT).",
-        "models": [
-          "Eleven v3",
-          "Flash v2.5",
-          "Eleven Multilingual v2",
-          "Scribe v2"
-        ]
+        "isPerSeat": false,
+        "limits": "100,000 credits/month. 192kbps audio quality. Professional Voice Cloning. First month 50% off ($11). Overage ~$0.30/min (TTS) and ~$0.22/min (STT)."
       }
     },
     "allModels": [
@@ -1293,11 +2175,86 @@ const INITIAL_TOOLS = [
       "Flash v2.5",
       "Eleven Multilingual v2",
       "Scribe v2"
+    ],
+    "tiers": [
+      {
+        "category": "Media (Audio)",
+        "provider": "ElevenLabs",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "elevenlabs/eleven_v3",
+          "elevenlabs/eleven_multilingual_v2",
+          "elevenlabs/scribe_v2",
+          "elevenlabs/eleven_flash_v2_5"
+        ],
+        "rawModels": [
+          "Eleven v3",
+          "Flash v2.5",
+          "Eleven Multilingual v2",
+          "Scribe v2"
+        ],
+        "limits": "10,000 credits/month. Non-commercial use only with attribution. 3 custom voice slots. No instant voice cloning.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Audio)",
+        "provider": "ElevenLabs",
+        "plan": "Starter",
+        "monthlyPrice": 5,
+        "annualPrice": 50,
+        "annualPriceEquiv": 4.17,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "elevenlabs/eleven_v3",
+          "elevenlabs/eleven_multilingual_v2",
+          "elevenlabs/scribe_v2",
+          "elevenlabs/eleven_flash_v2_5"
+        ],
+        "rawModels": [
+          "Eleven v3",
+          "Flash v2.5",
+          "Eleven Multilingual v2",
+          "Scribe v2"
+        ],
+        "limits": "30,000 credits/month. Commercial license included. Instant voice cloning. 20 Studio projects.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Audio)",
+        "provider": "ElevenLabs",
+        "plan": "Creator",
+        "monthlyPrice": 22,
+        "annualPrice": 220,
+        "annualPriceEquiv": 18.33,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "elevenlabs/eleven_v3",
+          "elevenlabs/eleven_multilingual_v2",
+          "elevenlabs/scribe_v2",
+          "elevenlabs/eleven_flash_v2_5"
+        ],
+        "rawModels": [
+          "Eleven v3",
+          "Flash v2.5",
+          "Eleven Multilingual v2",
+          "Scribe v2"
+        ],
+        "limits": "100,000 credits/month. 192kbps audio quality. Professional Voice Cloning. First month 50% off ($11). Overage ~$0.30/min (TTS) and ~$0.22/min (STT).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "Suno",
     "name": "Suno",
+    "provider": "Suno",
     "desc": "AI music generator",
     "icon": "🎵",
     "type": "subscription",
@@ -1327,42 +2284,101 @@ const INITIAL_TOOLS = [
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "50 credits renew daily. No commercial use. Standard features only. Upload up to 8 min of audio. Shared creation queue. No add-on credit purchases. No stem separation.",
-        "models": [
-          "Suno v4.5-all"
-        ]
+        "isPerSeat": false,
+        "limits": "50 credits renew daily. No commercial use. Standard features only. Upload up to 8 min of audio. Shared creation queue. No add-on credit purchases. No stem separation."
       },
       "Pro": {
         "monthlyPrice": 10,
         "annualPrice": 96,
-        "limits": "2,500 credits/month. Commercial use rights. Standard stem separation. Upload up to 30 min of audio. Priority queue. Early access to new features. Ability to purchase add-on credits. Annual billing: $96/year (save $24).",
-        "models": [
-          "Suno v5.5",
-          "Suno v5",
-          "Personas"
-        ]
+        "isPerSeat": false,
+        "limits": "2,500 credits/month. Commercial use rights. Standard stem separation. Upload up to 30 min of audio. Priority queue. Early access to new features. Ability to purchase add-on credits. Annual billing: $96/year (save $24)."
       },
       "Premier": {
         "monthlyPrice": 30,
         "annualPrice": 288,
-        "limits": "10,000 credits/month. Includes Suno Studio. Advanced stem separation (more stem types). All Pro features plus highest generation limits. Annual billing: $288/year (save $72).",
-        "models": [
-          "Suno v5.5",
-          "Suno v5",
-          "Personas"
-        ]
+        "isPerSeat": false,
+        "limits": "10,000 credits/month. Includes Suno Studio. Advanced stem separation (more stem types). All Pro features plus highest generation limits. Annual billing: $288/year (save $72)."
       }
     },
     "allModels": [
+      "Suno v4.5-all",
       "Suno v5.5",
       "Suno v5",
-      "Suno v4.5-all",
       "Personas"
+    ],
+    "tiers": [
+      {
+        "category": "Media (Audio)",
+        "provider": "Suno",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "suno/v4.5-all"
+        ],
+        "rawModels": [
+          "Suno v4.5-all"
+        ],
+        "limits": "50 credits renew daily. No commercial use. Standard features only. Upload up to 8 min of audio. Shared creation queue. No add-on credit purchases. No stem separation.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Audio)",
+        "provider": "Suno",
+        "plan": "Pro",
+        "monthlyPrice": 10,
+        "annualPrice": 96,
+        "annualPriceEquiv": 8,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "suno/v5.5",
+          "suno/v5",
+          "suno/v4.5-plus",
+          "suno/v4.5",
+          "suno/personas"
+        ],
+        "rawModels": [
+          "Suno v5.5",
+          "Suno v5",
+          "Personas"
+        ],
+        "limits": "2,500 credits/month. Commercial use rights. Standard stem separation. Upload up to 30 min of audio. Priority queue. Early access to new features. Ability to purchase add-on credits. Annual billing: $96/year (save $24).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "Media (Audio)",
+        "provider": "Suno",
+        "plan": "Premier",
+        "monthlyPrice": 30,
+        "annualPrice": 288,
+        "annualPriceEquiv": 24,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "suno/v5.5",
+          "suno/v5",
+          "suno/v4.5-plus",
+          "suno/v4.5",
+          "suno/personas"
+        ],
+        "rawModels": [
+          "Suno v5.5",
+          "Suno v5",
+          "Personas"
+        ],
+        "limits": "10,000 credits/month. Includes Suno Studio. Advanced stem separation (more stem types). All Pro features plus highest generation limits. Annual billing: $288/year (save $72).",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "v0 (Vercel)",
     "name": "v0 (Vercel)",
+    "provider": "v0 (Vercel)",
     "desc": "Vercel UI generator",
     "icon": "▲",
     "type": "subscription",
@@ -1370,7 +2386,7 @@ const INITIAL_TOOLS = [
       "Free",
       "Premium"
     ],
-    "defaultPlan": "Free",
+    "defaultPlan": "Premium",
     "defaultSeats": 1,
     "planModels": {
       "Free": [
@@ -1385,29 +2401,65 @@ const INITIAL_TOOLS = [
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "$5 in included monthly credits. Deploy to Vercel. Visual editing with Design Mode. GitHub sync. 7 messages/day limit. Credit expires at end of month.",
-        "models": [
-          "v0 Mini"
-        ]
+        "isPerSeat": false,
+        "limits": "$5 in included monthly credits. Deploy to Vercel. Visual editing with Design Mode. GitHub sync. 7 messages/day limit. Credit expires at end of month."
       },
       "Premium": {
         "monthlyPrice": 20,
         "annualPrice": 0,
-        "limits": "$20 in included monthly credits. $2 of free daily credits on login. Purchase additional credits. Larger uploads. No API access. Premium is being sunset for new users but remains for existing subscribers.",
-        "models": [
-          "v0 Pro",
-          "v0 Mini"
-        ]
+        "isPerSeat": false,
+        "limits": "$20 in included monthly credits. $2 of free daily credits on login. Purchase additional credits. Larger uploads. No API access. Premium is being sunset for new users but remains for existing subscribers."
       }
     },
     "allModels": [
-      "v0 Pro",
-      "v0 Mini"
+      "v0 Mini",
+      "v0 Pro"
+    ],
+    "tiers": [
+      {
+        "category": "UI & Layouts",
+        "provider": "v0 (Vercel)",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "vercel/v0-mini"
+        ],
+        "rawModels": [
+          "v0 Mini"
+        ],
+        "limits": "$5 in included monthly credits. Deploy to Vercel. Visual editing with Design Mode. GitHub sync. 7 messages/day limit. Credit expires at end of month.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "UI & Layouts",
+        "provider": "v0 (Vercel)",
+        "plan": "Premium",
+        "monthlyPrice": 20,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "vercel/v0-pro",
+          "vercel/v0-mini"
+        ],
+        "rawModels": [
+          "v0 Pro",
+          "v0 Mini"
+        ],
+        "limits": "$20 in included monthly credits. $2 of free daily credits on login. Purchase additional credits. Larger uploads. No API access. Premium is being sunset for new users but remains for existing subscribers.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "Gamma AI",
     "name": "Gamma AI",
+    "provider": "Gamma AI",
     "desc": "AI presentation generator",
     "icon": "✨",
     "type": "subscription",
@@ -1432,32 +2484,70 @@ const INITIAL_TOOLS = [
       "Free": {
         "monthlyPrice": 0,
         "annualPrice": 0,
-        "limits": "400 one-time AI credits (no monthly refresh). Up to 10 cards per prompt. Gamma branding included. Import from PDF and PPTX. Export to PDF, PPTX, PNG, and Google Slides.",
-        "models": [
-          "Gamma AI Agent",
-          "Basic Image Models"
-        ]
+        "isPerSeat": false,
+        "limits": "400 one-time AI credits (no monthly refresh). Up to 10 cards per prompt. Gamma branding included. Import from PDF and PPTX. Export to PDF, PPTX, PNG, and Google Slides."
       },
       "Plus": {
         "monthlyPrice": 12,
         "annualPrice": 108,
-        "limits": "1,000 monthly AI credits. Up to 20 cards per prompt. Gamma branding removed. Advanced image models. Annual pricing: $9/month.",
-        "models": [
-          "Gamma AI Agent",
-          "Basic Image Models",
-          "Advanced Image Models"
-        ]
+        "isPerSeat": false,
+        "limits": "1,000 monthly AI credits. Up to 20 cards per prompt. Gamma branding removed. Advanced image models. Annual pricing: $9/month."
       }
     },
     "allModels": [
       "Gamma AI Agent",
       "Basic Image Models",
       "Advanced Image Models"
+    ],
+    "tiers": [
+      {
+        "category": "UI & Layouts",
+        "provider": "Gamma AI",
+        "plan": "Free",
+        "monthlyPrice": 0,
+        "annualPrice": 0,
+        "annualPriceEquiv": 0,
+        "annualDiscount": false,
+        "isPerSeat": false,
+        "models": [
+          "gamma/ai-agent",
+          "gamma/basic-image-models"
+        ],
+        "rawModels": [
+          "Gamma AI Agent",
+          "Basic Image Models"
+        ],
+        "limits": "400 one-time AI credits (no monthly refresh). Up to 10 cards per prompt. Gamma branding included. Import from PDF and PPTX. Export to PDF, PPTX, PNG, and Google Slides.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      },
+      {
+        "category": "UI & Layouts",
+        "provider": "Gamma AI",
+        "plan": "Plus",
+        "monthlyPrice": 12,
+        "annualPrice": 108,
+        "annualPriceEquiv": 9,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "gamma/ai-agent",
+          "gamma/basic-image-models",
+          "gamma/advanced-image-models"
+        ],
+        "rawModels": [
+          "Gamma AI Agent",
+          "Basic Image Models",
+          "Advanced Image Models"
+        ],
+        "limits": "1,000 monthly AI credits. Up to 20 cards per prompt. Gamma branding removed. Advanced image models. Annual pricing: $9/month.",
+        "last_synced_at": "2026-08-28T16:00:05.521Z"
+      }
     ]
   },
   {
     "id": "Alibaba (Qwen)",
     "name": "Alibaba (Qwen)",
+    "provider": "Alibaba (Qwen)",
     "desc": "Alibaba Qwen Chat",
     "icon": "☁️",
     "type": "subscription",
@@ -1471,32 +2561,54 @@ const INITIAL_TOOLS = [
         "Qwen3.8 Max (0902)",
         "Qwen3.8-Flash-Next",
         "Qwen3.8 27B (Xhigh)",
-        "Qwen3.8 27B (Medium)"
+        "Qwen3.8 2.4T A95B"
       ]
     },
     "planDetails": {
       "Qwen Chat Pro": {
         "monthlyPrice": 15,
         "annualPrice": 150,
-        "limits": "Access to flagship Qwen models with fast inference.",
-        "models": [
-          "Qwen3.8 Max (0902)",
-          "Qwen3.8-Flash-Next",
-          "Qwen3.8 27B (Xhigh)",
-          "Qwen3.8 27B (Medium)"
-        ]
+        "isPerSeat": false,
+        "limits": "Access to flagship Qwen models with fast inference."
       }
     },
     "allModels": [
       "Qwen3.8 Max (0902)",
       "Qwen3.8-Flash-Next",
       "Qwen3.8 27B (Xhigh)",
-      "Qwen3.8 27B (Medium)"
+      "Qwen3.8 2.4T A95B"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Alibaba (Qwen)",
+        "plan": "Qwen Chat Pro",
+        "monthlyPrice": 15,
+        "annualPrice": 150,
+        "annualPriceEquiv": 12.5,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "alibaba/qwen3-8-max",
+          "alibaba/qwen3-8-flash-next",
+          "alibaba/qwen3-8-27b",
+          "alibaba/qwen3-8-2-4t-a95b"
+        ],
+        "rawModels": [
+          "Qwen3.8 Max (0902)",
+          "Qwen3.8-Flash-Next",
+          "Qwen3.8 27B (Xhigh)",
+          "Qwen3.8 2.4T A95B"
+        ],
+        "limits": "Access to flagship Qwen models with fast inference.",
+        "last_synced_at": "2026-11-01T12:04:32.865Z"
+      }
     ]
   },
   {
     "id": "Cohere",
     "name": "Cohere",
+    "provider": "Cohere",
     "desc": "Cohere enterprise model platform",
     "icon": "🌿",
     "type": "subscription",
@@ -1517,13 +2629,8 @@ const INITIAL_TOOLS = [
       "Cohere Platform": {
         "monthlyPrice": 20,
         "annualPrice": 200,
-        "limits": "Access to Command R and R+ models with enterprise grounding.",
-        "models": [
-          "North Mini Code",
-          "Command A+",
-          "Tiny Aya Global",
-          "Command A"
-        ]
+        "isPerSeat": false,
+        "limits": "Access to Command R and R+ models with enterprise grounding."
       }
     },
     "allModels": [
@@ -1531,6 +2638,32 @@ const INITIAL_TOOLS = [
       "Command A+",
       "Tiny Aya Global",
       "Command A"
+    ],
+    "tiers": [
+      {
+        "category": "Chat & Reasoning",
+        "provider": "Cohere",
+        "plan": "Cohere Platform",
+        "monthlyPrice": 20,
+        "annualPrice": 200,
+        "annualPriceEquiv": 16.6,
+        "annualDiscount": true,
+        "isPerSeat": false,
+        "models": [
+          "cohere/north-mini-code",
+          "cohere/command-a-plus",
+          "cohere/tiny-aya-global",
+          "cohere/command-a"
+        ],
+        "rawModels": [
+          "North Mini Code",
+          "Command A+",
+          "Tiny Aya Global",
+          "Command A"
+        ],
+        "limits": "Access to Command R and R+ models with enterprise grounding.",
+        "last_synced_at": "2026-11-01T12:04:32.865Z"
+      }
     ]
   }
 ];
