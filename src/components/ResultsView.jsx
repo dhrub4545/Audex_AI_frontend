@@ -966,7 +966,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   // Suggested model/plan name
                   const sugModel = choice === 'api'
                     ? (opt.recommendedModel || opt.name || 'GPT-5.5 (xhigh)')
-                    : (opt.recommendedModel || opt.planName || 'ChatGPT Plus');
+                    : (opt.planName || opt.recommendedModel || 'ChatGPT Plus');
 
                   // Suggested provider name
                   const sugProvider = choice === 'api'

@@ -30,17 +30,16 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 20,
-      "topModelId": "openai/gpt-5-6-sol",
-      "topModelName": "GPT-5.6 Sol (Max)",
-      "baselineModelId": "openai/gpt-5-6-sol",
-      "baselineModelName": "GPT-5.6 Sol (Max)",
+      "topModelId": "openai/gpt-6-1-sol-xhigh",
+      "topModelName": "GPT-6.1 Sol (Xhigh)",
+      "baselineModelId": "openai/gpt-6-1-sol-xhigh",
+      "baselineModelName": "GPT-6.1 Sol (Xhigh)",
       "baselineModels": [
-        "GPT-5.6 Sol (high)",
-        "GPT-5.6 Sol (medium)",
-        "GPT-5.5 (high)",
-        "GPT-5.5 (medium)",
-        "GPT-5.6 Sol (max)",
-        "GPT-5.6 Sol (xhigh)"
+        "GPT-6.1 Sol (Xhigh)",
+        "GPT-6 Sol (Xhigh)",
+        "GPT-6 Luna (Medium)",
+        "GPT-6 Astra (Medium)",
+        "GPT-5.6 Sol (Xhigh)"
       ]
     },
     {
@@ -52,16 +51,15 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 100,
-      "topModelId": "anthropic/claude-fable-5",
-      "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-      "baselineModelId": "anthropic/claude-fable-5",
-      "baselineModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+      "topModelId": "anthropic/claude-sonnet-5-5",
+      "topModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "baselineModelId": "anthropic/claude-sonnet-5-5",
+      "baselineModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
       "baselineModels": [
-        "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
-        "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
-        "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
-        "Claude Opus 5 (Adaptive Reasoning, High Effort)",
-        "Claude Opus 5 (Adaptive Reasoning, Medium Effort)"
+        "Claude Sonnet 5.5 (Max, Default Fallback)",
+        "Claude Fable 5.1 (Medium, Default Fallback)",
+        "Claude Sonnet 5 (Max)",
+        "Claude Sonnet 4.6 (Max)"
       ]
     },
     {
@@ -78,11 +76,10 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelId": "google/gemini-3-7-flash",
       "baselineModelName": "Gemini 3.7 Flash (High)",
       "baselineModels": [
-        "Gemini 3.7 Flash (high)",
-        "Gemini 3.7 Flash (medium)",
-        "Gemini 3.5 Flash (high)",
-        "Gemma 4 31B (Reasoning)",
-        "Gemma 4 26B A4B (Reasoning)"
+        "Gemini 3.8 Flash (High)",
+        "Gemini 3.7 Flash (High)",
+        "DiffusionGemma 26B A4B",
+        "Gemma 4 31B (Reasoning)"
       ]
     },
     {
@@ -110,12 +107,15 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Coding",
       "pricePerSeat": 14.99,
       "currentCost": 29.98,
-      "topModelId": "mistral/pixtral-large-2411",
-      "topModelName": "Pixtral Large",
-      "baselineModelId": "mistral/pixtral-large-2411",
-      "baselineModelName": "Pixtral Large",
+      "topModelId": "mistralai/mistral-medium-3-5",
+      "topModelName": "Mistral Medium 3.5",
+      "baselineModelId": "mistralai/mistral-medium-3-5",
+      "baselineModelName": "Mistral Medium 3.5",
       "baselineModels": [
-        "Pixtral Large"
+        "Mistral Large 4 (High)",
+        "Mistral Large 4 Preview",
+        "Mistral Medium 3.5",
+        "Devstral 2"
       ]
     },
     {
@@ -127,15 +127,15 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Research",
       "pricePerSeat": 7.99,
       "currentCost": 7.99,
-      "topModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
-      "topModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-      "baselineModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
-      "baselineModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
+      "topModelId": "meta-llama/muse-wonder-full",
+      "topModelName": "Muse Wonder Full (Max)",
+      "baselineModelId": "meta-llama/muse-wonder-full",
+      "baselineModelName": "Muse Wonder Full (Max)",
       "baselineModels": [
-        "DeepSeek R1 Distill Llama 8B",
-        "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-        "Hermes 3 - Llama-3.1 70B",
-        "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
+        "Muse Wonder Full (Max)",
+        "Muse Wonder (Max)",
+        "Hermes 4 - Llama-3.1 405B (Reasoning)",
+        "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)"
       ]
     },
     {
@@ -147,28 +147,28 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 0,
       "currentCost": 0,
-      "topModelId": "deepseek/deepseek-v3-1-terminus-reasoning",
-      "topModelName": "DeepSeek V3.1 Terminus (Reasoning)",
-      "baselineModelId": "deepseek/deepseek-v3-1-terminus-reasoning",
-      "baselineModelName": "DeepSeek V3.1 Terminus (Reasoning)",
+      "topModelId": "deepseek/deepseek-v4-flash",
+      "topModelName": "DeepSeek V4 Flash 0731 (Max)",
+      "baselineModelId": "deepseek/deepseek-v4-flash",
+      "baselineModelName": "DeepSeek V4 Flash 0731 (Max)",
       "baselineModels": [
-        "DeepSeek V3.2 Exp (Non-reasoning)",
-        "DeepSeek V3.1 Terminus (Reasoning)",
-        "DeepSeek R1 (Jan '25)",
-        "DeepSeek R1 Distill Llama 8B",
-        "DeepSeek V3.1 (Reasoning)"
+        "DeepSeek V4.1 Flash 1017 (Max)",
+        "DeepSeek V4.1 Flash (Max)",
+        "DeepSeek V4 Flash Vision (Max)",
+        "DeepSeek V4 Pro 0813 (Max)",
+        "DeepSeek V4 Flash 0731 (Max)"
       ]
     }
   ],
   "savings": {
-    "totalMonthly": 171.75,
-    "totalAnnual": 2061,
-    "totalOptimizedSpend": 216.21,
-    "percentageSavings": 44.3,
-    "apiMonthly": 231.33,
-    "apiAnnual": 2775.96,
-    "subMonthly": 243.02,
-    "subAnnual": 2916.24,
+    "totalMonthly": 198,
+    "totalAnnual": 2376,
+    "totalOptimizedSpend": 189.96,
+    "percentageSavings": 51,
+    "apiMonthly": 184.71,
+    "apiAnnual": 2216.52,
+    "subMonthly": 163.01,
+    "subAnnual": 1956.12,
     "recommendations": [
       {
         "_id": "rec_0",
@@ -176,55 +176,54 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $20.00/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 86,
-        "baselineRank": 345,
+        "baselineScore": 87,
+        "baselineRank": 9,
         "monthlySavings": 15.01,
         "isAlreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_0",
-          "cost": 6.25,
-          "savings": 13.75,
-          "name": "Gemini 3 Flash Preview (Reasoning)",
-          "modelId": "google/gemini-3-flash-reasoning",
-          "performance_score": 94,
-          "category_rank": 232,
-          "action": "Transition active users to direct API keys using Gemini 3 Flash Preview (Reasoning).",
+          "cost": 20,
+          "savings": 0,
+          "name": "GPT-6.1 Sol (Xhigh)",
+          "modelId": "openai/gpt-6-1-sol-xhigh",
+          "performance_score": 87,
+          "category_rank": 9,
+          "action": "Transition active users to direct API keys using GPT-6.1 Sol (Xhigh).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.50/1M input, $3.00/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $2.00/1M input, $10.00/1M output.",
           "includedModels": [
-            "Gemini 3 Flash Preview (Reasoning)"
+            "GPT-6.1 Sol (Xhigh)"
           ],
-          "recommendedModel": "Gemini 3 Flash Preview (Reasoning)",
-          "recommendedProvider": "Google",
-          "inputCostPerM": 0.5,
-          "outputCostPerM": 3,
+          "recommendedModel": "GPT-6.1 Sol (Xhigh)",
+          "recommendedProvider": "OpenAI",
+          "inputCostPerM": 2,
+          "outputCostPerM": 10,
           "defaultInputTokens": 5000000,
           "defaultOutputTokens": 1250000
         },
         "subscriptionOption": {
           "_id": "rec_sub_0",
-          "planName": "Google AI Plus",
+          "planName": "Gemini AI Plus",
           "cost": 4.99,
           "savings": 15.01,
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
           "includedModels": [
-            "Gemini 3.7 Flash (high)",
-            "Gemini 3.7 Flash (medium)",
-            "Gemini 3.5 Flash (high)",
-            "Gemma 4 31B (Reasoning)",
-            "Gemma 4 26B A4B (Reasoning)"
+            "Gemini 3.8 Flash (High)",
+            "Gemini 3.7 Flash (High)",
+            "DiffusionGemma 26B A4B",
+            "Gemma 4 31B (Reasoning)"
           ],
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 86,
-          "category_rank": 241,
-          "action": "Migrate to the Google AI Plus subscription.",
+          "performance_score": 87,
+          "category_rank": 9999,
+          "action": "Migrate to the Gemini AI Plus subscription.",
           "statusText": "",
-          "isAlreadyOptimized": false,
-          "recommendedModel": "Gemini 3.7 Flash (High)",
+          "alreadyOptimized": false,
+          "recommendedModel": "Gemini AI Plus",
           "recommendedProvider": "Google"
         },
         "originalAlloc": {
@@ -236,9 +235,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 20,
           "modelId": "",
           "provider": "OpenAI",
-          "modelName": "GPT-5.6 Sol (Max)",
-          "performance_score": 86,
-          "category_rank": 345
+          "modelName": "GPT-6.1 Sol (Xhigh)",
+          "performance_score": 87,
+          "category_rank": 9
         }
       },
       {
@@ -247,55 +246,54 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $100.00/mo for 5 active Mixed users",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 88,
-        "baselineRank": 119,
-        "monthlySavings": 68.75,
-        "isAlreadyOptimized": false,
-        "statusText": "",
+        "baselineScore": 90,
+        "baselineRank": 8,
+        "monthlySavings": 0,
+        "isAlreadyOptimized": true,
+        "statusText": "Optimized",
         "apiOption": {
           "_id": "rec_api_1",
-          "cost": 31.25,
-          "savings": 68.75,
-          "name": "Gemini 3 Flash Preview (Reasoning)",
-          "modelId": "google/gemini-3-flash-reasoning",
-          "performance_score": 94,
-          "category_rank": 232,
-          "action": "Transition active users to direct API keys using Gemini 3 Flash Preview (Reasoning).",
+          "cost": 100,
+          "savings": 0,
+          "name": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "modelId": "anthropic/claude-sonnet-5-5",
+          "performance_score": 90,
+          "category_rank": 8,
+          "action": "Transition active users to direct API keys using Claude Sonnet 5.5 (Max, Default Fallback).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.50/1M input, $3.00/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $2.00/1M input, $10.00/1M output.",
           "includedModels": [
-            "Gemini 3 Flash Preview (Reasoning)"
+            "Claude Sonnet 5.5 (Max, Default Fallback)"
           ],
-          "recommendedModel": "Gemini 3 Flash Preview (Reasoning)",
-          "recommendedProvider": "Google",
-          "inputCostPerM": 0.5,
-          "outputCostPerM": 3,
+          "recommendedModel": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "recommendedProvider": "Anthropic",
+          "inputCostPerM": 2,
+          "outputCostPerM": 10,
           "defaultInputTokens": 25000000,
           "defaultOutputTokens": 6250000
         },
         "subscriptionOption": {
           "_id": "rec_sub_1",
-          "planName": "Anthropic Claude Pro",
+          "planName": "Claude Pro",
           "cost": 100,
           "savings": 0,
           "limits": "More usage than Free plan. Access to unlimited projects.",
           "includedModels": [
-            "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
-            "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
-            "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
-            "Claude Opus 5 (Adaptive Reasoning, High Effort)",
-            "Claude Opus 5 (Adaptive Reasoning, Medium Effort)"
+            "Claude Sonnet 5.5 (Max, Default Fallback)",
+            "Claude Fable 5.1 (Medium, Default Fallback)",
+            "Claude Sonnet 5 (Max)",
+            "Claude Sonnet 4.6 (Max)"
           ],
-          "modelId": "anthropic/claude-fable-5",
-          "topModelId": "anthropic/claude-fable-5",
-          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "performance_score": 88,
-          "category_rank": 119,
+          "modelId": "anthropic/claude-sonnet-5-5",
+          "topModelId": "anthropic/claude-sonnet-5-5",
+          "topModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "performance_score": 90,
+          "category_rank": 8,
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": true,
-          "recommendedModel": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+          "alreadyOptimized": true,
+          "recommendedModel": "Claude Pro",
           "recommendedProvider": "Anthropic"
         },
         "originalAlloc": {
@@ -307,9 +305,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 100,
           "modelId": "",
           "provider": "Anthropic",
-          "modelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "performance_score": 88,
-          "category_rank": 119
+          "modelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "performance_score": 90,
+          "category_rank": 8
         }
       },
       {
@@ -318,55 +316,54 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $4.99/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 86,
-        "baselineRank": 241,
-        "monthlySavings": 4.12,
-        "isAlreadyOptimized": false,
-        "statusText": "",
+        "baselineScore": 87,
+        "baselineRank": 500,
+        "monthlySavings": 0,
+        "isAlreadyOptimized": true,
+        "statusText": "Optimized",
         "apiOption": {
           "_id": "rec_api_2",
-          "cost": 0.88,
-          "savings": 4.12,
-          "name": "MiMo-V2-Flash (Reasoning)",
-          "modelId": "xiaomi/mimo-v2-flash-reasoning",
+          "cost": 4.99,
+          "savings": 0,
+          "name": "Gemini 3.7 Flash (High)",
+          "modelId": "google/gemini-3-7-flash",
           "performance_score": 87,
-          "category_rank": 505,
-          "action": "Transition active users to direct API keys using MiMo-V2-Flash (Reasoning).",
+          "category_rank": 500,
+          "action": "Transition active users to direct API keys using Gemini 3.7 Flash (High).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.30/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $0.75/1M input, $3.75/1M output.",
           "includedModels": [
-            "MiMo-V2-Flash (Reasoning)"
+            "Gemini 3.7 Flash (High)"
           ],
-          "recommendedModel": "MiMo-V2-Flash (Reasoning)",
-          "recommendedProvider": "Xiaomi",
-          "inputCostPerM": 0.1,
-          "outputCostPerM": 0.3,
+          "recommendedModel": "Gemini 3.7 Flash (High)",
+          "recommendedProvider": "Google",
+          "inputCostPerM": 0.75,
+          "outputCostPerM": 3.75,
           "defaultInputTokens": 5000000,
           "defaultOutputTokens": 1250000
         },
         "subscriptionOption": {
           "_id": "rec_sub_2",
-          "planName": "Google AI Plus",
+          "planName": "Gemini AI Plus",
           "cost": 4.99,
           "savings": 0,
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
           "includedModels": [
-            "Gemini 3.7 Flash (high)",
-            "Gemini 3.7 Flash (medium)",
-            "Gemini 3.5 Flash (high)",
-            "Gemma 4 31B (Reasoning)",
-            "Gemma 4 26B A4B (Reasoning)"
+            "Gemini 3.8 Flash (High)",
+            "Gemini 3.7 Flash (High)",
+            "DiffusionGemma 26B A4B",
+            "Gemma 4 31B (Reasoning)"
           ],
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 86,
-          "category_rank": 241,
+          "performance_score": 87,
+          "category_rank": 500,
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": true,
-          "recommendedModel": "Gemini 3.7 Flash (High)",
+          "alreadyOptimized": true,
+          "recommendedModel": "Gemini AI Plus",
           "recommendedProvider": "Google"
         },
         "originalAlloc": {
@@ -379,8 +376,8 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "Google",
           "modelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 86,
-          "category_rank": 241
+          "performance_score": 87,
+          "category_rank": 500
         }
       },
       {
@@ -390,55 +387,53 @@ export const SAMPLE_AUDIT_DATA = {
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
         "baselineScore": 89,
-        "baselineRank": 119,
-        "monthlySavings": 205.01,
+        "baselineRank": 29,
+        "monthlySavings": 175,
         "isAlreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_3",
-          "cost": 90,
-          "savings": 135,
-          "name": "Gemini 4 Carbon (High)",
-          "modelId": "google/gemini-4-carbon",
+          "cost": 50,
+          "savings": 175,
+          "name": "Gemini 3 Pro Preview (High)",
+          "modelId": "google/gemini-3-pro",
           "performance_score": 99,
           "category_rank": 1,
-          "action": "Transition active users to direct API keys using Gemini 4 Carbon (High).",
+          "action": "Transition active users to direct API keys using Gemini 3 Pro Preview (High).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $4.00/1M input, $20.00/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $2.00/1M input, $12.00/1M output. Context: 1M.",
           "includedModels": [
-            "Gemini 4 Carbon (High)"
+            "Gemini 3 Pro Preview (High)"
           ],
-          "recommendedModel": "Gemini 4 Carbon (High)",
+          "recommendedModel": "Gemini 3 Pro Preview (High)",
           "recommendedProvider": "Google",
-          "inputCostPerM": 4,
-          "outputCostPerM": 20,
+          "inputCostPerM": 2,
+          "outputCostPerM": 12,
           "defaultInputTokens": 10000000,
           "defaultOutputTokens": 2500000
         },
         "subscriptionOption": {
           "_id": "rec_sub_3",
-          "planName": "Google AI Pro",
-          "cost": 19.99,
-          "savings": 205.01,
-          "limits": "4x higher usage limits than Free. 1M token context window (1,500 pages of text or 30,000 lines of code). 5TB cloud storage. YouTube Premium Lite included. Google Home Premium and Health Premium included. Higher AI Studio limits.",
+          "planName": "Gemini AI Ultra (100)",
+          "cost": 100,
+          "savings": 125,
+          "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users.",
           "includedModels": [
-            "Gemini 3.7 Flash (high)",
-            "Gemini 3.7 Flash (medium)",
+            "Gemini 4 Carbon (High)",
+            "Gemini 4 Argon (High)",
             "Gemini 3.1 Pro Preview",
-            "Gemini 3 Pro Preview (high)",
-            "Gemini 3 Pro Preview (low)",
-            "Gemma 4 31B (Reasoning)"
+            "Gemini 3 Deep Think"
           ],
-          "modelId": "google/gemini-3-pro",
-          "topModelId": "google/gemini-3-pro",
-          "topModelName": "Gemini 3 Pro Preview (High)",
-          "performance_score": 94,
-          "category_rank": 233,
-          "action": "Migrate to the Google AI Pro subscription.",
+          "modelId": "google/gemini-4-carbon",
+          "topModelId": "google/gemini-4-carbon",
+          "topModelName": "Gemini 4 Carbon (High)",
+          "performance_score": 99,
+          "category_rank": 324,
+          "action": "Migrate to the Gemini AI Ultra (100) subscription.",
           "statusText": "",
-          "isAlreadyOptimized": false,
-          "recommendedModel": "Gemini 3 Pro Preview (High)",
+          "alreadyOptimized": false,
+          "recommendedModel": "Gemini AI Ultra (100)",
           "recommendedProvider": "Google"
         },
         "originalAlloc": {
@@ -452,7 +447,7 @@ export const SAMPLE_AUDIT_DATA = {
           "provider": "Anthropic",
           "modelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
           "performance_score": 89,
-          "category_rank": 119
+          "category_rank": 29
         }
       },
       {
@@ -461,8 +456,8 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $29.98/mo for 2 active Coding users",
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
-        "baselineScore": 30,
-        "baselineRank": 602,
+        "baselineScore": 61,
+        "baselineRank": 242,
         "monthlySavings": 20,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -473,11 +468,11 @@ export const SAMPLE_AUDIT_DATA = {
           "name": "Gemini 3 Flash Preview (Reasoning)",
           "modelId": "google/gemini-3-flash-reasoning",
           "performance_score": 99,
-          "category_rank": 232,
+          "category_rank": 2,
           "action": "Transition active users to direct API keys using Gemini 3 Flash Preview (Reasoning).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.50/1M input, $3.00/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $0.50/1M input, $3.00/1M output. Context: 1M.",
           "includedModels": [
             "Gemini 3 Flash Preview (Reasoning)"
           ],
@@ -490,26 +485,25 @@ export const SAMPLE_AUDIT_DATA = {
         },
         "subscriptionOption": {
           "_id": "rec_sub_4",
-          "planName": "Google AI Plus",
+          "planName": "Gemini AI Plus",
           "cost": 9.98,
           "savings": 20,
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
           "includedModels": [
-            "Gemini 3.7 Flash (high)",
-            "Gemini 3.7 Flash (medium)",
-            "Gemini 3.5 Flash (high)",
-            "Gemma 4 31B (Reasoning)",
-            "Gemma 4 26B A4B (Reasoning)"
+            "Gemini 3.8 Flash (High)",
+            "Gemini 3.7 Flash (High)",
+            "DiffusionGemma 26B A4B",
+            "Gemma 4 31B (Reasoning)"
           ],
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 86,
-          "category_rank": 241,
-          "action": "Migrate to the Google AI Plus subscription.",
+          "performance_score": 87,
+          "category_rank": 25,
+          "action": "Migrate to the Gemini AI Plus subscription.",
           "statusText": "",
-          "isAlreadyOptimized": false,
-          "recommendedModel": "Gemini 3.7 Flash (High)",
+          "alreadyOptimized": false,
+          "recommendedModel": "Gemini AI Plus",
           "recommendedProvider": "Google"
         },
         "originalAlloc": {
@@ -521,9 +515,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 29.98,
           "modelId": "",
           "provider": "Mistral",
-          "modelName": "Pixtral Large",
-          "performance_score": 30,
-          "category_rank": 602
+          "modelName": "Mistral Medium 3.5",
+          "performance_score": 61,
+          "category_rank": 242
         }
       },
       {
@@ -532,8 +526,8 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $7.99/mo for 1 active Research user",
         "action": "Select the most suitable option below.",
         "purpose": "Research",
-        "baselineScore": 46,
-        "baselineRank": 474,
+        "baselineScore": 83,
+        "baselineRank": 18,
         "monthlySavings": 4.73,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -544,11 +538,11 @@ export const SAMPLE_AUDIT_DATA = {
           "name": "MiMo-V2.6-Pro",
           "modelId": "xiaomi/mimo-v2-6-pro",
           "performance_score": 83,
-          "category_rank": 4,
+          "category_rank": 31,
           "action": "Transition active users to direct API keys using MiMo-V2.6-Pro.",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.43/1M input, $0.87/1M output. Context: 128K.",
+          "limits": "Pay-as-you-go rates: $0.43/1M input, $0.87/1M output. Context: 1M.",
           "includedModels": [
             "MiMo-V2.6-Pro"
           ],
@@ -561,26 +555,25 @@ export const SAMPLE_AUDIT_DATA = {
         },
         "subscriptionOption": {
           "_id": "rec_sub_5",
-          "planName": "Google AI Plus",
+          "planName": "Gemini AI Plus",
           "cost": 4.99,
           "savings": 3,
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
           "includedModels": [
-            "Gemini 3.7 Flash (high)",
-            "Gemini 3.7 Flash (medium)",
-            "Gemini 3.5 Flash (high)",
-            "Gemma 4 31B (Reasoning)",
-            "Gemma 4 26B A4B (Reasoning)"
+            "Gemini 3.8 Flash (High)",
+            "Gemini 3.7 Flash (High)",
+            "DiffusionGemma 26B A4B",
+            "Gemma 4 31B (Reasoning)"
           ],
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 86,
-          "category_rank": 55,
-          "action": "Migrate to the Google AI Plus subscription.",
+          "performance_score": 87,
+          "category_rank": 38,
+          "action": "Migrate to the Gemini AI Plus subscription.",
           "statusText": "",
-          "isAlreadyOptimized": false,
-          "recommendedModel": "Gemini 3.7 Flash (High)",
+          "alreadyOptimized": false,
+          "recommendedModel": "Gemini AI Plus",
           "recommendedProvider": "Google"
         },
         "originalAlloc": {
@@ -592,9 +585,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 7.99,
           "modelId": "",
           "provider": "Meta",
-          "modelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-          "performance_score": 46,
-          "category_rank": 474
+          "modelName": "Muse Wonder Full (Max)",
+          "performance_score": 83,
+          "category_rank": 18
         }
       },
       {
@@ -603,8 +596,8 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $0.00/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 79,
-        "baselineRank": 164,
+        "baselineScore": 78,
+        "baselineRank": 500,
         "monthlySavings": 0,
         "isAlreadyOptimized": true,
         "statusText": "Optimized",
@@ -612,21 +605,21 @@ export const SAMPLE_AUDIT_DATA = {
           "_id": "rec_api_6",
           "cost": 0,
           "savings": 0,
-          "name": "DeepSeek V3.1 Terminus (Reasoning)",
-          "modelId": "deepseek/deepseek-v3-1-terminus-reasoning",
-          "performance_score": 79,
-          "category_rank": 164,
-          "action": "Transition active users to direct API keys using DeepSeek V3.1 Terminus (Reasoning).",
+          "name": "DeepSeek V4 Flash 0731 (Max)",
+          "modelId": "deepseek/deepseek-v4-flash",
+          "performance_score": 78,
+          "category_rank": 500,
+          "action": "Transition active users to direct API keys using DeepSeek V4 Flash 0731 (Max).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $1.64/1M input, $2.75/1M output.",
+          "limits": "Pay-as-you-go rates: $0.14/1M input, $0.28/1M output.",
           "includedModels": [
-            "DeepSeek V3.1 Terminus (Reasoning)"
+            "DeepSeek V4 Flash 0731 (Max)"
           ],
-          "recommendedModel": "DeepSeek V3.1 Terminus (Reasoning)",
+          "recommendedModel": "DeepSeek V4 Flash 0731 (Max)",
           "recommendedProvider": "DeepSeek",
-          "inputCostPerM": 1.635,
-          "outputCostPerM": 2.75,
+          "inputCostPerM": 0.14,
+          "outputCostPerM": 0.28,
           "defaultInputTokens": 5000000,
           "defaultOutputTokens": 1250000
         },
@@ -637,21 +630,21 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 0,
           "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
           "includedModels": [
-            "DeepSeek V3.2 Exp (Non-reasoning)",
-            "DeepSeek V3.1 Terminus (Reasoning)",
-            "DeepSeek R1 (Jan '25)",
-            "DeepSeek R1 Distill Llama 8B",
-            "DeepSeek V3.1 (Reasoning)"
+            "DeepSeek V4.1 Flash 1017 (Max)",
+            "DeepSeek V4.1 Flash (Max)",
+            "DeepSeek V4 Flash Vision (Max)",
+            "DeepSeek V4 Pro 0813 (Max)",
+            "DeepSeek V4 Flash 0731 (Max)"
           ],
-          "modelId": "deepseek/deepseek-v3-1-terminus-reasoning",
-          "topModelId": "deepseek/deepseek-v3-1-terminus-reasoning",
-          "topModelName": "DeepSeek V3.1 Terminus (Reasoning)",
-          "performance_score": 79,
-          "category_rank": 164,
+          "modelId": "deepseek/deepseek-v4-flash",
+          "topModelId": "deepseek/deepseek-v4-flash",
+          "topModelName": "DeepSeek V4 Flash 0731 (Max)",
+          "performance_score": 78,
+          "category_rank": 500,
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": true,
-          "recommendedModel": "DeepSeek V3.1 Terminus (Reasoning)",
+          "alreadyOptimized": true,
+          "recommendedModel": "DeepSeek Consumer",
           "recommendedProvider": "DeepSeek"
         },
         "originalAlloc": {
@@ -663,9 +656,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 0,
           "modelId": "",
           "provider": "DeepSeek",
-          "modelName": "DeepSeek V3.1 Terminus (Reasoning)",
-          "performance_score": 79,
-          "category_rank": 164
+          "modelName": "DeepSeek V4 Flash 0731 (Max)",
+          "performance_score": 78,
+          "category_rank": 500
         }
       }
     ]

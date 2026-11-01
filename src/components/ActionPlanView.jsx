@@ -1079,7 +1079,7 @@ export default function ActionPlanView({
                               {/* Transition Visual Block */}
                               {(() => {
                                 const sugProvider = rec.subscriptionOption.recommendedProvider || details.provider || 'OpenAI';
-                                const sugModel = rec.subscriptionOption.recommendedModel || rec.subscriptionOption.planName || 'Claude Pro';
+                                const sugModel = rec.subscriptionOption.planName || rec.subscriptionOption.recommendedModel || 'Claude Pro';
                                 const currentContext = [details.provider, details.toolName];
                                 const suggestedContext = [sugProvider];
                                 const isSameSub = rec.subscriptionOption?.isAlreadyOptimized ||
