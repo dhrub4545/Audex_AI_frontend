@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import logoImg from '../assets/audex-ai-logo.png';
 import { ProviderLogo } from './MarketIntelView';
+import { sortModelsLatestFirst } from './WizardFlow';
 
 const getNormalizedProvider = (prov) => {
   const p = (prov || '').toLowerCase().trim();
@@ -1179,25 +1180,29 @@ export default function ActionPlanView({
                                 </div>
                               )}
 
-                              {rec.subscriptionOption.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
-                                <div style={{ marginTop: '10px' }}>
-                                  <div style={{ fontSize: '9.5px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '5px' }}>
-                                    Models Included:
+                              {rec.subscriptionOption.includedModels && rec.subscriptionOption.includedModels.length > 0 && (() => {
+                                const modelsList = sortModelsLatestFirst(rec.subscriptionOption.includedModels);
+                                if (modelsList.length === 0) return null;
+                                return (
+                                  <div style={{ marginTop: '10px' }}>
+                                    <div style={{ fontSize: '9.5px', fontWeight: '700', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.05em', marginBottom: '5px' }}>
+                                      Models Included:
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                      {modelsList.map((model, mi) => (
+                                        <span key={mi} style={{
+                                          fontSize: '10.5px', fontWeight: '650',
+                                          color: '#047857', backgroundColor: '#ECFDF5',
+                                          border: '1px solid #A7F3D0',
+                                          padding: '2px 7px', borderRadius: '5px'
+                                        }}>
+                                          {model}
+                                        </span>
+                                      ))}
+                                    </div>
                                   </div>
-                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                    {rec.subscriptionOption.includedModels.map((model, mi) => (
-                                      <span key={mi} style={{
-                                        fontSize: '10.5px', fontWeight: '650',
-                                        color: '#047857', backgroundColor: '#ECFDF5',
-                                        border: '1px solid #A7F3D0',
-                                        padding: '2px 7px', borderRadius: '5px'
-                                      }}>
-                                        {model}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
+                                );
+                              })()}
                             </div>
 
                             {/* Est. Monthly Cost Footer */}

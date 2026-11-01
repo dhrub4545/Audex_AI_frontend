@@ -34,6 +34,52 @@ import {
   X
 } from 'lucide-react';
 
+export function isDiscontinuedModel(name = '') {
+  const s = (name || '').toLowerCase();
+  if (s.includes("dec '24") || s.includes("dec 24") || s.includes("apr '24") || s.includes("apr 24") || s.includes("mar '25") || s.includes("may '25")) return true;
+  if (s.includes('gpt-3') || s.includes('gpt-3.5') || s.includes('gpt-4-0') || s.includes('o1-preview') || s.includes('o1-mini')) return true;
+  if (s.includes('claude-1') || s.includes('claude-2') || s.includes('claude 1') || s.includes('claude 2') || s.includes('claude-instant')) return true;
+  if (s.includes('gemini-1.0') || s.includes('gemini 1.0') || s.includes('pro-vision')) return true;
+  if (s.includes('grok 2') || s.includes('grok-2') || s.includes('grok-1') || s.includes('grok 1')) return true;
+  if (s.includes('midjourney v6') || s.includes('midjourney v5') || s.includes('niji 6') || s.includes('niji 5')) return true;
+  if (s.includes('suno v4.5+') || s.includes('suno v4.5 ') || s.includes('suno v3')) return true;
+  if (s.trim() === 'gen-4' || s.includes('gen-3') || s.includes('gen-2')) return true;
+  if (s.includes('command-r+') && s.includes('24')) return true;
+  return false;
+}
+
+function getModelRecencyScore(name = '') {
+  const s = (name || '').toLowerCase();
+  let score = 20250000;
+  const versionMatch = s.match(/(?:v|version|gpt-|claude |gemini |grok |deepseek v|qwen|suno v|midjourney v|gen-)(\d+(?:\.\d+)?)/i);
+  if (versionMatch) {
+    const v = parseFloat(versionMatch[1]);
+    score += v * 1000000;
+  }
+  if (s.includes('terra') || s.includes('sol (max)') || s.includes('opus 5') || s.includes('carbon') || s.includes('grok 4.7')) {
+    score += 500000;
+  } else if (s.includes('xhigh') || s.includes('ultra') || s.includes('max')) {
+    score += 200000;
+  } else if (s.includes('high') || s.includes('pro')) {
+    score += 100000;
+  } else if (s.includes('medium') || s.includes('plus')) {
+    score += 50000;
+  } else if (s.includes('mini') || s.includes('flash') || s.includes('haiku') || s.includes('low') || s.includes('small') || s.includes('nano')) {
+    score -= 100000;
+  }
+  return score;
+}
+
+export function sortModelsLatestFirst(models = []) {
+  if (!Array.isArray(models)) return [];
+  const clean = models.filter(m => !isDiscontinuedModel(m));
+  return clean.sort((a, b) => {
+    const scoreA = getModelRecencyScore(a);
+    const scoreB = getModelRecencyScore(b);
+    return scoreB - scoreA;
+  });
+}
+
 const PURPOSE_GROUPS = [
   {
     id: 'development',
@@ -1666,40 +1712,44 @@ export default function WizardFlow({
                           <div className="tool-card-info" style={{ minWidth: 0, flex: 1 }}>
                             <span className="tool-card-name">{tool.name}</span>
                             <span className="tool-card-desc">{tool.desc}</span>
-                            {tool.allModels && tool.allModels.length > 0 && (
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
-                                {tool.allModels.slice(0, 3).map((m, mi) => (
-                                  <span key={mi} style={{
-                                    fontSize: '9.5px',
-                                    fontWeight: '600',
-                                    color: '#047857',
-                                    backgroundColor: '#ECFDF5',
-                                    border: '1px solid #A7F3D0',
-                                    padding: '1px 6px',
-                                    borderRadius: '4px',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    maxWidth: '120px'
-                                  }}>
-                                    {m}
-                                  </span>
-                                ))}
-                                {tool.allModels.length > 3 && (
-                                  <span style={{
-                                    fontSize: '9px',
-                                    fontWeight: '750',
-                                    color: '#059669',
-                                    backgroundColor: '#F0FDF4',
-                                    border: '1px solid #BBF7D0',
-                                    padding: '1px 5px',
-                                    borderRadius: '4px'
-                                  }}>
-                                    +{tool.allModels.length - 3} more
-                                  </span>
-                                )}
-                              </div>
-                            )}
+                            {tool.allModels && tool.allModels.length > 0 && (() => {
+                              const latestModels = sortModelsLatestFirst(tool.allModels);
+                              if (latestModels.length === 0) return null;
+                              return (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '6px' }}>
+                                  {latestModels.slice(0, 3).map((m, mi) => (
+                                    <span key={mi} style={{
+                                      fontSize: '9.5px',
+                                      fontWeight: '600',
+                                      color: '#047857',
+                                      backgroundColor: '#ECFDF5',
+                                      border: '1px solid #A7F3D0',
+                                      padding: '1px 6px',
+                                      borderRadius: '4px',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      maxWidth: '120px'
+                                    }}>
+                                      {m}
+                                    </span>
+                                  ))}
+                                  {latestModels.length > 3 && (
+                                    <span style={{
+                                      fontSize: '9px',
+                                      fontWeight: '750',
+                                      color: '#059669',
+                                      backgroundColor: '#F0FDF4',
+                                      border: '1px solid #BBF7D0',
+                                      padding: '1px 5px',
+                                      borderRadius: '4px'
+                                    }}>
+                                      +{latestModels.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         </div>
                         
@@ -2206,9 +2256,10 @@ export default function WizardFlow({
 
                         {/* Dynamic Models Included for Selected Subscription Plan */}
                         {tool.type === 'subscription' && (() => {
-                          const planModels = tool.planModels?.[config.plan] || 
+                          const rawList = tool.planModels?.[config.plan] || 
                                              tool.tiers?.find(t => t.plan === config.plan)?.rawModels || 
                                              tool.allModels || [];
+                          const planModels = sortModelsLatestFirst(rawList);
                           const planDetail = tool.planDetails?.[config.plan];
                           
                           return (

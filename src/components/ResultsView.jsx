@@ -5,6 +5,7 @@ import logoImg from '../assets/audex-ai-logo.png';
 import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft, Home } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
 import { ProviderLogo } from './MarketIntelView';
+import { sortModelsLatestFirst, isDiscontinuedModel } from './WizardFlow';
 
 const parseRecDetails = (rec) => {
   if (rec.originalAlloc) {
@@ -2154,43 +2155,47 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#15803D', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px', marginTop: '6px' }}>
                                 Capability Score: <strong style={{ color: '#166534' }}>{optScore}</strong>/100
                               </div>
-                              {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
-                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                                  {rec.subscriptionOption.includedModels.slice(0, 6).map((m, idx) => (
-                                    <span key={idx} style={{
-                                      fontSize: '10px',
-                                      fontWeight: '600',
-                                      color: '#0369A1',
-                                      backgroundColor: '#E0F2FE',
-                                      padding: '4px 10px',
-                                      borderRadius: '9999px',
-                                      height: '22px',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
-                                    }}>
-                                      {m}
-                                    </span>
-                                  ))}
-                                  {rec.subscriptionOption.includedModels.length > 6 && (
-                                    <span style={{
-                                      fontSize: '9px',
-                                      fontWeight: '700',
-                                      color: '#0284C7',
-                                      backgroundColor: '#F0F9FF',
-                                      border: '1px solid #B9E6FE',
-                                      padding: '4px 8px',
-                                      borderRadius: '9999px',
-                                      height: '22px',
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'center'
-                                    }}>
-                                      +{rec.subscriptionOption.includedModels.length - 6} more
-                                    </span>
-                                  )}
-                                </div>
-                              )}
+                              {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (() => {
+                                const included = sortModelsLatestFirst(rec.subscriptionOption.includedModels);
+                                if (included.length === 0) return null;
+                                return (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                                    {included.slice(0, 6).map((m, idx) => (
+                                      <span key={idx} style={{
+                                        fontSize: '10px',
+                                        fontWeight: '600',
+                                        color: '#0369A1',
+                                        backgroundColor: '#E0F2FE',
+                                        padding: '4px 10px',
+                                        borderRadius: '9999px',
+                                        height: '22px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}>
+                                        {m}
+                                      </span>
+                                    ))}
+                                    {included.length > 6 && (
+                                      <span style={{
+                                        fontSize: '9px',
+                                        fontWeight: '700',
+                                        color: '#0284C7',
+                                        backgroundColor: '#F0F9FF',
+                                        border: '1px solid #B9E6FE',
+                                        padding: '4px 8px',
+                                        borderRadius: '9999px',
+                                        height: '22px',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}>
+                                        +{included.length - 6} more
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         </>
@@ -2236,48 +2241,56 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           {/* 1. If current is subscription, show its included models */}
-                          {alloc?.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0 && (
-                            <div>
-                              The current <strong>{alloc.toolName} {alloc.plan}</strong> subscription includes access to:
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                                {alloc.baselineModels.map((m, mi) => (
-                                  <span key={mi} style={{
-                                    fontSize: '11px',
-                                    fontWeight: '700',
-                                    color: '#1E40AF',
-                                    backgroundColor: '#DBEAFE',
-                                    border: '1px solid #BFDBFE',
-                                    padding: '2px 8px',
-                                    borderRadius: '6px'
-                                  }}>
-                                    {m}
-                                  </span>
-                                ))}
+                          {alloc?.type === 'subscription' && alloc.baselineModels && alloc.baselineModels.length > 0 && (() => {
+                            const baselineList = sortModelsLatestFirst(alloc.baselineModels);
+                            if (baselineList.length === 0) return null;
+                            return (
+                              <div>
+                                The current <strong>{alloc.toolName} {alloc.plan}</strong> subscription includes access to:
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                                  {baselineList.map((m, mi) => (
+                                    <span key={mi} style={{
+                                      fontSize: '11px',
+                                      fontWeight: '700',
+                                      color: '#1E40AF',
+                                      backgroundColor: '#DBEAFE',
+                                      border: '1px solid #BFDBFE',
+                                      padding: '2px 8px',
+                                      borderRadius: '6px'
+                                    }}>
+                                      {m}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* 2. If recommended is subscription, show its included models */}
-                          {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (
-                            <div>
-                              The recommended <strong>{rec.subscriptionOption.planName || 'Optimized Sub'}</strong> subscription includes access to:
-                              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
-                                {rec.subscriptionOption.includedModels.map((m, mi) => (
-                                  <span key={mi} style={{
-                                    fontSize: '11px',
-                                    fontWeight: '700',
-                                    color: '#1E40AF',
-                                    backgroundColor: '#DBEAFE',
-                                    border: '1px solid #BFDBFE',
-                                    padding: '2px 8px',
-                                    borderRadius: '6px'
-                                  }}>
-                                    {m}
-                                  </span>
-                                ))}
+                          {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (() => {
+                            const recList = sortModelsLatestFirst(rec.subscriptionOption.includedModels);
+                            if (recList.length === 0) return null;
+                            return (
+                              <div>
+                                The recommended <strong>{rec.subscriptionOption.planName || 'Optimized Sub'}</strong> subscription includes access to:
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '6px' }}>
+                                  {recList.map((m, mi) => (
+                                    <span key={mi} style={{
+                                      fontSize: '11px',
+                                      fontWeight: '700',
+                                      color: '#1E40AF',
+                                      backgroundColor: '#DBEAFE',
+                                      border: '1px solid #BFDBFE',
+                                      padding: '2px 8px',
+                                      borderRadius: '6px'
+                                    }}>
+                                      {m}
+                                    </span>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* 3. The Comparison Notice Statement */}
                           <div style={{ borderTop: '1px solid #BFDBFE', paddingTop: '10px', marginTop: '4px', fontSize: '12.5px', color: '#1E3A8A', fontWeight: '650' }}>
