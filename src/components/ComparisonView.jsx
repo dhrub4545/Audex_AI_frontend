@@ -437,10 +437,37 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     );
   }, [resolvedRecommended, recommended, intelData]);
 
-  // Active categories for the graph - always guaranteed all 10 categories
+  // Check if same model is compared
+  const isSameModel = useMemo(() => {
+    if (!baseline || !recommended) return false;
+    const bId = (baseline.modelId || baseline.slug || baseline.id || '').toLowerCase();
+    const rId = (recommended.modelId || recommended.slug || recommended.id || '').toLowerCase();
+    return bId && rId && bId === rId;
+  }, [baseline, recommended]);
+
+  // Active categories for the graph - do NOT include any category if attribute data is missing
   const activeCategories = useMemo(() => {
-    return CATEGORIES;
-  }, []);
+    const filtered = CATEGORIES.filter(cat => {
+      const recVal = recommendedScores?.[cat.key];
+      if (isSameModel) {
+        return recVal !== null && recVal !== undefined && !isNaN(recVal);
+      }
+      const baseVal = baselineScores?.[cat.key];
+      return (
+        baseVal !== null && baseVal !== undefined && !isNaN(baseVal) &&
+        recVal !== null && recVal !== undefined && !isNaN(recVal)
+      );
+    });
+
+    if (filtered.length >= 2) return filtered;
+    // Fallback: if fewer than 2 categories have complete data, include categories with at least one model's score
+    const partial = CATEGORIES.filter(cat => {
+      const baseVal = baselineScores?.[cat.key];
+      const recVal = recommendedScores?.[cat.key];
+      return (baseVal != null && !isNaN(baseVal)) || (recVal != null && !isNaN(recVal));
+    });
+    return partial.length > 0 ? partial : CATEGORIES;
+  }, [baselineScores, recommendedScores, isSameModel]);
 
   // Dimension helpers for the SVG Graph
   const paddingLeft = 85;
@@ -456,6 +483,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
   }, [activeCategories.length, chartWidth]);
 
   const getY = useCallback((score) => {
+    if (score == null || isNaN(score)) return 340 - paddingBottom;
     return 340 - paddingBottom - (score / 100) * chartHeight;
   }, [chartHeight]);
 
@@ -465,7 +493,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
       const score = baselineScores[cat.key];
       return {
         x: getX(idx),
-        y: score != null ? getY(score) : (340 - paddingBottom),
+        y: score != null && !isNaN(score) ? getY(score) : null,
         score: score,
         catName: cat.name,
         sub: cat.sub,
@@ -479,7 +507,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
       const score = recommendedScores[cat.key];
       return {
         x: getX(idx),
-        y: score != null ? getY(score) : (340 - paddingBottom),
+        y: score != null && !isNaN(score) ? getY(score) : null,
         score: score,
         catName: cat.name,
         sub: cat.sub,
@@ -490,8 +518,9 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
   // Generate smooth horizontal s-curves (cubic bezier curve segments)
   const getSmoothPath = (points) => {
-    const validPoints = points.filter(p => p.score != null);
+    const validPoints = (points || []).filter(p => p.score != null && !isNaN(p.score) && p.y != null);
     if (validPoints.length === 0) return '';
+    if (validPoints.length === 1) return `M ${validPoints[0].x} ${validPoints[0].y}`;
     let d = `M ${validPoints[0].x} ${validPoints[0].y}`;
     for (let i = 0; i < validPoints.length - 1; i++) {
       const p0 = validPoints[i];
@@ -1080,23 +1109,27 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 })}
 
                 {/* Draw curve lines */}
-                <path
-                  d={baselinePath}
-                  fill="none"
-                  stroke="#F97316"
-                  strokeWidth="3"
-                  opacity="0.85"
-                  filter="url(#glow-base)"
-                />
+                {!isSameModel && baselinePath && (
+                  <path
+                    d={baselinePath}
+                    fill="none"
+                    stroke="#F97316"
+                    strokeWidth="3"
+                    opacity="0.85"
+                    filter="url(#glow-base)"
+                  />
+                )}
 
-                <path
-                  d={recommendedPath}
-                  fill="none"
-                  stroke="#10B981"
-                  strokeWidth="3.5"
-                  opacity="0.95"
-                  filter="url(#glow-rec)"
-                />
+                {recommendedPath && (
+                  <path
+                    d={recommendedPath}
+                    fill="none"
+                    stroke={isSameModel ? '#6366F1' : '#10B981'}
+                    strokeWidth="3.5"
+                    opacity="0.95"
+                    filter="url(#glow-rec)"
+                  />
+                )}
 
                 {/* Category Ticks, Icons, and Titles at Bottom */}
                 {activeCategories.map((cat, idx) => {
@@ -1126,8 +1159,8 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 })}
 
                 {/* Interactive Data Dots (Baseline) */}
-                {pointsBaseline.map((pt, idx) => {
-                  if (pt.score == null) return null;
+                {!isSameModel && pointsBaseline.map((pt, idx) => {
+                  if (pt.score == null || pt.y == null) return null;
                   const isHovered = hoveredCategoryIndex === pt.idx;
                   return (
                     <g key={`db-${idx}`}>
@@ -1148,17 +1181,17 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
                 {/* Interactive Data Dots (Recommended) */}
                 {pointsRecommended.map((pt, idx) => {
-                  if (pt.score == null) return null;
+                  if (pt.score == null || pt.y == null) return null;
                   const isHovered = hoveredCategoryIndex === pt.idx;
                   return (
                     <g key={`dr-${idx}`}>
-                      {isHovered && <circle cx={pt.x} cy={pt.y} r="10" fill="rgba(16,185,129,0.2)" />}
+                      {isHovered && <circle cx={pt.x} cy={pt.y} r="10" fill={isSameModel ? 'rgba(99,102,241,0.2)' : 'rgba(16,185,129,0.2)'} />}
                       <circle
                         cx={pt.x}
                         cy={pt.y}
                         r={isHovered ? 6 : 4.5}
                         fill="#FFFFFF"
-                        stroke="#10B981"
+                        stroke={isSameModel ? '#6366F1' : '#10B981'}
                         strokeWidth="2.5"
                         style={{ transition: 'all 0.15s ease' }}
                         onMouseEnter={(e) => handleCategoryHover(pt.idx, e)}

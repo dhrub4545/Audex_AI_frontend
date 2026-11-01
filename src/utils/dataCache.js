@@ -111,7 +111,8 @@ export async function getCachedModelsList(forceRefresh = false) {
 }
 
 /**
- * Get subscription tiers list with request deduplication and caching
+ * Get subscription tiers list with request deduplication, Stale-While-Revalidate caching,
+ * and automatic background updates.
  */
 export async function getCachedSubscriptionTiers(forceRefresh = false) {
   if (!forceRefresh && memoryCache.subscriptionTiers) {
@@ -122,6 +123,26 @@ export async function getCachedSubscriptionTiers(forceRefresh = false) {
     const cached = safeGetStorage('audex_sub_tiers');
     if (Array.isArray(cached) && cached.length > 0) {
       memoryCache.subscriptionTiers = cached;
+
+      // Stale-While-Revalidate: fetch fresh subscription tiers quietly in background
+      setTimeout(() => {
+        fetch(`${API_BASE_URL}/audits/subscription-tiers/list?refresh=true`)
+          .then(res => res.ok ? res.json() : null)
+          .then(freshData => {
+            if (Array.isArray(freshData) && freshData.length > 0) {
+              const hasChanged = JSON.stringify(freshData) !== JSON.stringify(cached);
+              if (hasChanged) {
+                memoryCache.subscriptionTiers = freshData;
+                safeSetStorage('audex_sub_tiers', freshData);
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('audex_sub_tiers_updated', { detail: freshData }));
+                }
+              }
+            }
+          })
+          .catch(() => {});
+      }, 500);
+
       return cached;
     }
   }
@@ -132,12 +153,15 @@ export async function getCachedSubscriptionTiers(forceRefresh = false) {
 
   memoryCache.promises.subscriptionTiers = (async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/audits/subscription-tiers/list`);
+      const res = await fetch(`${API_BASE_URL}/audits/subscription-tiers/list${forceRefresh ? '?refresh=true' : ''}`);
       if (!res.ok) throw new Error(`Failed to fetch subscription tiers: ${res.statusText}`);
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
         memoryCache.subscriptionTiers = data;
         safeSetStorage('audex_sub_tiers', data);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('audex_sub_tiers_updated', { detail: data }));
+        }
       }
       return data;
     } finally {

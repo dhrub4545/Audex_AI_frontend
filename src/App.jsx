@@ -204,37 +204,68 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const fetchSubscriptionTiers = async () => {
-      try {
-        const dynamicTools = await getCachedSubscriptionTiers();
-        if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
-          setTools(dynamicTools);
-          
-          // Determine allowed tools limit based on user subscription (2 for Free tier, 15 for Pro, Unlimited for Enterprise)
-          const maxTools = 99;
+    let hasInitializedSelection = false;
 
-          // Default select up to allowed tools (strictly 2 for Free subscription)
-          const initialCount = Math.min(2, maxTools);
-          const initialSelected = dynamicTools.slice(0, initialCount).map(t => t.id);
-          setSelectedToolIds(initialSelected);
-          
-          // Set initial config for the loaded tools
-          const initialConfigs = {};
-          dynamicTools.forEach(t => {
-            initialConfigs[t.id] = [{
+    const applyUpdatedTools = (dynamicTools) => {
+      if (!Array.isArray(dynamicTools) || dynamicTools.length === 0) return;
+      setTools(dynamicTools);
+
+      if (!hasInitializedSelection) {
+        hasInitializedSelection = true;
+        setSelectedToolIds(prev => {
+          if (prev && prev.length > 0) return prev;
+          const initialCount = Math.min(2, 99);
+          return dynamicTools.slice(0, initialCount).map(t => t.id);
+        });
+      }
+
+      setToolConfigs(prevConfigs => {
+        const nextConfigs = { ...prevConfigs };
+        dynamicTools.forEach(t => {
+          if (!nextConfigs[t.id] || nextConfigs[t.id].length === 0) {
+            nextConfigs[t.id] = [{
               id: (Date.now() + Math.random()).toString(),
               plan: t.defaultPlan || 'Free',
               seats: t.defaultSeats || 1,
               purpose: (t.id === 'GitHub Copilot' || t.id === 'Cursor' || t.id === 'Windsurf') ? 'Coding' : 'Mixed'
             }];
-          });
-          setToolConfigs(initialConfigs);
+          }
+        });
+        return nextConfigs;
+      });
+    };
+
+    const fetchSubscriptionTiers = async (force = false) => {
+      try {
+        const dynamicTools = await getCachedSubscriptionTiers(force);
+        if (Array.isArray(dynamicTools) && dynamicTools.length > 0) {
+          applyUpdatedTools(dynamicTools);
         }
       } catch (err) {
         console.error('Failed to fetch dynamic subscription tiers from backend:', err);
       }
     };
+
     fetchSubscriptionTiers();
+
+    // Listen for automatic background updates when fresh tiers arrive
+    const handleSubTiersUpdated = (e) => {
+      if (Array.isArray(e.detail) && e.detail.length > 0) {
+        applyUpdatedTools(e.detail);
+      }
+    };
+    window.addEventListener('audex_sub_tiers_updated', handleSubTiersUpdated);
+
+    // Auto-update subscription list when window regains focus or periodically every 5 minutes
+    const handleFocus = () => fetchSubscriptionTiers(true);
+    window.addEventListener('focus', handleFocus);
+    const subInterval = setInterval(() => fetchSubscriptionTiers(true), 5 * 60 * 1000);
+
+    return () => {
+      window.removeEventListener('audex_sub_tiers_updated', handleSubTiersUpdated);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(subInterval);
+    };
   }, [user]);
 
   // Google & GitHub OAuth callback detection effect

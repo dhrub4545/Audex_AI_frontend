@@ -169,11 +169,13 @@ const CATEGORIES = [
 ];
 
 const getSmoothPath = (points) => {
-  if (points.length === 0) return '';
-  let d = `M ${points[0].x} ${points[0].y}`;
-  for (let i = 0; i < points.length - 1; i++) {
-    const p0 = points[i];
-    const p1 = points[i + 1];
+  const validPoints = (points || []).filter(p => p.score != null && !isNaN(p.score) && p.y != null && !isNaN(p.y));
+  if (validPoints.length === 0) return '';
+  if (validPoints.length === 1) return `M ${validPoints[0].x} ${validPoints[0].y}`;
+  let d = `M ${validPoints[0].x} ${validPoints[0].y}`;
+  for (let i = 0; i < validPoints.length - 1; i++) {
+    const p0 = validPoints[i];
+    const p1 = validPoints[i + 1];
     const cp1x = p0.x + (p1.x - p0.x) / 2;
     const cp1y = p0.y;
     const cp2x = p1.x - (p1.x - p0.x) / 2;
@@ -1871,8 +1873,28 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const baselineScores = getBenchmarkScores(baseline, intelData);
                 const recommendedScores = getBenchmarkScores(recommended, intelData);
 
-                // Filter categories to only active ones - guaranteed all 10 categories
-                const activeCategories = CATEGORIES;
+                // Filter categories to only active ones where benchmark data is present (exclude missing attributes)
+                const isSameModel = !baseline || (
+                  (baseline.modelId || baseline.slug || baseline.id || '').toLowerCase() ===
+                  (recommended.modelId || recommended.slug || recommended.id || '').toLowerCase()
+                );
+
+                const activeCategories = CATEGORIES.filter(cat => {
+                  const recVal = recommendedScores?.[cat.key];
+                  if (isSameModel) {
+                    return recVal !== null && recVal !== undefined && !isNaN(recVal);
+                  }
+                  const baseVal = baselineScores?.[cat.key];
+                  return (
+                    baseVal !== null && baseVal !== undefined && !isNaN(baseVal) &&
+                    recVal !== null && recVal !== undefined && !isNaN(recVal)
+                  );
+                });
+                const chartCategories = activeCategories.length >= 2
+                  ? activeCategories
+                  : (CATEGORIES.filter(cat => (baselineScores?.[cat.key] != null) || (recommendedScores?.[cat.key] != null)).length > 0
+                      ? CATEGORIES.filter(cat => (baselineScores?.[cat.key] != null) || (recommendedScores?.[cat.key] != null))
+                      : CATEGORIES);
 
                 // SVG Graph dimensions
                 const paddingLeft = 85;
@@ -1883,22 +1905,29 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const chartHeight = 420 - paddingTop - paddingBottom;
 
                 const getX = (idx) => {
-                  if (activeCategories.length <= 1) return paddingLeft + chartWidth / 2;
-                  return paddingLeft + idx * (chartWidth / (activeCategories.length - 1));
+                  if (chartCategories.length <= 1) return paddingLeft + chartWidth / 2;
+                  return paddingLeft + idx * (chartWidth / (chartCategories.length - 1));
                 };
-                const getY = (score) => 420 - paddingBottom - (score / 100) * chartHeight;
+                const getY = (score) => {
+                  if (score == null || isNaN(score)) return 420 - paddingBottom;
+                  return 420 - paddingBottom - (score / 100) * chartHeight;
+                };
 
-                const pointsBaseline = activeCategories.map((cat, idx) => ({
+                const pointsBaseline = chartCategories.map((cat, idx) => ({
                   x: getX(idx),
-                  y: getY(baselineScores[cat.key]),
+                  y: baselineScores[cat.key] != null && !isNaN(baselineScores[cat.key]) ? getY(baselineScores[cat.key]) : null,
                   score: baselineScores[cat.key],
+                  catName: cat.name,
+                  sub: cat.sub,
                   idx
                 }));
 
-                const pointsRecommended = activeCategories.map((cat, idx) => ({
+                const pointsRecommended = chartCategories.map((cat, idx) => ({
                   x: getX(idx),
-                  y: getY(recommendedScores[cat.key]),
+                  y: recommendedScores[cat.key] != null && !isNaN(recommendedScores[cat.key]) ? getY(recommendedScores[cat.key]) : null,
                   score: recommendedScores[cat.key],
+                  catName: cat.name,
+                  sub: cat.sub,
                   idx
                 }));
 
@@ -1944,13 +1973,13 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     )
                   )));
 
-                const isSameModel = baseline && recommended && baseline.slug === recommended.slug;
+                const isIdenticalModel = baseline && recommended && (baseline.slug === recommended.slug || baseline.id === recommended.id);
                 const isSameApi = rec.apiOption?.isAlreadyOptimized ||
                   (rec.apiOption?.savings !== undefined && rec.apiOption.savings <= 0) ||
                   (alloc?.type === 'api' &&
                     choice === 'api' &&
                     (
-                      isSameModel ||
+                      isIdenticalModel ||
                       uiChoiceLabelsMatch(
                         baseline.name || baseline.slug,
                         recommended.name || recommended.slug,
@@ -2481,7 +2510,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                             </text>
 
                             {/* Category labels and vertical lines */}
-                            {activeCategories.map((cat, idx) => {
+                            {chartCategories.map((cat, idx) => {
                               const x = getX(idx);
                               const yLabel = 420 - paddingBottom + 12;
                               return (
@@ -2498,19 +2527,25 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                             })}
 
                             {/* Line paths */}
-                            {!isSameModel && (
+                            {!isSameModel && baselinePath && (
                               <path d={baselinePath} fill="none" stroke="#F97316" strokeWidth="3" opacity="0.8" />
                             )}
-                            <path d={recommendedPath} fill="none" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" />
+                            {recommendedPath && (
+                              <path d={recommendedPath} fill="none" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" />
+                            )}
 
                             {/* Points baseline */}
                             {!isSameModel && pointsBaseline.map((pt, idx) => (
-                              <circle key={`cb-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke="#F97316" strokeWidth="2.5" />
+                              pt.score != null && pt.y != null ? (
+                                <circle key={`cb-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke="#F97316" strokeWidth="2.5" />
+                              ) : null
                             ))}
 
                             {/* Points recommended */}
                             {pointsRecommended.map((pt, idx) => (
-                              <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="2.5" />
+                              pt.score != null && pt.y != null ? (
+                                <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="2.5" />
+                              ) : null
                             ))}
                           </svg>
                         </div>
