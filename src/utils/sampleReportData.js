@@ -10,6 +10,7 @@ export const SAMPLE_AUDIT_DATA = {
   "useCase": "Coding & Mixed Workloads",
   "optimizationGoal": "performance",
   "costCutPercentage": 50,
+  "qualityThreshold": 90,
   "isUnlocked": true,
   "totalCurrentCost": 387.96,
   "tierUsed": "pro",
@@ -32,6 +33,10 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 20,
+      "topModelId": "openai/gpt-5-5-high",
+      "topModelName": "GPT-5.5 (High)",
+      "baselineModelId": "openai/gpt-5-5-high",
+      "baselineModelName": "GPT-5.5 (High)",
       "baselineModels": [
         "GPT-5.6 Sol (high)",
         "GPT-5.6 Sol (medium)",
@@ -39,11 +44,7 @@ export const SAMPLE_AUDIT_DATA = {
         "GPT-5.5 (medium)",
         "GPT-5.6 Sol (max)",
         "GPT-5.6 Sol (xhigh)"
-      ],
-      "baselineModelId": "openai/gpt-5-5-high",
-      "baselineModelName": "GPT-5.5 (High)",
-      "topModelId": "openai/gpt-5-5-high",
-      "topModelName": "GPT-5.5 (High)"
+      ]
     },
     {
       "_id": "alloc_1",
@@ -54,38 +55,38 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 100,
+      "topModelId": "anthropic/claude-fable-5",
+      "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+      "baselineModelId": "anthropic/claude-fable-5",
+      "baselineModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
       "baselineModels": [
         "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
         "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
         "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
         "Claude Opus 5 (Adaptive Reasoning, High Effort)",
         "Claude Opus 5 (Adaptive Reasoning, Medium Effort)"
-      ],
-      "baselineModelId": "anthropic/claude-fable-5",
-      "baselineModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-      "topModelId": "anthropic/claude-fable-5",
-      "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)"
+      ]
     },
     {
       "_id": "alloc_2",
       "type": "subscription",
       "toolName": "Google",
-      "plan": "Gemini Advanced",
+      "plan": "AI Plus",
       "seats": 1,
       "purpose": "Mixed",
       "pricePerSeat": 4.99,
       "currentCost": 4.99,
+      "topModelId": "google/gemini-3-5-flash",
+      "topModelName": "Gemini 3.5 Flash (High)",
+      "baselineModelId": "google/gemini-3-5-flash",
+      "baselineModelName": "Gemini 3.5 Flash (High)",
       "baselineModels": [
         "Gemini 3.7 Flash (high)",
         "Gemini 3.7 Flash (medium)",
         "Gemini 3.5 Flash (high)",
         "Gemma 4 31B (Reasoning)",
         "Gemma 4 26B A4B (Reasoning)"
-      ],
-      "baselineModelId": "google/gemini-3-5-flash",
-      "baselineModelName": "Gemini 3.5 Flash (High)",
-      "topModelId": "google/gemini-3-5-flash",
-      "topModelName": "Gemini 3.5 Flash (High)"
+      ]
     },
     {
       "_id": "alloc_3",
@@ -97,11 +98,11 @@ export const SAMPLE_AUDIT_DATA = {
       "modelId": "anthropic/claude-fable-5",
       "inputTokens": 10000000,
       "outputTokens": 2500000,
-      "baselineModels": [],
+      "topModelId": "anthropic/claude-fable-5",
+      "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
       "baselineModelId": "anthropic/claude-fable-5",
       "baselineModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-      "topModelId": "anthropic/claude-fable-5",
-      "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)"
+      "baselineModels": []
     },
     {
       "_id": "alloc_4",
@@ -112,33 +113,33 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Coding",
       "pricePerSeat": 14.99,
       "currentCost": 29.98,
+      "topModelId": "mistral/pixtral-large-2411",
+      "topModelName": "Pixtral Large",
+      "baselineModelId": "mistral/pixtral-large-2411",
+      "baselineModelName": "Pixtral Large",
       "baselineModels": [
         "Pixtral Large"
-      ],
-      "baselineModelId": "mistralai/pixtral-large-2411",
-      "baselineModelName": "Pixtral Large",
-      "topModelId": "mistralai/pixtral-large-2411",
-      "topModelName": "Pixtral Large"
+      ]
     },
     {
       "_id": "alloc_5",
       "type": "subscription",
       "toolName": "Meta",
-      "plan": "Meta One",
+      "plan": "Meta One Plus",
       "seats": 1,
       "purpose": "Research",
       "pricePerSeat": 7.99,
       "currentCost": 7.99,
+      "topModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
+      "topModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
+      "baselineModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
+      "baselineModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
       "baselineModels": [
         "DeepSeek R1 Distill Llama 8B",
         "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
         "Hermes 3 - Llama-3.1 70B",
         "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
-      ],
-      "baselineModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
-      "baselineModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-      "topModelId": "nvidia/llama-3-3-nemotron-super-49b-reasoning",
-      "topModelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)"
+      ]
     },
     {
       "_id": "alloc_6",
@@ -149,27 +150,27 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 0,
       "currentCost": 0,
+      "topModelId": "deepseek/deepseek-r1-0120",
+      "topModelName": "DeepSeek R1 (Jan '25)",
+      "baselineModelId": "deepseek/deepseek-r1-0120",
+      "baselineModelName": "DeepSeek R1 (Jan '25)",
       "baselineModels": [
         "DeepSeek V3.2 Exp (Non-reasoning)",
         "DeepSeek V3.1 Terminus (Reasoning)",
         "DeepSeek R1 (Jan '25)",
         "DeepSeek R1 Distill Llama 8B",
         "DeepSeek V3.1 (Reasoning)"
-      ],
-      "baselineModelId": "deepseek/deepseek-r1-0120",
-      "baselineModelName": "DeepSeek R1 (Jan '25)",
-      "topModelId": "deepseek/deepseek-r1-0120",
-      "topModelName": "DeepSeek R1 (Jan '25)"
+      ]
     }
   ],
   "savings": {
-    "totalMonthly": 221.57249999999996,
-    "totalAnnual": 2658.8699999999994,
-    "totalOptimizedSpend": 166.39,
+    "totalMonthly": 221.58,
+    "totalAnnual": 2658.96,
+    "totalOptimizedSpend": 166.38,
     "percentageSavings": 57.1,
-    "apiMonthly": 221.57249999999996,
-    "apiAnnual": 2658.8699999999994,
-    "subMonthly": 29.009999999999998,
+    "apiMonthly": 221.58,
+    "apiAnnual": 2658.96,
+    "subMonthly": 29.01,
     "subAnnual": 348.12,
     "recommendations": [
       {
@@ -180,6 +181,49 @@ export const SAMPLE_AUDIT_DATA = {
         "monthlySavings": 12.01,
         "isAlreadyOptimized": false,
         "statusText": "",
+        "apiOption": {
+          "_id": "rec_api_0",
+          "cost": 11.25,
+          "savings": 8.75,
+          "name": "GPT-6.1 Terra (Max)",
+          "modelId": "openai/gpt-6-1-terra",
+          "performance_score": 90,
+          "category_rank": 12,
+          "action": "Transition active users to direct API keys using GPT-6.1 Terra (Max).",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $1.00/1M input, $5.00/1M output. Context: 128K.",
+          "includedModels": [
+            "GPT-6.1 Terra (Max)"
+          ],
+          "recommendedModel": "GPT-6.1 Terra (Max)",
+          "recommendedProvider": "OpenAI",
+          "inputCostPerM": 1,
+          "outputCostPerM": 5,
+          "defaultInputTokens": 5000000,
+          "defaultOutputTokens": 1250000
+        },
+        "subscriptionOption": {
+          "_id": "rec_sub_0",
+          "planName": "Meta Meta One Plus",
+          "cost": 7.99,
+          "savings": 12.01,
+          "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
+          "includedModels": [
+            "DeepSeek R1 Distill Llama 8B",
+            "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
+            "Hermes 3 - Llama-3.1 70B",
+            "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
+          ],
+          "modelId": "deepseek/deepseek-r1-distill-llama-8b",
+          "topModelId": "deepseek/deepseek-r1-distill-llama-8b",
+          "topModelName": "DeepSeek R1 Distill Llama 8B",
+          "action": "Migrate to the Meta Meta One Plus subscription.",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "recommendedModel": "DeepSeek R1 Distill Llama 8B",
+          "recommendedProvider": "Meta"
+        },
         "originalAlloc": {
           "type": "subscription",
           "toolName": "OpenAI",
@@ -190,49 +234,6 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "OpenAI",
           "modelName": "GPT-5.5 (High)"
-        },
-        "apiOption": {
-          "cost": 11.25,
-          "savings": 8.75,
-          "action": "Transition active users to direct API keys using GPT-6.1 Terra (Max).",
-          "limits": "Pay-as-you-go rates: $1.00/1M input, $5.00/1M output. Context: 128K.",
-          "name": "GPT-6.1 Terra (Max)",
-          "modelId": "unknown/gpt-6-1-terra",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "GPT-6.1 Terra (Max)"
-          ],
-          "recommendedModel": "GPT-6.1 Terra (Max)",
-          "recommendedProvider": "Unknown",
-          "inputCostPerM": 1,
-          "outputCostPerM": 5,
-          "defaultInputTokens": 5000000,
-          "defaultOutputTokens": 1250000,
-          "performance_score": 90,
-          "category_rank": 12,
-          "_id": "6ae6ad7248f8e2388100a3a4"
-        },
-        "subscriptionOption": {
-          "cost": 7.99,
-          "savings": 12.01,
-          "action": "Migrate to the Meta Meta One Plus subscription.",
-          "planName": "Meta Meta One Plus",
-          "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
-          "modelId": "deepseek/deepseek-r1-distill-llama-8b",
-          "topModelId": "deepseek/deepseek-r1-distill-llama-8b",
-          "topModelName": "DeepSeek R1 Distill Llama 8B",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "DeepSeek R1 Distill Llama 8B",
-            "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-            "Hermes 3 - Llama-3.1 70B",
-            "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
-          ],
-          "recommendedModel": "DeepSeek R1 Distill Llama 8B",
-          "recommendedProvider": "Meta",
-          "_id": "6ae6ad7248f8e2388100a3a5"
         }
       },
       {
@@ -243,6 +244,50 @@ export const SAMPLE_AUDIT_DATA = {
         "monthlySavings": 43.75,
         "isAlreadyOptimized": false,
         "statusText": "",
+        "apiOption": {
+          "_id": "rec_api_1",
+          "cost": 56.25,
+          "savings": 43.75,
+          "name": "GPT-6.1 Terra (Max)",
+          "modelId": "openai/gpt-6-1-terra",
+          "performance_score": 90,
+          "category_rank": 12,
+          "action": "Transition active users to direct API keys using GPT-6.1 Terra (Max).",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $1.00/1M input, $5.00/1M output. Context: 128K.",
+          "includedModels": [
+            "GPT-6.1 Terra (Max)"
+          ],
+          "recommendedModel": "GPT-6.1 Terra (Max)",
+          "recommendedProvider": "OpenAI",
+          "inputCostPerM": 1,
+          "outputCostPerM": 5,
+          "defaultInputTokens": 25000000,
+          "defaultOutputTokens": 6250000
+        },
+        "subscriptionOption": {
+          "_id": "rec_sub_1",
+          "planName": "Anthropic Claude Pro",
+          "cost": 100,
+          "savings": 0,
+          "limits": "More usage than Free plan. Access to unlimited projects.",
+          "includedModels": [
+            "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
+            "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
+            "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
+            "Claude Opus 5 (Adaptive Reasoning, High Effort)",
+            "Claude Opus 5 (Adaptive Reasoning, Medium Effort)"
+          ],
+          "modelId": "anthropic/claude-fable-5",
+          "topModelId": "anthropic/claude-fable-5",
+          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+          "action": "Your current subscription is already the best choice. Keep using it.",
+          "statusText": "Already optimized in this category.",
+          "isAlreadyOptimized": true,
+          "recommendedModel": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+          "recommendedProvider": "Anthropic"
+        },
         "originalAlloc": {
           "type": "subscription",
           "toolName": "Anthropic",
@@ -253,104 +298,44 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "Anthropic",
           "modelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)"
-        },
-        "apiOption": {
-          "cost": 56.25,
-          "savings": 43.75,
-          "action": "Transition active users to direct API keys using GPT-6.1 Terra (Max).",
-          "limits": "Pay-as-you-go rates: $1.00/1M input, $5.00/1M output. Context: 128K.",
-          "name": "GPT-6.1 Terra (Max)",
-          "modelId": "unknown/gpt-6-1-terra",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "GPT-6.1 Terra (Max)"
-          ],
-          "recommendedModel": "GPT-6.1 Terra (Max)",
-          "recommendedProvider": "Unknown",
-          "inputCostPerM": 1,
-          "outputCostPerM": 5,
-          "defaultInputTokens": 25000000,
-          "defaultOutputTokens": 6250000,
-          "performance_score": 90,
-          "category_rank": 12,
-          "_id": "6ae6ad7248f8e2388100a3a7"
-        },
-        "subscriptionOption": {
-          "cost": 100,
-          "savings": 0,
-          "action": "Your current subscription is already the best choice. Keep using it.",
-          "planName": "Anthropic Claude Pro",
-          "limits": "More usage than Free plan. Access to unlimited projects.",
-          "modelId": "anthropic/claude-fable-5",
-          "topModelId": "anthropic/claude-fable-5",
-          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "Claude Opus 5 (Adaptive Reasoning, Max Effort)",
-            "Claude Opus 5 (Adaptive Reasoning, Xhigh Effort)",
-            "Claude Fable 5 (Adaptive Reasoning, Max Effort, Opus 4.8 Fallback)",
-            "Claude Opus 5 (Adaptive Reasoning, High Effort)",
-            "Claude Opus 5 (Adaptive Reasoning, Medium Effort)"
-          ],
-          "recommendedModel": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "recommendedProvider": "Anthropic",
-          "_id": "6ae6ad7248f8e2388100a3a8"
         }
       },
       {
         "_id": "rec_2",
-        "tool": "Google (Gemini Advanced Subscription for 1 seat)",
+        "tool": "Google (AI Plus Subscription for 1 seat)",
         "issue": "Paying $4.99/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
-        "monthlySavings": 3.865,
+        "monthlySavings": 3.87,
         "isAlreadyOptimized": false,
         "statusText": "",
-        "originalAlloc": {
-          "type": "subscription",
-          "toolName": "Google",
-          "plan": "Gemini Advanced",
-          "seats": 1,
-          "purpose": "Mixed",
-          "currentCost": 4.99,
-          "modelId": "",
-          "provider": "Google",
-          "modelName": "Gemini 3.5 Flash (High)"
-        },
         "apiOption": {
-          "cost": 1.125,
-          "savings": 3.865,
-          "action": "Transition active users to direct API keys using Claude Haiku 5.5 (Max).",
-          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 128K.",
+          "_id": "rec_api_2",
+          "cost": 1.13,
+          "savings": 3.87,
           "name": "Claude Haiku 5.5 (Max)",
-          "modelId": "unknown/claude-haiku-5-5",
+          "modelId": "anthropic/claude-haiku-5-5",
+          "performance_score": 83,
+          "category_rank": 32,
+          "action": "Transition active users to direct API keys using Claude Haiku 5.5 (Max).",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 128K.",
           "includedModels": [
             "Claude Haiku 5.5 (Max)"
           ],
           "recommendedModel": "Claude Haiku 5.5 (Max)",
-          "recommendedProvider": "Unknown",
+          "recommendedProvider": "Anthropic",
           "inputCostPerM": 0.1,
           "outputCostPerM": 0.5,
           "defaultInputTokens": 5000000,
-          "defaultOutputTokens": 1250000,
-          "performance_score": 83,
-          "category_rank": 32,
-          "_id": "6ae6ad7248f8e2388100a3aa"
+          "defaultOutputTokens": 1250000
         },
         "subscriptionOption": {
+          "_id": "rec_sub_2",
+          "planName": "Google AI Plus",
           "cost": 4.99,
           "savings": 0,
-          "action": "Your current subscription is already the best choice. Keep using it.",
-          "planName": "Google Gemini Advanced",
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
-          "modelId": "google/gemini-3-5-flash",
-          "topModelId": "google/gemini-3-5-flash",
-          "topModelName": "Gemini 3.5 Flash (High)",
-          "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": false,
           "includedModels": [
             "Gemini 3.7 Flash (high)",
             "Gemini 3.7 Flash (medium)",
@@ -358,9 +343,25 @@ export const SAMPLE_AUDIT_DATA = {
             "Gemma 4 31B (Reasoning)",
             "Gemma 4 26B A4B (Reasoning)"
           ],
+          "modelId": "google/gemini-3-5-flash",
+          "topModelId": "google/gemini-3-5-flash",
+          "topModelName": "Gemini 3.5 Flash (High)",
+          "action": "Your current subscription is already the best choice. Keep using it.",
+          "statusText": "Already optimized in this category.",
+          "isAlreadyOptimized": true,
           "recommendedModel": "Gemini 3.5 Flash (High)",
-          "recommendedProvider": "Google",
-          "_id": "6ae6ad7248f8e2388100a3ab"
+          "recommendedProvider": "Google"
+        },
+        "originalAlloc": {
+          "type": "subscription",
+          "toolName": "Google",
+          "plan": "AI Plus",
+          "seats": 1,
+          "purpose": "Mixed",
+          "currentCost": 4.99,
+          "modelId": "",
+          "provider": "Google",
+          "modelName": "Gemini 3.5 Flash (High)"
         }
       },
       {
@@ -368,57 +369,57 @@ export const SAMPLE_AUDIT_DATA = {
         "tool": "Anthropic: Claude Fable 5 API (anthropic/claude-fable-5 for Coding)",
         "issue": "Paying $225.00/mo for API usage (12.5M tokens)",
         "action": "Select the most suitable option below.",
-        "monthlySavings": 134.99999999999997,
+        "monthlySavings": 135,
         "isAlreadyOptimized": false,
         "statusText": "",
+        "apiOption": {
+          "_id": "rec_api_3",
+          "cost": 90,
+          "savings": 135,
+          "name": "Gemini 4 Carbon (High)",
+          "modelId": "google/gemini-4-carbon",
+          "performance_score": 99,
+          "category_rank": 1,
+          "action": "Transition active users to direct API keys using Gemini 4 Carbon (High).",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $4.00/1M input, $20.00/1M output. Context: 128K.",
+          "includedModels": [
+            "Gemini 4 Carbon (High)"
+          ],
+          "recommendedModel": "Gemini 4 Carbon (High)",
+          "recommendedProvider": "Google",
+          "inputCostPerM": 4,
+          "outputCostPerM": 20,
+          "defaultInputTokens": 10000000,
+          "defaultOutputTokens": 2500000
+        },
+        "subscriptionOption": {
+          "_id": "rec_sub_3",
+          "planName": "Anthropic: Claude Fable 5 Free",
+          "cost": 225,
+          "savings": 0,
+          "limits": "Free plan limits",
+          "includedModels": [],
+          "modelId": "anthropic/claude-fable-5",
+          "topModelId": "anthropic/claude-fable-5",
+          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+          "action": "Migrate to the Anthropic: Claude Fable 5 Free subscription.",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "recommendedModel": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
+          "recommendedProvider": "Anthropic"
+        },
         "originalAlloc": {
           "type": "api",
           "toolName": "Anthropic: Claude Fable 5",
           "plan": "",
           "seats": 1,
           "purpose": "Coding",
-          "currentCost": 224.99999999999997,
+          "currentCost": 225,
           "modelId": "anthropic/claude-fable-5",
           "provider": "Anthropic",
           "modelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)"
-        },
-        "apiOption": {
-          "cost": 90,
-          "savings": 134.99999999999997,
-          "action": "Transition active users to direct API keys using Gemini 4 Carbon (High).",
-          "limits": "Pay-as-you-go rates: $4.00/1M input, $20.00/1M output. Context: 128K.",
-          "name": "Gemini 4 Carbon (High)",
-          "modelId": "unknown/gemini-4-carbon",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "Gemini 4 Carbon (High)"
-          ],
-          "recommendedModel": "Gemini 4 Carbon (High)",
-          "recommendedProvider": "Unknown",
-          "inputCostPerM": 4,
-          "outputCostPerM": 20,
-          "defaultInputTokens": 10000000,
-          "defaultOutputTokens": 2500000,
-          "performance_score": 99,
-          "category_rank": 1,
-          "_id": "6ae6ad7248f8e2388100a3ad"
-        },
-        "subscriptionOption": {
-          "cost": 224.99999999999997,
-          "savings": 0,
-          "action": "Migrate to the Anthropic: Claude Fable 5 Free subscription.",
-          "planName": "Anthropic: Claude Fable 5 Free",
-          "limits": "Free plan limits",
-          "modelId": "anthropic/claude-fable-5",
-          "topModelId": "anthropic/claude-fable-5",
-          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [],
-          "recommendedModel": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "recommendedProvider": "Anthropic",
-          "_id": "6ae6ad7248f8e2388100a3ae"
         }
       },
       {
@@ -429,6 +430,49 @@ export const SAMPLE_AUDIT_DATA = {
         "monthlySavings": 25.48,
         "isAlreadyOptimized": false,
         "statusText": "",
+        "apiOption": {
+          "_id": "rec_api_4",
+          "cost": 4.5,
+          "savings": 25.48,
+          "name": "Claude Haiku 5.5 (Max)",
+          "modelId": "anthropic/claude-haiku-5-5",
+          "performance_score": 83,
+          "category_rank": 32,
+          "action": "Transition active users to direct API keys using Claude Haiku 5.5 (Max).",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 128K.",
+          "includedModels": [
+            "Claude Haiku 5.5 (Max)"
+          ],
+          "recommendedModel": "Claude Haiku 5.5 (Max)",
+          "recommendedProvider": "Anthropic",
+          "inputCostPerM": 0.1,
+          "outputCostPerM": 0.5,
+          "defaultInputTokens": 20000000,
+          "defaultOutputTokens": 5000000
+        },
+        "subscriptionOption": {
+          "_id": "rec_sub_4",
+          "planName": "Meta Meta One Plus",
+          "cost": 15.98,
+          "savings": 14,
+          "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
+          "includedModels": [
+            "DeepSeek R1 Distill Llama 8B",
+            "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
+            "Hermes 3 - Llama-3.1 70B",
+            "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
+          ],
+          "modelId": "deepseek/deepseek-r1-distill-llama-8b",
+          "topModelId": "deepseek/deepseek-r1-distill-llama-8b",
+          "topModelName": "DeepSeek R1 Distill Llama 8B",
+          "action": "Migrate to the Meta Meta One Plus subscription.",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "recommendedModel": "DeepSeek R1 Distill Llama 8B",
+          "recommendedProvider": "Meta"
+        },
         "originalAlloc": {
           "type": "subscription",
           "toolName": "Mistral",
@@ -439,103 +483,44 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "Mistral",
           "modelName": "Pixtral Large"
-        },
-        "apiOption": {
-          "cost": 4.5,
-          "savings": 25.48,
-          "action": "Transition active users to direct API keys using Claude Haiku 5.5 (Max).",
-          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 128K.",
-          "name": "Claude Haiku 5.5 (Max)",
-          "modelId": "unknown/claude-haiku-5-5",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "Claude Haiku 5.5 (Max)"
-          ],
-          "recommendedModel": "Claude Haiku 5.5 (Max)",
-          "recommendedProvider": "Unknown",
-          "inputCostPerM": 0.1,
-          "outputCostPerM": 0.5,
-          "defaultInputTokens": 20000000,
-          "defaultOutputTokens": 5000000,
-          "performance_score": 83,
-          "category_rank": 32,
-          "_id": "6ae6ad7248f8e2388100a3b0"
-        },
-        "subscriptionOption": {
-          "cost": 15.98,
-          "savings": 14,
-          "action": "Migrate to the Meta Meta One Plus subscription.",
-          "planName": "Meta Meta One Plus",
-          "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
-          "modelId": "deepseek/deepseek-r1-distill-llama-8b",
-          "topModelId": "deepseek/deepseek-r1-distill-llama-8b",
-          "topModelName": "DeepSeek R1 Distill Llama 8B",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "DeepSeek R1 Distill Llama 8B",
-            "Llama 3.3 Nemotron Super 49B v1 (Reasoning)",
-            "Hermes 3 - Llama-3.1 70B",
-            "Hermes 4 - Llama-3.1 70B (Non-reasoning)"
-          ],
-          "recommendedModel": "DeepSeek R1 Distill Llama 8B",
-          "recommendedProvider": "Meta",
-          "_id": "6ae6ad7248f8e2388100a3b1"
         }
       },
       {
         "_id": "rec_5",
-        "tool": "Meta (Meta One Subscription for 1 seat)",
+        "tool": "Meta (Meta One Plus Subscription for 1 seat)",
         "issue": "Paying $7.99/mo for 1 active Research user",
         "action": "Select the most suitable option below.",
-        "monthlySavings": 4.727500000000001,
+        "monthlySavings": 4.73,
         "isAlreadyOptimized": false,
         "statusText": "",
-        "originalAlloc": {
-          "type": "subscription",
-          "toolName": "Meta",
-          "plan": "Meta One",
-          "seats": 1,
-          "purpose": "Research",
-          "currentCost": 7.99,
-          "modelId": "",
-          "provider": "Meta",
-          "modelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)"
-        },
         "apiOption": {
-          "cost": 3.2624999999999997,
-          "savings": 4.727500000000001,
-          "action": "Transition active users to direct API keys using MiMo-V2.6-Pro.",
-          "limits": "Pay-as-you-go rates: $0.43/1M input, $0.87/1M output. Context: 128K.",
+          "_id": "rec_api_5",
+          "cost": 3.26,
+          "savings": 4.73,
           "name": "MiMo-V2.6-Pro",
-          "modelId": "unknown/mimo-v2-6-pro",
+          "modelId": "xiaomi/mimo-v2-6-pro",
+          "performance_score": 97,
+          "category_rank": 4,
+          "action": "Transition active users to direct API keys using MiMo-V2.6-Pro.",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $0.43/1M input, $0.87/1M output. Context: 128K.",
           "includedModels": [
             "MiMo-V2.6-Pro"
           ],
           "recommendedModel": "MiMo-V2.6-Pro",
-          "recommendedProvider": "Unknown",
+          "recommendedProvider": "Xiaomi",
           "inputCostPerM": 0.435,
           "outputCostPerM": 0.87,
           "defaultInputTokens": 5000000,
-          "defaultOutputTokens": 1250000,
-          "performance_score": 97,
-          "category_rank": 4,
-          "_id": "6ae6ad7248f8e2388100a3b3"
+          "defaultOutputTokens": 1250000
         },
         "subscriptionOption": {
+          "_id": "rec_sub_5",
+          "planName": "Google AI Plus",
           "cost": 4.99,
           "savings": 3,
-          "action": "Migrate to the Google AI Plus subscription.",
-          "planName": "Google AI Plus",
           "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
-          "modelId": "google/gemini-3-7-flash-medium",
-          "topModelId": "google/gemini-3-7-flash-medium",
-          "topModelName": "Gemini 3.7 Flash (Medium)",
-          "statusText": "",
-          "isAlreadyOptimized": false,
           "includedModels": [
             "Gemini 3.7 Flash (high)",
             "Gemini 3.7 Flash (medium)",
@@ -543,9 +528,25 @@ export const SAMPLE_AUDIT_DATA = {
             "Gemma 4 31B (Reasoning)",
             "Gemma 4 26B A4B (Reasoning)"
           ],
+          "modelId": "google/gemini-3-7-flash-medium",
+          "topModelId": "google/gemini-3-7-flash-medium",
+          "topModelName": "Gemini 3.7 Flash (Medium)",
+          "action": "Migrate to the Google AI Plus subscription.",
+          "statusText": "",
+          "isAlreadyOptimized": false,
           "recommendedModel": "Gemini 3.7 Flash (Medium)",
-          "recommendedProvider": "Google",
-          "_id": "6ae6ad7248f8e2388100a3b4"
+          "recommendedProvider": "Google"
+        },
+        "originalAlloc": {
+          "type": "subscription",
+          "toolName": "Meta",
+          "plan": "Meta One Plus",
+          "seats": 1,
+          "purpose": "Research",
+          "currentCost": 7.99,
+          "modelId": "",
+          "provider": "Meta",
+          "modelName": "Llama 3.3 Nemotron Super 49B v1 (Reasoning)"
         }
       },
       {
@@ -556,6 +557,50 @@ export const SAMPLE_AUDIT_DATA = {
         "monthlySavings": 0,
         "isAlreadyOptimized": true,
         "statusText": "Optimized",
+        "apiOption": {
+          "_id": "rec_api_6",
+          "cost": 0,
+          "savings": 0,
+          "name": "DeepSeek R1 (Jan '25)",
+          "modelId": "deepseek/deepseek-r1-0120",
+          "performance_score": 85,
+          "category_rank": 151,
+          "action": "Transition active users to direct API keys using DeepSeek R1 (Jan '25).",
+          "statusText": "",
+          "isAlreadyOptimized": false,
+          "limits": "Pay-as-you-go rates: $2.00/1M input, $4.00/1M output.",
+          "includedModels": [
+            "DeepSeek R1 (Jan '25)"
+          ],
+          "recommendedModel": "DeepSeek R1 (Jan '25)",
+          "recommendedProvider": "DeepSeek",
+          "inputCostPerM": 2,
+          "outputCostPerM": 4,
+          "defaultInputTokens": 5000000,
+          "defaultOutputTokens": 1250000
+        },
+        "subscriptionOption": {
+          "_id": "rec_sub_6",
+          "planName": "DeepSeek Consumer",
+          "cost": 0,
+          "savings": 0,
+          "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
+          "includedModels": [
+            "DeepSeek V3.2 Exp (Non-reasoning)",
+            "DeepSeek V3.1 Terminus (Reasoning)",
+            "DeepSeek R1 (Jan '25)",
+            "DeepSeek R1 Distill Llama 8B",
+            "DeepSeek V3.1 (Reasoning)"
+          ],
+          "modelId": "deepseek/deepseek-r1-0120",
+          "topModelId": "deepseek/deepseek-r1-0120",
+          "topModelName": "DeepSeek R1 (Jan '25)",
+          "action": "Your current subscription is already the best choice. Keep using it.",
+          "statusText": "Already optimized in this category.",
+          "isAlreadyOptimized": true,
+          "recommendedModel": "DeepSeek R1 (Jan '25)",
+          "recommendedProvider": "DeepSeek"
+        },
         "originalAlloc": {
           "type": "subscription",
           "toolName": "DeepSeek",
@@ -566,48 +611,6 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "DeepSeek",
           "modelName": "DeepSeek R1 (Jan '25)"
-        },
-        "apiOption": {
-          "cost": 0,
-          "savings": 0,
-          "action": "Transition active users to direct API keys using DeepSeek R1 (Jan '25).",
-          "limits": "Pay-as-you-go rates: $2.00/1M input, $4.00/1M output. Context: 128K.",
-          "name": "DeepSeek R1 (Jan '25)",
-          "modelId": "",
-          "statusText": "",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "DeepSeek R1 (Jan '25)"
-          ],
-          "recommendedModel": "DeepSeek R1 (Jan '25)",
-          "recommendedProvider": "Deepseek",
-          "inputCostPerM": 2,
-          "outputCostPerM": 4,
-          "defaultInputTokens": 5000000,
-          "defaultOutputTokens": 1250000,
-          "_id": "6ae6ad7248f8e2388100a3b6"
-        },
-        "subscriptionOption": {
-          "cost": 0,
-          "savings": 0,
-          "action": "Your current subscription is already the best choice. Keep using it.",
-          "planName": "DeepSeek Consumer",
-          "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
-          "modelId": "deepseek/deepseek-r1-0120",
-          "topModelId": "deepseek/deepseek-r1-0120",
-          "topModelName": "DeepSeek R1 (Jan '25)",
-          "statusText": "Already optimized in this category.",
-          "isAlreadyOptimized": false,
-          "includedModels": [
-            "DeepSeek V3.2 Exp (Non-reasoning)",
-            "DeepSeek V3.1 Terminus (Reasoning)",
-            "DeepSeek R1 (Jan '25)",
-            "DeepSeek R1 Distill Llama 8B",
-            "DeepSeek V3.1 (Reasoning)"
-          ],
-          "recommendedModel": "DeepSeek R1 (Jan '25)",
-          "recommendedProvider": "DeepSeek",
-          "_id": "6ae6ad7248f8e2388100a3b7"
         }
       }
     ]

@@ -829,26 +829,31 @@ export default function ModelAuditorView({
       } catch (err) {
         console.error('Audit recommendation network error, falling back to local dataset:', err);
         // Resilient client-side fallback computation using cached intelData
-        if (intelData && intelData.categories) {
-          const fallbackData = computeClientFallback(
-            currentModelId,
-            targetUseCase,
-            monthlyInputTokens + monthlyOutputTokens,
-            (monthlyInputTokens + monthlyOutputTokens) > 0 ? (monthlyInputTokens / (monthlyInputTokens + monthlyOutputTokens)) : 0.8,
-            optimizationGoal,
-            costCutPercentage,
-            intelData
-          );
-          if (fallbackData) {
-            setResults(fallbackData);
-            if (fallbackData.recommendations && fallbackData.recommendations.length > 0) {
-              setSelectedRecommendation(fallbackData.recommendations[0]);
-            } else {
-              setSelectedRecommendation(null);
+        try {
+          const activeIntel = (intelData && intelData.categories) ? intelData : await getCachedRawData().catch(() => null);
+          if (activeIntel && activeIntel.categories) {
+            const fallbackData = computeClientFallback(
+              currentModelId,
+              targetUseCase,
+              monthlyInputTokens + monthlyOutputTokens,
+              (monthlyInputTokens + monthlyOutputTokens) > 0 ? (monthlyInputTokens / (monthlyInputTokens + monthlyOutputTokens)) : 0.8,
+              optimizationGoal,
+              costCutPercentage,
+              activeIntel
+            );
+            if (fallbackData) {
+              setResults(fallbackData);
+              if (fallbackData.recommendations && fallbackData.recommendations.length > 0) {
+                setSelectedRecommendation(fallbackData.recommendations[0]);
+              } else {
+                setSelectedRecommendation(null);
+              }
+              setError(null);
+              return;
             }
-            setError(null);
-            return;
           }
+        } catch (fbErr) {
+          console.error('Fallback computation error:', fbErr);
         }
         setError(err.message);
       } finally {
@@ -1852,6 +1857,45 @@ export default function ModelAuditorView({
                     </div>
                   )}
                 </div>
+              ) : error ? (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '48px 32px',
+                  backgroundColor: '#FEF2F2',
+                  border: '1.5px solid #FCA5A5',
+                  borderRadius: '16px'
+                }}>
+                  <h4 style={{ fontSize: '17px', fontWeight: '800', color: '#991B1B', marginBottom: '8px' }}>
+                    Recommendation Service Reconnecting
+                  </h4>
+                  <p style={{ fontSize: '13.5px', color: '#B91C1C', margin: '0 0 16px 0', lineHeight: 1.5 }}>
+                    {error}
+                  </p>
+                  <button
+                    onClick={() => {
+                      if (intelData && intelData.categories) {
+                        const fallbackData = computeClientFallback(
+                          currentModelId,
+                          targetUseCase,
+                          monthlyInputTokens + monthlyOutputTokens,
+                          (monthlyInputTokens + monthlyOutputTokens) > 0 ? (monthlyInputTokens / (monthlyInputTokens + monthlyOutputTokens)) : 0.8,
+                          optimizationGoal,
+                          costCutPercentage,
+                          intelData
+                        );
+                        if (fallbackData) {
+                          setResults(fallbackData);
+                          setSelectedRecommendation(fallbackData.recommendations?.[0] || null);
+                          setError(null);
+                        }
+                      }
+                    }}
+                    className="btn btn-outline"
+                    style={{ fontSize: '13px', padding: '8px 18px', backgroundColor: '#FFFFFF', borderColor: '#F87171', color: '#B91C1C', fontWeight: '700' }}
+                  >
+                    Refresh Model Analysis
+                  </button>
+                </div>
               ) : (
                 <div style={{
                   textAlign: 'center',
@@ -1880,7 +1924,7 @@ export default function ModelAuditorView({
                         Already Optimized
                       </h4>
                       <p style={{ fontSize: '13.5px', color: '#15803D', lineHeight: 1.5, margin: 0 }}>
-                        Your baseline model (<strong>{results?.currentBaseline?.name || modelOptions.find(o => o.value === currentModelId)?.label || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
+                        Your baseline model (<strong>{results?.currentBaseline?.name || modelOptions.find(o => o.value === currentModelId || (o.value && o.value.toLowerCase() === currentModelId.toLowerCase()) || (o.value && currentModelId && o.value.split('/')[1] === currentModelId.split('/')[1]))?.label || POPULAR_MODELS.find(m => m.id === currentModelId || m.id.split('/')[1] === currentModelId.split('/')[1])?.name || 'Selected Model'}</strong>) is currently the highest-ranked option with optimal cost in this category. No alternative provides superior capability at a lower price.
                       </p>
                     </div>
                   ) : optimizationGoal === 'cost' ? (

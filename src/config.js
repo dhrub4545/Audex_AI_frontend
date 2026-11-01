@@ -1,5 +1,14 @@
 // Audex AI Frontend Config - Deployed 2026-07-28
-let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let baseUrl = import.meta.env.VITE_API_URL;
+
+if (!baseUrl) {
+  // If running in production browser on a domain (like www.audexai.in), default to /api or deployed backend
+  if (typeof window !== 'undefined' && window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    baseUrl = '/api';
+  } else {
+    baseUrl = 'http://localhost:5000/api';
+  }
+}
 
 // Strip accidental VITE_API_URL= prefix if typed into environment variable value
 if (baseUrl.includes('VITE_API_URL=')) {

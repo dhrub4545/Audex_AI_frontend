@@ -60,19 +60,24 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     if (!rank || isNaN(rank) || rank <= 0) return 75;
     const rk = Number(rank);
     if (rk === 1) return 99;
-    if (rk <= 3) return 98;
-    if (rk <= 10) return Math.round(97 - (rk - 3) * 0.4);
-    if (rk <= 50) return Math.round(94 - ((rk - 10) / 40) * 6);
-    if (rk <= 150) return Math.round(88 - ((rk - 50) / 100) * 8);
-    if (rk <= 300) return Math.round(80 - ((rk - 150) / 150) * 10);
-    return Math.round(Math.max(40, 70 - ((rk - 300) / 420) * 25));
+    if (rk === 2) return 98;
+    if (rk === 3) return 97;
+    if (rk <= 10) return Math.round(96 - (rk - 3) * 0.5);
+    if (rk <= 50) return Math.round(92 - ((rk - 10) / 40) * 8);
+    if (rk <= 150) return Math.round(84 - ((rk - 50) / 100) * 12);
+    if (rk <= 300) return Math.round(72 - ((rk - 150) / 150) * 18);
+    return Math.round(Math.max(35, 54 - ((rk - 300) / 400) * 19));
   };
 
   const getCatScore = (catItem, fallbackRating) => {
     if (!catItem) return normRating(fallbackRating) || 75;
     const rScore = normRating(catItem.rating || fallbackRating) || 75;
-    const rkScore = normRank(catItem.rank);
-    return Math.round(rScore * 0.6 + rkScore * 0.4);
+    const rk = Number(catItem.rank);
+    if (rk && rk > 0) {
+      const rkScore = normRank(rk);
+      return Math.round(rScore * 0.4 + rkScore * 0.6);
+    }
+    return rScore;
   };
 
   const rating = Number(model.rating || model.arena_elo || 1200);
@@ -102,31 +107,47 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     });
   };
 
+  const codeCat = findInCat('coding');
+  const reasonCat = findInCat('reasoning') || findInCat('overall');
+  const mathCat = findInCat('math');
+  const writeCat = findInCat('creative-writing') || findInCat('writing');
+  const resCat = findInCat('research');
+  const fnCat = findInCat('tool-use') || findInCat('function-calling') || findInCat('agents');
+  const visCat = findInCat('vision') || findInCat('multimodal');
+
+  const evCombined = {
+    ...(codeCat?.evaluations || {}),
+    ...(reasonCat?.evaluations || {}),
+    ...(mathCat?.evaluations || {}),
+    ...(resCat?.evaluations || {}),
+    ...(fnCat?.evaluations || {}),
+    ...(visCat?.evaluations || {}),
+    ...ev
+  };
+
   // 1. Coding (SWE-Bench / LiveCodeBench / AA Coding Index / Category Rank)
   let coding = null;
-  const codeCat = findInCat('coding');
-  if (ev.livecodebench) {
-    coding = Math.round(Math.min(99, Math.max(35, (Number(ev.livecodebench) / 90) * 100)));
-  } else if (ev.artificial_analysis_coding_index) {
-    const v = Number(ev.artificial_analysis_coding_index);
+  if (evCombined.livecodebench) {
+    coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.livecodebench) / 90) * 100)));
+  } else if (evCombined.artificial_analysis_coding_index) {
+    const v = Number(evCombined.artificial_analysis_coding_index);
     coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
   } else if (codeCat) {
     coding = getCatScore(codeCat, model.rating);
-  } else if (ev.scicode) {
-    coding = Math.round(Math.min(99, Math.max(35, (Number(ev.scicode) / 67) * 98)));
+  } else if (evCombined.scicode) {
+    coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   }
   if (!coding) coding = baseNorm;
 
   // 2. Reasoning (GPQA Diamond / MMLU-Pro / AA Intelligence Index / Category Rank)
   let reasoning = null;
-  const reasonCat = findInCat('reasoning') || findInCat('overall');
-  if (ev.gpqa) {
-    reasoning = Math.round(Math.min(99, Math.max(35, Number(ev.gpqa))));
-  } else if (ev.artificial_analysis_intelligence_index) {
-    const v = Number(ev.artificial_analysis_intelligence_index);
+  if (evCombined.gpqa) {
+    reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
+  } else if (evCombined.artificial_analysis_intelligence_index) {
+    const v = Number(evCombined.artificial_analysis_intelligence_index);
     reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
-  } else if (ev.mmlu_pro) {
-    reasoning = Math.round(Math.min(99, Math.max(35, (Number(ev.mmlu_pro) / 90) * 100)));
+  } else if (evCombined.mmlu_pro) {
+    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.mmlu_pro) / 90) * 100)));
   } else if (reasonCat) {
     reasoning = getCatScore(reasonCat, model.rating);
   }
@@ -134,14 +155,13 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 3. Math (AIME 2024 / AA Math Index / SciCode / Category Rank)
   let math = null;
-  const mathCat = findInCat('math');
-  if (ev.aime) {
-    math = Math.round(Math.min(99, Math.max(35, Number(ev.aime))));
-  } else if (ev.artificial_analysis_math_index) {
-    const v = Number(ev.artificial_analysis_math_index);
+  if (evCombined.aime) {
+    math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
+  } else if (evCombined.artificial_analysis_math_index) {
+    const v = Number(evCombined.artificial_analysis_math_index);
     math = Math.round(Math.min(99, Math.max(35, v <= 67 ? (v / 67) * 98 : v)));
-  } else if (ev.scicode) {
-    math = Math.round(Math.min(99, Math.max(35, (Number(ev.scicode) / 67) * 98)));
+  } else if (evCombined.scicode) {
+    math = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   } else if (mathCat) {
     math = getCatScore(mathCat, model.rating);
   }
@@ -149,7 +169,6 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 4. Writing (MT-Bench / Creative Writing Elo / Category Rank)
   let writing = null;
-  const writeCat = findInCat('creative-writing') || findInCat('writing');
   if (writeCat) {
     writing = getCatScore(writeCat, model.rating);
   }
@@ -157,11 +176,10 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 5. Research (Humanity's Last Exam / GPQA / Category Rank)
   let research = null;
-  const resCat = findInCat('research');
-  if (ev.hle) {
-    research = Math.round(Math.min(99, Math.max(35, (Number(ev.hle) / 58) * 98)));
-  } else if (ev.gpqa) {
-    research = Math.round(Math.min(99, Math.max(35, Number(ev.gpqa))));
+  if (evCombined.hle) {
+    research = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
+  } else if (evCombined.gpqa) {
+    research = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
   } else if (resCat) {
     research = getCatScore(resCat, model.rating);
   }
@@ -169,11 +187,10 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 6. Function Calling (BFCL v3 / IFBench / Tool Use / Agentic Index)
   let funcCalling = null;
-  const fnCat = findInCat('function-calling') || findInCat('tool-use') || findInCat('agents');
-  if (ev.ifbench) {
-    funcCalling = Math.round(Math.min(99, Math.max(35, (Number(ev.ifbench) / 85) * 100)));
-  } else if (ev.agentic_index) {
-    const v = Number(ev.agentic_index);
+  if (evCombined.ifbench) {
+    funcCalling = Math.round(Math.min(99, Math.max(35, (Number(evCombined.ifbench) / 85) * 100)));
+  } else if (evCombined.agentic_index) {
+    const v = Number(evCombined.agentic_index);
     funcCalling = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
   } else if (fnCat) {
     funcCalling = getCatScore(fnCat, model.rating);
@@ -182,7 +199,6 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 7. Multimodal (MMMU / Vision Category Rank)
   let multimodal = null;
-  const visCat = findInCat('vision') || findInCat('multimodal');
   if (visCat) {
     multimodal = getCatScore(visCat, model.rating);
   } else {
@@ -201,12 +217,12 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   else longContext = 50;
 
   // 9. Speed (Tokens/sec)
-  const speedVal = Number(explicitTps || model.median_output_tokens_per_second || model.tokens_per_second || model.throughput || 75);
+  const speedVal = Number(explicitTps || model.median_output_tokens_per_second || codeCat?.median_output_tokens_per_second || model.tokens_per_second || model.throughput || 75);
   const speedNorm = Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100)));
 
   // 10. Cost Efficiency (USD / 1M Tokens)
-  const inputCost = Number(model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? 1.5);
-  const outputCost = Number(model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? 6.0);
+  const inputCost = Number(model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? codeCat?.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? 1.5);
+  const outputCost = Number(model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? codeCat?.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? 6.0);
   let blended = explicitBlendedCost;
   if (blended === null || blended === undefined || isNaN(blended)) {
     blended = inputCost * 0.75 + outputCost * 0.25;
