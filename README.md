@@ -37,7 +37,7 @@
 
 ## 📌 Executive Summary & Problem Solved
 
-As generative AI adoption scales across modern software companies, technical leaders and CFOs grapple with opaque AI expenditures. Developers frequently default to the newest flagship models (like Claude 3.7 Sonnet, GPT-4o, or Gemini 2.5 Pro) for trivial tasks where smaller, highly optimized models (like Gemini 2.5 Flash, DeepSeek V3, or Llama 3.3) perform identically at 80–90% lower token cost. Simultaneously, engineering teams waste thousands of dollars each month on redundant developer seat licenses across ChatGPT Plus, Claude Pro, Cursor Pro, and GitHub Copilot.
+As generative AI adoption scales across modern software companies, technical leaders and CFOs grapple with opaque AI expenditures. Developers frequently default to the newest flagship models (like Claude 3.7 Sonnet, GPT-4o, or Gemini 4 Argon) for trivial tasks where smaller, highly optimized models (like Gemini 3.8 Flash, DeepSeek V3, or Llama 3.3) perform identically at 80–90% lower token cost. Simultaneously, engineering teams waste thousands of dollars each month on redundant developer seat licenses across ChatGPT Plus, Claude Pro, Cursor Pro, and GitHub Copilot.
 
 **Audex AI Frontend** provides an intuitive, high-performance web dashboard that demystifies AI spending:
 1. **Interactive Audit Wizard**: Allows teams to specify their active AI models, daily prompt volume, token ratios, and seat counts in minutes.
@@ -148,7 +148,7 @@ sequenceDiagram
     Wizard->>Cache: Cache audit report under active audit ID
     Wizard->>User: Render ResultsView (Savings: \$12,400/yr, 78% Efficiency)
 
-    User->>Chat: Open ChatDrawer ("How do I migrate to Gemini 2.5 Flash?")
+    User->>Chat: Open ChatDrawer ("How do I migrate to Gemini 3.8 Flash?")
     Chat->>ClientAPI: POST /api/chats/:auditId (User Prompt + Context)
     ClientAPI->>Backend: Query AI Auditor with audit telemetry
     Backend-->>ClientAPI: Streamed / Formatted Copilot response
