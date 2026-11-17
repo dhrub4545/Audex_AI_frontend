@@ -51,15 +51,13 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 100,
-      "topModelId": "anthropic/claude-sonnet-5-5",
-      "topModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
-      "baselineModelId": "anthropic/claude-sonnet-5-5",
-      "baselineModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+      "topModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+      "topModelName": "Claude Code - Claude Sonnet 5.5 (max)",
+      "baselineModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+      "baselineModelName": "Claude Code - Claude Sonnet 5.5 (max)",
       "baselineModels": [
-        "Claude Sonnet 5.5 (Max, Default Fallback)",
-        "Claude Sonnet 5 (Max)",
-        "Claude Sonnet 4.6 (Max)",
-        "Claude Fable 5.1 (Medium, Default Fallback)"
+        "Claude Code - Claude Sonnet 5.5 (max)",
+        "Claude Code - Claude Fable 5.2 (medium)"
       ]
     },
     {
@@ -107,11 +105,13 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Coding",
       "pricePerSeat": 14.99,
       "currentCost": 29.98,
-      "topModelId": null,
-      "topModelName": null,
-      "baselineModelId": null,
-      "baselineModelName": null,
+      "topModelId": "mistralai/mistral-vibe-mistral-large-4-high",
+      "topModelName": "Mistral Vibe - Mistral Large 4 (high)",
+      "baselineModelId": "mistralai/mistral-vibe-mistral-large-4-high",
+      "baselineModelName": "Mistral Vibe - Mistral Large 4 (high)",
       "baselineModels": [
+        "Mistral Vibe - Mistral Large 4 (high)",
+        "Mistral Vibe - Mistral Large 4 (medium)",
         "Pixtral Large"
       ]
     },
@@ -124,15 +124,15 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Research",
       "pricePerSeat": 7.99,
       "currentCost": 7.99,
-      "topModelId": "meta-llama/muse-wonder-full",
-      "topModelName": "Muse Wonder Full (Max)",
-      "baselineModelId": "meta-llama/muse-wonder-full",
-      "baselineModelName": "Muse Wonder Full (Max)",
+      "topModelId": "meta/muse-code-muse-wonder-full-max",
+      "topModelName": "Muse Code - Muse Wonder Full (max)",
+      "baselineModelId": "meta/muse-code-muse-wonder-full-max",
+      "baselineModelName": "Muse Code - Muse Wonder Full (max)",
       "baselineModels": [
         "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-        "Muse Wonder Full (Max)",
-        "Muse Wonder (Max)",
-        "Llama 3.1 Instruct 405B"
+        "Muse Code - Muse Wonder Full (max)",
+        "Muse Code - Muse Wonder (max)",
+        "Muse Wonder Full (Max)"
       ]
     },
     {
@@ -149,21 +149,21 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelId": "deepseek/deepseek-v4-flash-vision",
       "baselineModelName": "DeepSeek V4 Flash Vision (Max)",
       "baselineModels": [
+        "DeepSeek Harness - DeepSeek V4.1 Flash 1017 (max)",
         "DeepSeek V4.1 Flash (Max)",
         "DeepSeek V4.1 Flash 1017 (Max)",
         "DeepSeek V4 Flash Vision (Max)",
-        "DeepSeek V4 Pro 0813 (Max)",
-        "DeepSeek V4 Pro 0424 (Max)"
+        "DeepSeek V4 Pro 0813 (Max)"
       ]
     }
   ],
   "savings": {
-    "totalMonthly": 177.62,
-    "totalAnnual": 2131.44,
-    "totalOptimizedSpend": 165.34,
-    "percentageSavings": 51.8,
-    "apiMonthly": 181.48,
-    "apiAnnual": 2177.76,
+    "totalMonthly": 107.12,
+    "totalAnnual": 1285.44,
+    "totalOptimizedSpend": 235.84,
+    "percentageSavings": 31.2,
+    "apiMonthly": 122.48,
+    "apiAnnual": 1469.76,
     "subMonthly": 174,
     "subAnnual": 2088,
     "recommendations": [
@@ -253,18 +253,18 @@ export const SAMPLE_AUDIT_DATA = {
           "_id": "rec_api_1",
           "cost": 100,
           "savings": 0,
-          "name": "Claude Sonnet 5.5 (Max, Default Fallback)",
-          "modelId": "anthropic/claude-sonnet-5-5",
+          "name": "Claude Code - Claude Sonnet 5.5 (max)",
+          "modelId": "anthropic/claude-code-claude-sonnet-5-5-max",
           "performance_score": 91,
           "category_rank": 13,
-          "action": "Transition active users to direct API keys using Claude Sonnet 5.5 (Max, Default Fallback).",
+          "action": "Transition active users to direct API keys using Claude Code - Claude Sonnet 5.5 (max).",
           "statusText": "",
           "isAlreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $2.00/1M input, $10.00/1M output.",
           "includedModels": [
-            "Claude Sonnet 5.5 (Max, Default Fallback)"
+            "Claude Code - Claude Sonnet 5.5 (max)"
           ],
-          "recommendedModel": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "recommendedModel": "Claude Code - Claude Sonnet 5.5 (max)",
           "recommendedProvider": "Anthropic",
           "inputCostPerM": 2,
           "outputCostPerM": 10,
@@ -278,14 +278,12 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 0,
           "limits": "More usage than Free plan. Access to unlimited projects.",
           "includedModels": [
-            "Claude Sonnet 5.5 (Max, Default Fallback)",
-            "Claude Sonnet 5 (Max)",
-            "Claude Sonnet 4.6 (Max)",
-            "Claude Fable 5.1 (Medium, Default Fallback)"
+            "Claude Code - Claude Sonnet 5.5 (max)",
+            "Claude Code - Claude Fable 5.2 (medium)"
           ],
-          "modelId": "anthropic/claude-sonnet-5-5",
-          "topModelId": "anthropic/claude-sonnet-5-5",
-          "topModelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "modelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+          "topModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+          "topModelName": "Claude Code - Claude Sonnet 5.5 (max)",
           "performance_score": 91,
           "category_rank": 13,
           "action": "Your current subscription is already the best choice. Keep using it.",
@@ -303,7 +301,7 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 100,
           "modelId": "",
           "provider": "Anthropic",
-          "modelName": "Claude Sonnet 5.5 (Max, Default Fallback)",
+          "modelName": "Claude Code - Claude Sonnet 5.5 (max)",
           "performance_score": 91,
           "category_rank": 13
         }
@@ -384,55 +382,56 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $180.00/mo for API usage (12.5M tokens)",
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
-        "baselineScore": 78,
-        "baselineRank": 18,
-        "monthlySavings": 160.5,
+        "baselineScore": 88,
+        "baselineRank": 37,
+        "monthlySavings": 160,
         "isAlreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_3",
-          "cost": 19.5,
-          "savings": 160.5,
-          "name": "Kimi K2.7 Code",
-          "modelId": "kimi/kimi-k2-7-code",
-          "performance_score": 99,
-          "category_rank": 190,
-          "action": "Transition active users to direct API keys using Kimi K2.7 Code.",
+          "cost": 90,
+          "savings": 90,
+          "name": "Claude Code - Claude Opus 5.5 (max)",
+          "modelId": "anthropic/claude-code-claude-opus-5-5-max",
+          "performance_score": 97,
+          "category_rank": 2,
+          "action": "Transition active users to direct API keys using Claude Code - Claude Opus 5.5 (max).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.95/1M input, $4.00/1M output. Context: 256K.",
+          "limits": "Pay-as-you-go rates: $4.00/1M input, $20.00/1M output. Context: 1M.",
           "includedModels": [
-            "Kimi K2.7 Code"
+            "Claude Code - Claude Opus 5.5 (max)"
           ],
-          "recommendedModel": "Kimi K2.7 Code",
-          "recommendedProvider": "Kimi",
-          "inputCostPerM": 0.95,
-          "outputCostPerM": 4,
+          "recommendedModel": "Claude Code - Claude Opus 5.5 (max)",
+          "recommendedProvider": "Anthropic",
+          "inputCostPerM": 4,
+          "outputCostPerM": 20,
           "defaultInputTokens": 10000000,
           "defaultOutputTokens": 2500000
         },
         "subscriptionOption": {
           "_id": "rec_sub_3",
-          "planName": "Claude Enterprise",
+          "planName": "ChatGPT Plus",
           "cost": 20,
           "savings": 160,
-          "limits": "For large businesses operating at scale. Seat price + usage at API rates. $20/seat. Usage cost scales with model and task. Includes admin spend limits, role-based access control, SCIM, audit logs, compliance API, network-level access control, and HIPAA compliance.",
+          "limits": "Includes GPT-5.5 Thinking with 'Medium' and 'High' reasoning levels. Canvas is not available with GPT-5.5 models.",
           "includedModels": [
-            "Claude Opus 5.5 (Max, Default Fallback)",
-            "Claude Opus 5 (Max)",
-            "Claude Sonnet 5.5 (Max, Default Fallback)",
-            "Claude Fable 5.1 (Medium, Default Fallback)"
+            "GPT-6.1 Sol (Xhigh)",
+            "GPT-6 Sol (Xhigh)",
+            "GPT-6 Luna (Medium)",
+            "GPT-6 Astra (Medium)",
+            "GPT-5.6 Sol (Xhigh)"
           ],
-          "modelId": "anthropic/claude-opus-5-5",
-          "topModelId": "anthropic/claude-opus-5-5",
-          "topModelName": "Claude Opus 5.5 (Max, Default Fallback)",
-          "performance_score": 99,
-          "category_rank": 9,
-          "action": "Migrate to the Claude Enterprise subscription.",
+          "modelId": "openai/gpt-6-1-sol-xhigh",
+          "topModelId": "openai/gpt-6-1-sol-xhigh",
+          "topModelName": "GPT-6.1 Sol (Xhigh)",
+          "performance_score": 88,
+          "category_rank": 51,
+          "action": "Migrate to the ChatGPT Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
-          "recommendedModel": "Claude Enterprise",
-          "recommendedProvider": "Anthropic"
+          "recommendedModel": "ChatGPT Plus",
+          "recommendedProvider": "OpenAI"
         },
         "originalAlloc": {
           "type": "api",
@@ -444,8 +443,8 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "anthropic/claude-fable-5",
           "provider": "Anthropic",
           "modelName": "Claude Fable 5.2 (Medium, Default Fallback)",
-          "performance_score": 78,
-          "category_rank": 18
+          "performance_score": 88,
+          "category_rank": 37
         }
       },
       {
@@ -454,30 +453,30 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $29.98/mo for 2 active Coding users",
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
-        "baselineScore": 0,
-        "baselineRank": 500,
-        "monthlySavings": 14,
+        "baselineScore": 50,
+        "baselineRank": 13,
+        "monthlySavings": 25.48,
         "isAlreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_4",
-          "cost": 16,
-          "savings": 13.98,
-          "name": "Qwen3.7 Plus",
-          "modelId": "alibaba/qwen3-7-plus",
-          "performance_score": 99,
-          "category_rank": 192,
-          "action": "Transition active users to direct API keys using Qwen3.7 Plus.",
+          "cost": 4.5,
+          "savings": 25.48,
+          "name": "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High",
+          "modelId": "anthropic/devin-fusion-cli-claude-opus-5-5-max-gpt-6-luna-high",
+          "performance_score": 97,
+          "category_rank": 17,
+          "action": "Transition active users to direct API keys using Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High.",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $0.40/1M input, $1.60/1M output. Context: 1M.",
+          "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 1M.",
           "includedModels": [
-            "Qwen3.7 Plus"
+            "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High"
           ],
-          "recommendedModel": "Qwen3.7 Plus",
-          "recommendedProvider": "Alibaba",
-          "inputCostPerM": 0.4,
-          "outputCostPerM": 1.6,
+          "recommendedModel": "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High",
+          "recommendedProvider": "Anthropic",
+          "inputCostPerM": 0.1,
+          "outputCostPerM": 0.5,
           "defaultInputTokens": 20000000,
           "defaultOutputTokens": 5000000
         },
@@ -489,15 +488,15 @@ export const SAMPLE_AUDIT_DATA = {
           "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
           "includedModels": [
             "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-            "Muse Wonder Full (Max)",
-            "Muse Wonder (Max)",
-            "Llama 3.1 Instruct 405B"
+            "Muse Code - Muse Wonder Full (max)",
+            "Muse Code - Muse Wonder (max)",
+            "Muse Wonder Full (Max)"
           ],
           "modelId": "meta-llama/muse-wonder-full",
           "topModelId": "meta-llama/muse-wonder-full",
           "topModelName": "Muse Wonder Full (Max)",
           "performance_score": 84,
-          "category_rank": 21,
+          "category_rank": 54,
           "action": "Migrate to the Meta One Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
@@ -513,9 +512,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 29.98,
           "modelId": "",
           "provider": "Mistral",
-          "modelName": "Le Chat Pro",
-          "performance_score": 0,
-          "category_rank": 500
+          "modelName": "Mistral Vibe - Mistral Large 4 (high)",
+          "performance_score": 50,
+          "category_rank": 13
         }
       },
       {
@@ -533,18 +532,18 @@ export const SAMPLE_AUDIT_DATA = {
           "_id": "rec_api_5",
           "cost": 7.99,
           "savings": 0,
-          "name": "Muse Wonder Full (Max)",
-          "modelId": "meta-llama/muse-wonder-full",
+          "name": "Muse Code - Muse Wonder Full (max)",
+          "modelId": "meta/muse-code-muse-wonder-full-max",
           "performance_score": 84,
           "category_rank": 25,
-          "action": "Transition active users to direct API keys using Muse Wonder Full (Max).",
+          "action": "Transition active users to direct API keys using Muse Code - Muse Wonder Full (max).",
           "statusText": "",
           "isAlreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $0.00/1M input, $0.00/1M output.",
           "includedModels": [
-            "Muse Wonder Full (Max)"
+            "Muse Code - Muse Wonder Full (max)"
           ],
-          "recommendedModel": "Muse Wonder Full (Max)",
+          "recommendedModel": "Muse Code - Muse Wonder Full (max)",
           "recommendedProvider": "Meta",
           "inputCostPerM": 0,
           "outputCostPerM": 0,
@@ -559,13 +558,13 @@ export const SAMPLE_AUDIT_DATA = {
           "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
           "includedModels": [
             "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-            "Muse Wonder Full (Max)",
-            "Muse Wonder (Max)",
-            "Llama 3.1 Instruct 405B"
+            "Muse Code - Muse Wonder Full (max)",
+            "Muse Code - Muse Wonder (max)",
+            "Muse Wonder Full (Max)"
           ],
-          "modelId": "meta-llama/muse-wonder-full",
-          "topModelId": "meta-llama/muse-wonder-full",
-          "topModelName": "Muse Wonder Full (Max)",
+          "modelId": "meta/muse-code-muse-wonder-full-max",
+          "topModelId": "meta/muse-code-muse-wonder-full-max",
+          "topModelName": "Muse Code - Muse Wonder Full (max)",
           "performance_score": 84,
           "category_rank": 25,
           "action": "Your current subscription is already the best choice. Keep using it.",
@@ -583,7 +582,7 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 7.99,
           "modelId": "",
           "provider": "Meta",
-          "modelName": "Muse Wonder Full (Max)",
+          "modelName": "Muse Code - Muse Wonder Full (max)",
           "performance_score": 84,
           "category_rank": 25
         }
@@ -628,11 +627,11 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 0,
           "limits": "Completely free on web and app with no ads. No paid consumer plans available.",
           "includedModels": [
+            "DeepSeek Harness - DeepSeek V4.1 Flash 1017 (max)",
             "DeepSeek V4.1 Flash (Max)",
             "DeepSeek V4.1 Flash 1017 (Max)",
             "DeepSeek V4 Flash Vision (Max)",
-            "DeepSeek V4 Pro 0813 (Max)",
-            "DeepSeek V4 Pro 0424 (Max)"
+            "DeepSeek V4 Pro 0813 (Max)"
           ],
           "modelId": "deepseek/deepseek-v4-flash-vision",
           "topModelId": "deepseek/deepseek-v4-flash-vision",
