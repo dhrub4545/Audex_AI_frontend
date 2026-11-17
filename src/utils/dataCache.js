@@ -38,16 +38,27 @@ function safeSetStorage(key, data) {
  * Get raw market data with request deduplication and in-memory/session storage caching
  */
 export async function getCachedRawData(forceRefresh = false) {
+  if (forceRefresh) {
+    memoryCache.rawData = null;
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      try { window.sessionStorage.removeItem('audex_raw_data'); } catch (_) {}
+    }
+  }
+
   if (!forceRefresh && memoryCache.rawData) {
     return memoryCache.rawData;
   }
 
-  // Check storage for fast warm starts across page navigation
+  // Check storage for fast warm starts across page navigation with 10-minute TTL
   if (!forceRefresh) {
     const cached = safeGetStorage('audex_raw_data');
-    if (cached && (cached.llms || cached.sources)) {
-      memoryCache.rawData = cached;
-      return cached;
+    if (cached) {
+      const payload = cached.data || cached;
+      const isFresh = cached.savedAt ? (Date.now() - cached.savedAt < 10 * 60 * 1000) : false;
+      if (isFresh && (payload.llms || payload.sources)) {
+        memoryCache.rawData = payload;
+        return payload;
+      }
     }
   }
 
@@ -58,11 +69,14 @@ export async function getCachedRawData(forceRefresh = false) {
 
   memoryCache.promises.rawData = (async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/audits/analysis/raw-data`);
+      const url = forceRefresh 
+        ? `${API_BASE_URL}/audits/analysis/raw-data?refresh=true` 
+        : `${API_BASE_URL}/audits/analysis/raw-data`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error(`Failed to fetch raw market data: ${res.statusText}`);
       const data = await res.json();
       memoryCache.rawData = data;
-      safeSetStorage('audex_raw_data', data);
+      safeSetStorage('audex_raw_data', { data, savedAt: Date.now() });
       return data;
     } finally {
       delete memoryCache.promises.rawData;

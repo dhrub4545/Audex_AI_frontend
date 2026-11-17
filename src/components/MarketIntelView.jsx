@@ -417,6 +417,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   const [intelData, setIntelData] = useState(null);
   const [loadingIntel, setLoadingIntel] = useState(true);
   const [intelError, setIntelError] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // View states: 'rankings' (horizontal bars), 'scatter' (scatter plot), 'explorer' (database table)
   const [activeTab, setActiveTab] = useState('rankings');
@@ -424,6 +425,20 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
   // Rankings tab settings
   const [rankingIndex, setRankingIndex] = useState('quality'); // 'quality', 'coding', 'math', 'speed', 'latency'
   const [activeCategory, setActiveCategory] = useState('overall');
+  const [visibleRankingsCount, setVisibleRankingsCount] = useState(25);
+
+  const handleRefreshIntel = async () => {
+    setIsRefreshing(true);
+    try {
+      const fresh = await getCachedRawData(true);
+      if (fresh) setIntelData(fresh);
+      setIntelError(null);
+    } catch (err) {
+      setIntelError(err.message);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Scatter tab settings
   const [xAxis, setXAxis] = useState('price'); // 'price' or 'speed'
@@ -671,7 +686,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
 
   // A focused shortlist reads better than a wall of labels and avoids re-rendering
   // dozens of interactive columns whenever the user searches or filters.
-  const visibleRankings = useMemo(() => rankingsData.slice(0, 18), [rankingsData]);
+  const visibleRankings = useMemo(() => rankingsData.slice(0, visibleRankingsCount), [rankingsData, visibleRankingsCount]);
 
   // Scatter plot points
   const chartData = useMemo(() => {
@@ -1026,6 +1041,49 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
             border-radius: 20px !important;
           }
         }
+        .intel-rank-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+        }
+        .intel-rank-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: #FFFFFF;
+          border: 1px solid var(--color-border);
+          border-radius: 12px;
+          padding: 10px 14px;
+          transition: all 150ms ease;
+          width: 100%;
+          cursor: pointer;
+          text-align: left;
+        }
+        .intel-rank-row:hover, .intel-rank-row.is-hovered {
+          border-color: var(--color-green-primary);
+          background-color: #F8FAFC;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+        }
+        .intel-rank-number {
+          width: 26px;
+          height: 26px;
+          min-width: 26px;
+          border-radius: 50%;
+          font-size: 11.5px;
+          font-weight: 800;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          background: #F1F5F9;
+          color: #64748B;
+        }
+        .intel-rank-number.is-top-three {
+          background: #ECFDF5;
+          color: #059669;
+        }
       `}</style>
 
       {/* Sleek Sub-Header Navbar */}
@@ -1060,9 +1118,31 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
 
         {/* Title Block */}
         <div style={{ marginBottom: '28px' }}>
-          <span className="badge badge-green" style={{ marginBottom: '10px', display: 'inline-block' }}>
-            Live Artificial Analysis Stream
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', marginBottom: '10px' }}>
+            <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#10B981', display: 'inline-block' }}></span>
+              Live Artificial Analysis Stream
+            </span>
+            <button
+              type="button"
+              onClick={handleRefreshIntel}
+              disabled={isRefreshing}
+              className="btn btn-outline"
+              style={{
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: '700',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                borderRadius: '8px'
+              }}
+              title="Sync latest frontier models and benchmark rankings"
+            >
+              <RotateCcw size={13} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
+              {isRefreshing ? 'Syncing...' : 'Sync Latest Models'}
+            </button>
+          </div>
           <h1 className="market-intel-title" style={{ fontWeight: '850', color: '#0F172A', letterSpacing: '-0.03em', marginBottom: '8px' }}>
             LLM & AI Leaderboard
           </h1>
@@ -1282,6 +1362,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             onClick={() => {
                               setRankingIndex(opt.id);
                               setActiveCategory(null);
+                              setVisibleRankingsCount(25);
                             }}
                             style={{
                               padding: '7px 14px',
@@ -1307,7 +1388,10 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                           </span>
                           <CustomSelect
                             value={activeCategory || ''}
-                            onChange={(val) => setActiveCategory(val || null)}
+                            onChange={(val) => {
+                              setActiveCategory(val || null);
+                              setVisibleRankingsCount(25);
+                            }}
                             options={[
                               { value: '', label: '-- Standard Computed Indices --' },
                               ...Object.keys(intelData.categories).map(catKey => ({
@@ -1337,14 +1421,38 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                     <div className="intel-rank-list" role="list" aria-label={`${rankingIndex} leaderboard chart`}>
                       {visibleRankings.map((model, idx) => {
                         const rankVal = model.rank || idx + 1;
+                        const scoreDisplay = (() => {
+                          if (activeCategory === 'overall' || (!activeCategory && rankingIndex === 'quality')) {
+                            const val = model.intelligence_index ?? model.evaluations?.artificial_analysis_intelligence_index ?? model.final_score;
+                            return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
+                          }
+                          if (activeCategory === 'coding' || (!activeCategory && rankingIndex === 'coding')) {
+                            const val = model.coding_index ?? model.evaluations?.artificial_analysis_coding_index ?? model.livecodebench;
+                            return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
+                          }
+                          if (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math')) {
+                            const val = model.math_index ?? model.evaluations?.artificial_analysis_math_index ?? model.aime;
+                            return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
+                          }
+                          if (rankingIndex === 'speed' || activeCategory === 'fast') {
+                            return model.throughput ? `${Math.round(model.throughput)} t/s` : null;
+                          }
+                          if (rankingIndex === 'latency') {
+                            return model.ttft ? `${Number(model.ttft).toFixed(2)}s` : null;
+                          }
+                          if (activeCategory && model.category_scores?.[activeCategory] !== undefined) {
+                            const val = model.category_scores[activeCategory];
+                            return val !== null && val !== undefined ? (typeof val === 'number' ? val.toFixed(1) : String(val)) : null;
+                          }
+                          const fallback = model.final_score ?? model.intelligence_index;
+                          return fallback !== null && fallback !== undefined ? Number(fallback).toFixed(1) : null;
+                        })();
+
                         return (
                           <button
                             key={`${activeCategory || rankingIndex}-${model.slug}-${idx}`}
                             type="button"
                             className={`intel-rank-row ${hoveredModel?.slug === model.slug ? 'is-hovered' : ''}`}
-                            style={{
-                              gridTemplateColumns: '30px 1fr'
-                            }}
                             onClick={(e) => {
                               if (activeTooltipModel?.slug === model.slug && isTooltipVisible) {
                                 setIsTooltipVisible(false);
@@ -1384,7 +1492,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             }}
                           >
                             <span className={`intel-rank-number ${rankVal <= 3 ? 'is-top-three' : ''}`}>{rankVal}</span>
-                            <span className="intel-rank-name">
+                            <span className="intel-rank-name" style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
                               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', minWidth: 0, width: '100%' }}>
                                 <span style={{ display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
                                   <ProviderLogo provider={model.creator} size={21} />
@@ -1397,10 +1505,60 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                                 {model.creator} {model.model_name ? ` • ${model.model_name}` : ''}
                               </small>
                             </span>
+                            {scoreDisplay !== null && (
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                                <span style={{
+                                  fontSize: '12px',
+                                  fontWeight: '800',
+                                  color: rankVal <= 3 ? '#059669' : '#0F172A',
+                                  backgroundColor: rankVal <= 3 ? '#ECFDF5' : '#F1F5F9',
+                                  padding: '3px 8px',
+                                  borderRadius: '6px',
+                                  fontFamily: 'var(--font-mono, monospace)'
+                                }}>
+                                  {scoreDisplay}
+                                </span>
+                              </div>
+                            )}
                           </button>
                         );
                       })}
                     </div>
+
+                    {/* Pagination / Expand controls for Leaderboard */}
+                    {rankingsData.length > 25 && (
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #F1F5F9', flexWrap: 'wrap' }}>
+                        {visibleRankingsCount < rankingsData.length ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setVisibleRankingsCount(c => Math.min(rankingsData.length, c + 25))}
+                              className="btn btn-outline"
+                              style={{ padding: '7px 16px', fontSize: '12px', fontWeight: '750' }}
+                            >
+                              Show More ({rankingsData.length - visibleRankingsCount} remaining)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setVisibleRankingsCount(rankingsData.length)}
+                              className="btn btn-outline"
+                              style={{ padding: '7px 16px', fontSize: '12px', fontWeight: '750' }}
+                            >
+                              Show All ({rankingsData.length})
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setVisibleRankingsCount(25)}
+                            className="btn btn-outline"
+                            style={{ padding: '7px 16px', fontSize: '12px', fontWeight: '750' }}
+                          >
+                            Show Top 25
+                          </button>
+                        )}
+                      </div>
+                    )}
                     {/* Details tooltip block at hover position / mobile bottom sheet */}
                     {activeTooltipModel && (
                       <div
