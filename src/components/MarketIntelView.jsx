@@ -176,7 +176,7 @@ export function ProviderLogo({ provider, size = 20 }) {
 
 function formatCategoryName(key) {
   if (!key) return '';
-  if (key === 'overall') return 'Overall Index';
+  if (key === 'overall') return 'Intelligence Index';
   if (key === 'coding') return 'Coding Index';
   if (key === 'math') return 'Math Index';
   if (key === 'exclude-ties') return 'Exclude Ties';
@@ -1351,7 +1351,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                     <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', justifyContent: 'space-between' }}>
                       <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                         {[
-                          { id: 'quality', label: 'Overall Quality' },
+                          { id: 'quality', label: 'Intelligence Index' },
                           { id: 'coding', label: 'Coding Index' },
                           { id: 'math', label: 'Math Index' },
                           { id: 'speed', label: 'Throughput (Speed)' },
@@ -1409,7 +1409,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                       <h4 style={{ fontSize: '15.5px', fontWeight: '800', margin: 0 }}>
                         {activeCategory
                           ? `${formatCategoryName(activeCategory)} Leaderboard`
-                          : `${rankingIndex.charAt(0).toUpperCase() + rankingIndex.slice(1)} Index Leaderboard`
+                          : (rankingIndex === 'quality' ? 'Intelligence Index Leaderboard' : `${rankingIndex.charAt(0).toUpperCase() + rankingIndex.slice(1)} Index Leaderboard`)
                         }
                       </h4>
                       <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)' }}>
@@ -1423,7 +1423,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                         const rankVal = model.rank || idx + 1;
                         const scoreDisplay = (() => {
                           if (activeCategory === 'overall' || (!activeCategory && rankingIndex === 'quality')) {
-                            const val = model.intelligence_index ?? model.evaluations?.artificial_analysis_intelligence_index ?? model.final_score;
+                            const val = model.intelligence_index ?? model.evaluations?.artificial_analysis_intelligence_index ?? model.category_scores?.overall;
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'coding' || (!activeCategory && rankingIndex === 'coding')) {

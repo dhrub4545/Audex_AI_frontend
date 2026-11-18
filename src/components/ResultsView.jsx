@@ -1957,7 +1957,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   { label: 'Cost per 1M Input Tokens', cur: `$${(baseline.inputCost || 0).toFixed(2)}`, opt: `$${(recommended.inputCost || 0).toFixed(2)}`, type: 'cost' },
                   { label: 'Cost per 1M Output Tokens', cur: `$${(baseline.outputCost || 0).toFixed(2)}`, opt: `$${(recommended.outputCost || 0).toFixed(2)}`, type: 'cost' },
                   { label: 'Blended Cost (3:1)', cur: `$${(baselineScores.blendedCost || 0).toFixed(2)}`, opt: `$${(recommendedScores.blendedCost || 0).toFixed(2)}`, type: 'cost' },
-                  { label: 'Quality Score (Audex)', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
+                  { label: 'Intelligence Index', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
                   { label: 'Average Latency', cur: `${(baseline.ttft || 1.20).toFixed(2)}s`, opt: `${(recommended.ttft || 0.78).toFixed(2)}s`, type: 'latency' },
                   { label: 'Context Window', cur: formatContextWindow(baselineScores.context_length), opt: formatContextWindow(recommendedScores.context_length), type: 'context' },
                   { label: 'Uptime (30 Days)', cur: '99.52%', opt: '99.71%', type: 'uptime' }

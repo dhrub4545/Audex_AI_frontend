@@ -134,7 +134,7 @@ const POPULAR_MODELS = [
 
 function _formatCategoryName(key) {
   if (!key) return '';
-  if (key === 'overall') return 'Overall Index';
+  if (key === 'overall') return 'Intelligence Index';
   if (key === 'coding') return 'Coding Index';
   if (key === 'math') return 'Math Index';
   if (key === 'exclude-ties') return 'Exclude Ties';
