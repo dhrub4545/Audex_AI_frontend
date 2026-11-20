@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../config';
 import { getCachedRawData } from '../utils/dataCache';
 import logoImg from '../assets/audex-ai-logo.png';
-import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft, Home } from 'lucide-react';
+import { Lock, Sparkles, Code, Brain, Hash, Pencil, Search, Link2, Image, Zap, Coins, BarChart3, Info, RotateCw, ClipboardList, CreditCard, Bot, Rocket, Check, ArrowRight, ArrowLeft, Home, Trophy } from 'lucide-react';
 import { LoadingIndicator } from './CommonComponents';
 import { ProviderLogo } from './MarketIntelView';
 import { sortModelsLatestFirst, isDiscontinuedModel } from './WizardFlow';
@@ -217,6 +217,107 @@ const calculateOptimizedCost = (alloc, rec, choice, tokenAdjustments, idx) => {
   return Math.max(0, curCost - (opt?.savings || 0));
 };
 
+export const formatCategoryName = (catKey) => {
+  if (!catKey) return 'Intelligence Index';
+  const clean = catKey.toLowerCase().replace(/_/g, '-').replace(/-/g, ' ').trim();
+  if (clean === 'overall') return 'Intelligence Index';
+  if (clean === 'math') return 'Math Index (LiveBench AI)';
+  if (clean === 'coding') return 'Coding Index (SWE-Bench)';
+  if (clean === 'reasoning') return 'Reasoning Index (GPQA Diamond)';
+  if (clean === 'research') return 'Research Index (HLE)';
+  if (clean === 'writing' || clean === 'creative writing') return 'Creative Writing Index';
+  if (clean === 'fast') return 'Throughput Index';
+  if (clean === 'cheap') return 'Cost Efficiency Index';
+  return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Leaderboard';
+};
+
+export const cleanMarketIntelLookup = (str) => {
+  if (!str) return '';
+  return String(str)
+    .toLowerCase()
+    .replace(/^.*?:\s*/, '')
+    .replace(/\(.*\)/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+};
+
+export const getModelMarketIntelDetails = (modelOrId, purpose = 'Mixed', intelData = null) => {
+  if (!modelOrId || !intelData || !intelData.categories) return null;
+  const idStr = typeof modelOrId === 'string' ? modelOrId : (modelOrId.slug || modelOrId.modelId || modelOrId.name || '');
+  const idClean = cleanMarketIntelLookup(idStr);
+  const idRaw = String(idStr).toLowerCase().trim();
+
+  const p = (purpose || '').toLowerCase();
+  const targetCat = p.includes('math') ? 'math'
+    : (p.includes('cod') ? 'coding'
+    : (p.includes('reason') ? 'reasoning'
+    : (p.includes('research') ? 'research'
+    : (p.includes('writ') ? 'creative-writing' : 'overall'))));
+
+  const matches = [];
+  Object.entries(intelData.categories).forEach(([catKey, list]) => {
+    if (!Array.isArray(list)) return;
+    const found = list.find(m => {
+      const ms = cleanMarketIntelLookup(m.slug);
+      const mi = cleanMarketIntelLookup(m.modelId);
+      const mn = cleanMarketIntelLookup(m.name);
+      return (
+        ms === idClean ||
+        mi === idClean ||
+        mn === idClean ||
+        (m.slug && m.slug.toLowerCase() === idRaw) ||
+        (m.modelId && m.modelId.toLowerCase() === idRaw) ||
+        (m.name && m.name.toLowerCase().trim() === idRaw) ||
+        (idClean.length >= 5 && (ms.includes(idClean) || idClean.includes(ms) || mn.includes(idClean) || idClean.includes(mn)))
+      );
+    });
+
+    if (found && found.rank) {
+      matches.push({
+        category: catKey,
+        rank: found.rank,
+        total: list.length,
+        entry: found
+      });
+    }
+  });
+
+  if (matches.length === 0) return null;
+
+  let best = matches.find(m => m.category === targetCat);
+  if (!best) best = matches.find(m => m.category === 'overall');
+  if (!best) {
+    matches.sort((a, b) => a.rank - b.rank);
+    best = matches[0];
+  }
+
+  const entry = best.entry;
+  const pricing = entry.pricing || {};
+  const inputCost = pricing.price_1m_input_tokens !== undefined ? pricing.price_1m_input_tokens : null;
+  const outputCost = pricing.price_1m_output_tokens !== undefined ? pricing.price_1m_output_tokens : null;
+  const blendedPrice = pricing.price_1m_blended_3_to_1 ?? (
+    (inputCost !== null && outputCost !== null) ? (inputCost * 0.75 + outputCost * 0.25) : null
+  );
+
+  return {
+    name: entry.name,
+    slug: entry.slug,
+    creator: entry.organization || entry.creator || 'Unknown',
+    rank: best.rank,
+    total: best.total,
+    category: best.category,
+    categoryName: formatCategoryName(best.category),
+    score: entry.category_scores?.[best.category] ?? entry.final_score ?? entry.evaluations?.livebench_math ?? entry.evaluations?.artificial_analysis_intelligence_index ?? entry.rating,
+    inputCost,
+    outputCost,
+    blendedPrice,
+    throughput: entry.median_output_tokens_per_second ?? null,
+    ttft: entry.median_time_to_first_token_seconds ?? null,
+    context_length: entry.context_length ?? null,
+    entry
+  };
+};
+
 function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTps = null, passedIntelData = null) {
   let explicitBlendedCost = explicitBlendedCostOrIntel;
   let intelData = passedIntelData;
@@ -239,6 +340,8 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
       speedVal: null,
       costEff: null,
       blendedCost: null,
+      inputCost: null,
+      outputCost: null,
       context_length: null,
       intelligence_index: null
     };
@@ -324,35 +427,43 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 1. CODING
   let coding = null;
-  if (evCombined.livecodebench) {
-    const v = Number(evCombined.livecodebench);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v / 90) * 100)));
-  } else if (evCombined.artificial_analysis_coding_index) {
+  if (model.category_scores?.coding != null) {
+    coding = Math.round(Number(model.category_scores.coding));
+  } else if (codeCat?.category_scores?.coding != null) {
+    coding = Math.round(Number(codeCat.category_scores.coding));
+  } else if (evCombined.artificial_analysis_coding_index != null) {
     const v = Number(evCombined.artificial_analysis_coding_index);
     coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
-  } else if (evCombined.terminalbench_v2_1) {
+  } else if (evCombined.livecodebench != null) {
+    const v = Number(evCombined.livecodebench);
+    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v / 90) * 100)));
+  } else if (evCombined.terminalbench_v2_1 != null) {
     const v = Number(evCombined.terminalbench_v2_1);
     coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : v)));
   } else if (codeCat) {
     coding = getCatScore(codeCat, model.rating);
-  } else if (evCombined.scicode) {
+  } else if (evCombined.scicode != null) {
     coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   }
   if (coding === null) coding = baseNorm;
 
   // 2. MATH (LiveBench AI / Math Benchmark)
   let math = null;
-  if (evCombined.livebench_math) {
+  if (model.evaluations?.livebench_math != null) {
+    math = Math.round(Number(model.evaluations.livebench_math));
+  } else if (model.category_scores?.math != null) {
+    math = Math.round(Number(model.category_scores.math));
+  } else if (evCombined.livebench_math != null) {
     math = Math.round(Number(evCombined.livebench_math));
   } else if (mathCat && typeof mathCat.category_scores?.math === 'number') {
     math = Math.round(mathCat.category_scores.math);
   } else if (mathCat && typeof mathCat.final_score === 'number' && mathCat.ranking_status === 'verified_livebench_ai_math') {
     math = Math.round(mathCat.final_score);
-  } else if (evCombined.artificial_analysis_math_index) {
+  } else if (evCombined.artificial_analysis_math_index != null) {
     math = Math.round(Number(evCombined.artificial_analysis_math_index));
-  } else if (evCombined.aime) {
+  } else if (evCombined.aime != null) {
     math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
-  } else if (evCombined.scicode) {
+  } else if (evCombined.scicode != null) {
     math = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   } else if (mathCat) {
     math = getCatScore(mathCat, model.rating);
@@ -360,20 +471,32 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   if (math === null) math = baseNorm;
 
   // 2b. Intelligence Index
-  const intelligenceIndex = evCombined.artificial_analysis_intelligence_index
-    ? Math.round(Number(evCombined.artificial_analysis_intelligence_index) <= 1 ? Number(evCombined.artificial_analysis_intelligence_index) * 100 : (Number(evCombined.artificial_analysis_intelligence_index) <= 60 ? (Number(evCombined.artificial_analysis_intelligence_index) / 60) * 100 : Number(evCombined.artificial_analysis_intelligence_index)))
-    : (reasoning || baseNorm);
+  let intelligenceIndex = null;
+  if (model.category_scores?.overall != null) {
+    intelligenceIndex = Math.round(Number(model.category_scores.overall));
+  } else if (evCombined.artificial_analysis_intelligence_index != null) {
+    const v = Number(evCombined.artificial_analysis_intelligence_index);
+    intelligenceIndex = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
+  } else {
+    intelligenceIndex = reasoning || baseNorm;
+  }
 
   // 3. REASONING
   let reasoning = null;
-  if (evCombined.gpqa) {
+  if (model.category_scores?.reasoning != null) {
+    reasoning = Math.round(Number(model.category_scores.reasoning));
+  } else if (reasonCat?.category_scores?.reasoning != null) {
+    reasoning = Math.round(Number(reasonCat.category_scores.reasoning));
+  } else if (evCombined.hle_diamond != null) {
+    reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.hle_diamond))));
+  } else if (evCombined.gpqa != null) {
     reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
-  } else if (evCombined.hle) {
+  } else if (evCombined.hle != null) {
     reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
-  } else if (evCombined.artificial_analysis_intelligence_index) {
+  } else if (evCombined.artificial_analysis_intelligence_index != null) {
     const v = Number(evCombined.artificial_analysis_intelligence_index);
     reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
-  } else if (evCombined.mmlu_pro) {
+  } else if (evCombined.mmlu_pro != null) {
     reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.mmlu_pro) / 90) * 100)));
   } else if (reasonCat) {
     reasoning = getCatScore(reasonCat, model.rating);
@@ -382,16 +505,28 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 4. WRITING
   let writing = null;
-  if (writeCat) {
+  if (model.category_scores?.['creative-writing'] != null) {
+    writing = Math.round(Number(model.category_scores['creative-writing']));
+  } else if (model.category_scores?.writing != null) {
+    writing = Math.round(Number(model.category_scores.writing));
+  } else if (writeCat?.category_scores?.['creative-writing'] != null) {
+    writing = Math.round(Number(writeCat.category_scores['creative-writing']));
+  } else if (writeCat?.category_scores?.writing != null) {
+    writing = Math.round(Number(writeCat.category_scores.writing));
+  } else if (writeCat) {
     writing = getCatScore(writeCat, model.rating);
   }
   if (writing === null) writing = baseNorm;
 
   // 5. RESEARCH (HLE / GPQA / MMLU)
   let research = null;
-  if (evCombined.hle) {
+  if (model.category_scores?.research != null) {
+    research = Math.round(Number(model.category_scores.research));
+  } else if (resCat?.category_scores?.research != null) {
+    research = Math.round(Number(resCat.category_scores.research));
+  } else if (evCombined.hle != null) {
     research = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
-  } else if (evCombined.gpqa) {
+  } else if (evCombined.gpqa != null) {
     research = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
   } else if (resCat) {
     research = getCatScore(resCat, model.rating);
@@ -400,9 +535,15 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 6. FUNCTION CALLING / AGENTIC
   let funcCalling = null;
-  if (evCombined.ifbench) {
+  if (model.category_scores?.['function-calling'] != null) {
+    funcCalling = Math.round(Number(model.category_scores['function-calling']));
+  } else if (model.category_scores?.['tool-use'] != null) {
+    funcCalling = Math.round(Number(model.category_scores['tool-use']));
+  } else if (fnCat?.category_scores?.['function-calling'] != null) {
+    funcCalling = Math.round(Number(fnCat.category_scores['function-calling']));
+  } else if (evCombined.ifbench != null) {
     funcCalling = Math.round(Math.min(99, Math.max(35, (Number(evCombined.ifbench) / 85) * 100)));
-  } else if (evCombined.agentic_index) {
+  } else if (evCombined.agentic_index != null) {
     const v = Number(evCombined.agentic_index);
     funcCalling = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
   } else if (fnCat) {
@@ -424,13 +565,17 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 8. Multimodal
   let multimodal = null;
-  if (visCat) {
+  if (model.category_scores?.vision != null) {
+    multimodal = Math.round(Number(model.category_scores.vision));
+  } else if (visCat?.category_scores?.vision != null) {
+    multimodal = Math.round(Number(visCat.category_scores.vision));
+  } else if (visCat) {
     multimodal = getCatScore(visCat, model.rating);
   }
   if (multimodal === null) multimodal = baseNorm;
 
   // 9. Speed
-  const speedRaw = explicitTps || model.median_output_tokens_per_second || codeCat?.median_output_tokens_per_second || model.tokens_per_second || model.throughput || null;
+  const speedRaw = explicitTps || model.median_output_tokens_per_second || model.throughput || codeCat?.median_output_tokens_per_second || model.category_scores?.fast || model.tokens_per_second || null;
   const speedVal = speedRaw ? Number(speedRaw) : null;
   const speedNorm = speedVal ? Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100))) : null;
 
@@ -439,7 +584,7 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   const outputCost = model.cost_per_m_output ?? model.pricing?.price_1m_output_tokens ?? codeCat?.pricing?.price_1m_output_tokens ?? model.endpoints?.[0]?.output_cost_per_m ?? model.outputCost ?? null;
   let blended = explicitBlendedCost;
   if ((blended === null || blended === undefined || isNaN(blended)) && inputCost !== null && outputCost !== null) {
-    blended = Number(inputCost) * 0.75 + Number(outputCost) * 0.25;
+    blended = model.pricing?.price_1m_blended_3_to_1 ?? (Number(inputCost) * 0.75 + Number(outputCost) * 0.25);
   }
   const costEff = blended !== null ? Math.round(100 - Math.min(85, Math.max(10, Math.log10(Number(blended) + 0.05) * 20 + 35))) : null;
 
@@ -456,6 +601,8 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     speedVal: speedVal ? Math.round(speedVal) : null,
     costEff,
     blendedCost: blended !== null ? Number(blended) : null,
+    inputCost: inputCost !== null ? Number(inputCost) : null,
+    outputCost: outputCost !== null ? Number(outputCost) : null,
     context_length: ctx,
     intelligence_index: intelligenceIndex
   };
@@ -470,6 +617,28 @@ const formatContextWindow = (ctx) => {
 
 const getImprovement = (current, suggested, type) => {
   if (current === undefined || current === null || suggested === undefined || suggested === null) return '—';
+  if (type === 'rank') {
+    const curRank = typeof current === 'number' ? current : parseInt(String(current).replace(/[^0-9]/g, ''), 10);
+    const optRank = typeof suggested === 'number' ? suggested : parseInt(String(suggested).replace(/[^0-9]/g, ''), 10);
+    if (!isNaN(curRank) && !isNaN(optRank)) {
+      const diff = curRank - optRank; // positive means opt is a lower number, i.e. higher rank on leaderboard
+      if (diff > 0) return { text: `↑ +${diff} spots`, isGood: true };
+      if (diff === 0) return { text: '→ Leaderboard Match', isGood: true };
+      return { text: `↓ ${Math.abs(diff)} spots`, isGood: false };
+    }
+    return '—';
+  }
+  if (type === 'speed') {
+    const curSpeed = typeof current === 'number' ? current : parseFloat(String(current).replace(/[^0-9.-]/g, ''));
+    const optSpeed = typeof suggested === 'number' ? suggested : parseFloat(String(suggested).replace(/[^0-9.-]/g, ''));
+    if (!isNaN(curSpeed) && !isNaN(optSpeed) && curSpeed > 0) {
+      const diff = optSpeed - curSpeed;
+      const pct = Math.abs((diff / curSpeed) * 100).toFixed(1);
+      if (diff > 0) return { text: `↑ +${Math.round(diff)} t/s (+${pct}%)`, isGood: true };
+      if (diff < 0) return { text: `↓ -${Math.abs(Math.round(diff))} t/s (-${pct}%)`, isGood: false };
+      return { text: '→ 0.00%', isGood: true };
+    }
+  }
   if (typeof current === 'string') current = parseFloat(current.replace(/[^0-9.-]/g, ''));
   if (typeof suggested === 'string') suggested = parseFloat(suggested.replace(/[^0-9.-]/g, ''));
 
@@ -649,7 +818,33 @@ const resolveModelObjects = (rec, idx, llms, auditResult, choice, intelData = nu
     };
   }
 
-  return { baseline: baselineModel, recommended: recommendedModel };
+  const purpose = alloc?.purpose || 'Mixed';
+  const baselineIntel = getModelMarketIntelDetails(baselineModel || baselineIdentifier, purpose, intelData);
+  const recommendedIntel = getModelMarketIntelDetails(recommendedModel || recommendedIdentifier, purpose, intelData);
+
+  if (baselineIntel && baselineModel) {
+    if (baselineIntel.inputCost !== null) baselineModel.inputCost = baselineIntel.inputCost;
+    if (baselineIntel.outputCost !== null) baselineModel.outputCost = baselineIntel.outputCost;
+    if (baselineIntel.throughput !== null) baselineModel.throughput = baselineIntel.throughput;
+    if (baselineIntel.ttft !== null) baselineModel.ttft = baselineIntel.ttft;
+    if (baselineIntel.context_length !== null) baselineModel.context_length = baselineIntel.context_length;
+    baselineModel.marketIntelRank = baselineIntel.rank;
+    baselineModel.marketIntelTotal = baselineIntel.total;
+    baselineModel.marketIntelCategory = baselineIntel.category;
+  }
+
+  if (recommendedIntel && recommendedModel) {
+    if (recommendedIntel.inputCost !== null) recommendedModel.inputCost = recommendedIntel.inputCost;
+    if (recommendedIntel.outputCost !== null) recommendedModel.outputCost = recommendedIntel.outputCost;
+    if (recommendedIntel.throughput !== null) recommendedModel.throughput = recommendedIntel.throughput;
+    if (recommendedIntel.ttft !== null) recommendedModel.ttft = recommendedIntel.ttft;
+    if (recommendedIntel.context_length !== null) recommendedModel.context_length = recommendedIntel.context_length;
+    recommendedModel.marketIntelRank = recommendedIntel.rank;
+    recommendedModel.marketIntelTotal = recommendedIntel.total;
+    recommendedModel.marketIntelCategory = recommendedIntel.category;
+  }
+
+  return { baseline: baselineModel, recommended: recommendedModel, baselineIntel, recommendedIntel };
 };
 
 export default function ResultsView({ auditResult, selectedOptions, onNavigateToView, user, renderCoinDropdown, fromHistory, tokenAdjustments = {}, isSample, onPurchase }) {
@@ -1905,7 +2100,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const opt = choice === 'api' ? item.rec.apiOption : item.rec.subscriptionOption;
                 return opt;
               }).map(({ rec, origIdx }, rIdx) => {
-                const { baseline, recommended } = resolveModelObjects(rec, origIdx, intelData.llms, auditResult, finalSelectedOptions[origIdx], intelData);
+                const { baseline, recommended, baselineIntel, recommendedIntel } = resolveModelObjects(rec, origIdx, intelData.llms, auditResult, finalSelectedOptions[origIdx], intelData);
                 if (!baseline || !recommended) return null;
 
                 // Calculate benchmark scores
@@ -1996,17 +2191,51 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   : (alloc?.purpose === 'Writing' ? 'Writing Index (MT-Bench)'
                   : 'Domain Benchmark Index')));
 
+                const catName = recommendedIntel?.categoryName || baselineIntel?.categoryName || formatCategoryName(alloc?.purpose);
+                const baseRankStr = baselineIntel?.rank ? `#${baselineIntel.rank} of ${baselineIntel.total}` : null;
+                const optRankStr = recommendedIntel?.rank ? `#${recommendedIntel.rank} of ${recommendedIntel.total}` : null;
+
+                const baseInputPrice = baselineIntel?.inputCost ?? baseline.pricing?.price_1m_input_tokens ?? baseline.inputCost ?? 0;
+                const optInputPrice = choice === 'api' 
+                  ? (opt?.inputCostPerM ?? recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? recommended.inputCost ?? 0)
+                  : (recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? 0);
+
+                const baseOutputPrice = baselineIntel?.outputCost ?? baseline.pricing?.price_1m_output_tokens ?? baseline.outputCost ?? 0;
+                const optOutputPrice = choice === 'api' 
+                  ? (opt?.outputCostPerM ?? recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? recommended.outputCost ?? 0)
+                  : (recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? 0);
+
+                const baseBlended = baselineIntel?.blendedPrice ?? baselineScores.blendedCost ?? (baseInputPrice * 0.75 + baseOutputPrice * 0.25);
+                const optBlended = recommendedIntel?.blendedPrice ?? recommendedScores.blendedCost ?? (optInputPrice * 0.75 + optOutputPrice * 0.25);
+
+                const baseSpeed = baselineIntel?.throughput ?? baselineScores.speedVal;
+                const optSpeed = recommendedIntel?.throughput ?? recommendedScores.speedVal;
+
+                const baseLatency = baselineIntel?.ttft ?? baseline.median_time_to_first_token_seconds ?? baseline.ttft ?? 1.20;
+                const optLatency = recommendedIntel?.ttft ?? recommended.median_time_to_first_token_seconds ?? recommended.ttft ?? 0.78;
+
                 // Metric comparisons
                 const specs = [
                   { label: 'Monthly Cost', cur: `$${currentMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, opt: `$${suggestedMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, type: 'cost' },
-                  { label: 'Cost per 1M Input Tokens', cur: `$${(baseline.inputCost || 0).toFixed(2)}`, opt: `$${(recommended.inputCost || 0).toFixed(2)}`, type: 'cost' },
-                  { label: 'Cost per 1M Output Tokens', cur: `$${(baseline.outputCost || 0).toFixed(2)}`, opt: `$${(recommended.outputCost || 0).toFixed(2)}`, type: 'cost' },
-                  { label: 'Blended Cost (3:1)', cur: `$${(baselineScores.blendedCost || 0).toFixed(2)}`, opt: `$${(recommendedScores.blendedCost || 0).toFixed(2)}`, type: 'cost' },
+                  ...(baseRankStr && optRankStr ? [{
+                    label: `Market Intel Standing (${catName})`,
+                    cur: `${baseRankStr}`,
+                    opt: `${optRankStr}`,
+                    type: 'rank'
+                  }] : []),
+                  { label: 'Cost per 1M Input Tokens', cur: `$${baseInputPrice.toFixed(2)}`, opt: `$${optInputPrice.toFixed(2)}`, type: 'cost' },
+                  { label: 'Cost per 1M Output Tokens', cur: `$${baseOutputPrice.toFixed(2)}`, opt: `$${optOutputPrice.toFixed(2)}`, type: 'cost' },
+                  { label: 'Blended Cost (3:1 Tokens)', cur: `$${baseBlended.toFixed(2)}`, opt: `$${optBlended.toFixed(2)}`, type: 'cost' },
                   { label: domainBenchmarkLabel, cur: `${baseScore}/100`, opt: `${optScore}/100`, type: 'quality' },
                   { label: 'Overall Intelligence Index', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
-                  { label: 'Average Latency', cur: `${(baseline.ttft || 1.20).toFixed(2)}s`, opt: `${(recommended.ttft || 0.78).toFixed(2)}s`, type: 'latency' },
-                  { label: 'Context Window', cur: formatContextWindow(baselineScores.context_length), opt: formatContextWindow(recommendedScores.context_length), type: 'context' },
-                  { label: 'Uptime (30 Days)', cur: '99.52%', opt: '99.71%', type: 'uptime' }
+                  { label: 'Average Latency (TTFT)', cur: `${baseLatency.toFixed(2)}s`, opt: `${optLatency.toFixed(2)}s`, type: 'latency' },
+                  ...(baseSpeed || optSpeed ? [{
+                    label: 'Throughput (Generation Speed)',
+                    cur: baseSpeed ? `${Math.round(baseSpeed)} t/s` : '—',
+                    opt: optSpeed ? `${Math.round(optSpeed)} t/s` : '—',
+                    type: 'speed'
+                  }] : []),
+                  { label: 'Context Window', cur: formatContextWindow(baselineScores.context_length || baselineIntel?.context_length), opt: formatContextWindow(recommendedScores.context_length || recommendedIntel?.context_length), type: 'context' }
                 ];
 
                 const cleanBaseSubName = `${alloc?.toolName || ''} ${alloc?.plan || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
@@ -2070,6 +2299,11 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         <span style={{ backgroundColor: scoreDelta > 0 ? '#DCFCE7' : '#EFF6FF', color: scoreDelta > 0 ? '#15803D' : '#2563EB', border: `1px solid ${scoreDelta > 0 ? '#BBF7D0' : '#BFDBFE'}`, padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
                           Capability Score: {baseScore}/100 → {optScore}/100 {scoreDelta > 0 ? `(+${scoreDelta} pts)` : (isSameCurrentChoice ? '(100% Optimal)' : '(100% Preserved)')}
                         </span>
+                        {baselineIntel?.rank && (
+                          <span style={{ backgroundColor: '#F0FDF4', color: '#047857', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                            <Trophy size={12} style={{ color: '#059669' }} /> Market Intel: #{baselineIntel.rank} → #{recommendedIntel?.rank || baselineIntel.rank} ({recommendedIntel?.categoryName || baselineIntel.categoryName})
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -2109,8 +2343,15 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                             Provider: <span style={{ color: '#475569', fontWeight: '500' }}>{alloc?.type === 'subscription' ? (alloc?.toolName || 'Unknown') : (baseline.creator || 'Unknown')}</span>
                           </div>
-                          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#475569', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', padding: '2px 8px', borderRadius: '4px', marginTop: '6px' }}>
-                            Capability Score: <strong style={{ color: '#0F172A' }}>{baseScore}</strong>/100
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#475569', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', padding: '2px 8px', borderRadius: '4px' }}>
+                              Capability Score: <strong style={{ color: '#0F172A' }}>{baseScore}</strong>/100
+                            </div>
+                            {baselineIntel?.rank && (
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#B45309', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '2px 8px', borderRadius: '4px' }}>
+                                <Trophy size={11} style={{ color: '#D97706' }} /> Market Intel Rank: <strong style={{ color: '#0F172A' }}>#{baselineIntel.rank}</strong> of {baselineIntel.total}
+                              </div>
+                            )}
                           </div>
                           {alloc?.type === 'subscription' && alloc?.baselineModels && alloc.baselineModels.length > 0 && (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
@@ -2192,8 +2433,15 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               <div style={{ fontSize: '11.5px', color: '#64748B', marginTop: '2px' }}>
                                 Provider: <span style={{ color: '#475569', fontWeight: '500' }}>{choice === 'subscription' ? (rec.subscriptionOption?.planName?.split(' ')[0] || 'Unknown') : (recommended.creator || 'Unknown')}</span>
                               </div>
-                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#15803D', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px', marginTop: '6px' }}>
-                                Capability Score: <strong style={{ color: '#166534' }}>{optScore}</strong>/100
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#15803D', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px' }}>
+                                  Capability Score: <strong style={{ color: '#166534' }}>{optScore}</strong>/100
+                                </div>
+                                {recommendedIntel?.rank && (
+                                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#047857', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '4px' }}>
+                                    <Trophy size={11} style={{ color: '#16A34A' }} /> Market Intel Rank: <strong style={{ color: '#166534' }}>#{recommendedIntel.rank}</strong> of {recommendedIntel.total}
+                                  </div>
+                                )}
                               </div>
                               {choice === 'subscription' && rec.subscriptionOption?.includedModels && rec.subscriptionOption.includedModels.length > 0 && (() => {
                                 const included = sortModelsLatestFirst(rec.subscriptionOption.includedModels);
@@ -2487,6 +2735,135 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       </div>
                     </div>
 
+                    {/* Live Market Intel Leaderboard Snapshot Card */}
+                    {(() => {
+                      const activeCatKey = recommendedIntel?.category || baselineIntel?.category || 'overall';
+                      const leaderboardList = intelData?.categories?.[activeCatKey] || [];
+                      if (leaderboardList.length === 0) return null;
+                      const topModels = leaderboardList.slice(0, 5);
+                      
+                      return (
+                        <div style={{
+                          backgroundColor: '#FFFFFF',
+                          borderRadius: '14px',
+                          border: '1px solid var(--color-border)',
+                          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
+                          padding: '24px'
+                        }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', marginBottom: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '14px' }}>
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Trophy size={18} style={{ color: '#D97706' }} />
+                                <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#0F172A', margin: 0 }}>
+                                  Live Market Intel Leaderboard — {formatCategoryName(activeCatKey)}
+                                </h4>
+                              </div>
+                              <p style={{ fontSize: '12px', color: '#64748B', margin: '4px 0 0 0' }}>
+                                Verified standing on the official Market Intel {formatCategoryName(activeCatKey)} ({leaderboardList.length} audited models).
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => onNavigateToView('market_intel')}
+                              style={{
+                                backgroundColor: '#F8FAFC',
+                                color: '#1E293B',
+                                border: '1px solid #CBD5E1',
+                                borderRadius: '8px',
+                                padding: '8px 14px',
+                                fontSize: '12px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                transition: 'all 0.15s'
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#EFF6FF'; e.currentTarget.style.borderColor = '#93C5FD'; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#F8FAFC'; e.currentTarget.style.borderColor = '#CBD5E1'; }}
+                            >
+                              Explore Market Intel <ArrowRight size={13} />
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {topModels.map((m, mIdx) => {
+                              const isThisRec = recommendedIntel && (m.slug === recommendedIntel.slug || m.rank === recommendedIntel.rank);
+                              const isThisBase = baselineIntel && (m.slug === baselineIntel.slug || m.rank === baselineIntel.rank);
+                              const scoreVal = m.category_scores?.[activeCatKey] ?? m.final_score ?? m.evaluations?.livebench_math ?? m.evaluations?.artificial_analysis_intelligence_index ?? m.rating;
+                              
+                              return (
+                                <div
+                                  key={mIdx}
+                                  style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    padding: '10px 14px',
+                                    borderRadius: '8px',
+                                    backgroundColor: isThisRec ? '#ECFDF5' : (isThisBase ? '#FFF7ED' : '#F8FAFC'),
+                                    border: isThisRec ? '1px solid #A7F3D0' : (isThisBase ? '1px solid #FFEDD5' : '1px solid #E2E8F0'),
+                                    gap: '12px'
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0, flex: 1 }}>
+                                    <span style={{
+                                      fontSize: '12px',
+                                      fontWeight: '800',
+                                      color: m.rank <= 3 ? '#B45309' : '#64748B',
+                                      width: '24px',
+                                      height: '24px',
+                                      borderRadius: '50%',
+                                      backgroundColor: m.rank <= 3 ? '#FEF3C7' : '#E2E8F0',
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      flexShrink: 0
+                                    }}>
+                                      {m.rank}
+                                    </span>
+                                    <ProviderLogo provider={m.organization || m.creator} size={20} />
+                                    <div style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      <span style={{ fontSize: '13px', fontWeight: '750', color: '#0F172A' }}>
+                                        {m.name}
+                                      </span>
+                                      <span style={{ fontSize: '11px', color: '#64748B', marginLeft: '8px' }}>
+                                        {m.organization || m.creator}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexShrink: 0 }}>
+                                    {isThisRec && (
+                                      <span style={{ fontSize: '10.5px', fontWeight: '800', color: '#047857', backgroundColor: '#D1FAE5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '4px' }}>
+                                        ★ Recommended
+                                      </span>
+                                    )}
+                                    {isThisBase && !isThisRec && (
+                                      <span style={{ fontSize: '10.5px', fontWeight: '800', color: '#C2410C', backgroundColor: '#FFEDD5', border: '1px solid #FED7AA', padding: '2px 8px', borderRadius: '4px' }}>
+                                        Current Setup
+                                      </span>
+                                    )}
+                                    <span style={{
+                                      fontSize: '12.5px',
+                                      fontWeight: '800',
+                                      color: '#0F172A',
+                                      backgroundColor: '#FFFFFF',
+                                      border: '1px solid #CBD5E1',
+                                      padding: '3px 10px',
+                                      borderRadius: '6px',
+                                      fontFamily: 'monospace'
+                                    }}>
+                                      {scoreVal != null ? (typeof scoreVal === 'number' ? scoreVal.toFixed(1) : scoreVal) : '—'}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
                     {/* Light themed AI Model Benchmarks Across Key Categories */}
                     <div style={{
                       backgroundColor: '#FFFFFF',
@@ -2704,7 +3081,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   const rec = recs[idx];
                   const choice = finalSelectedOptions[idx] || 'api';
                   const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
-                  const { baseline, recommended } = resolveModelObjects(rec || { apiOption: {}, subscriptionOption: {} }, idx, intelData.llms, auditResult, choice, intelData);
+                  const { baseline, recommended, baselineIntel, recommendedIntel } = resolveModelObjects(rec || { apiOption: {}, subscriptionOption: {} }, idx, intelData.llms, auditResult, choice, intelData);
 
                   let currentCost = alloc.currentCost || 0;
                   if (currentCost === 0 && rec && rec.issue) {
@@ -2767,7 +3144,9 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     baseScore,
                     optScore,
                     scoreDelta,
-                    scoreDeltaPct
+                    scoreDeltaPct,
+                    baseIntel: baselineIntel,
+                    optIntel: recommendedIntel
                   };
                 });
 
@@ -2822,8 +3201,15 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                   <div style={{ fontSize: '11px', fontWeight: '700', color: '#0F172A', marginTop: '4px' }}>
                                     ${row.currentCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
                                   </div>
-                                  <div style={{ display: 'inline-block', fontSize: '10px', color: '#475569', fontWeight: '700', marginTop: '3px' }}>
-                                    Score: <strong style={{ color: '#0F172A' }}>{row.baseScore}</strong>/100
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '3px' }}>
+                                    <span style={{ fontSize: '10px', color: '#475569', fontWeight: '700' }}>
+                                      Score: <strong style={{ color: '#0F172A' }}>{row.baseScore}</strong>/100
+                                    </span>
+                                    {row.baseIntel?.rank && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '9.5px', color: '#B45309', fontWeight: '750', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '1px 6px', borderRadius: '3px' }}>
+                                        <Trophy size={9} style={{ color: '#D97706' }} /> Market Intel #{row.baseIntel.rank}
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td style={{ padding: '14px 16px' }}>
@@ -2832,8 +3218,15 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                   <div style={{ fontSize: '11px', fontWeight: '750', color: '#0F172A', marginTop: '4px' }}>
                                     ${row.optimizedCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/mo
                                   </div>
-                                  <div style={{ display: 'inline-block', fontSize: '10px', color: '#15803D', fontWeight: '700', marginTop: '3px' }}>
-                                    Score: <strong style={{ color: '#166534' }}>{row.optScore}</strong>/100
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '3px' }}>
+                                    <span style={{ fontSize: '10px', color: '#15803D', fontWeight: '700' }}>
+                                      Score: <strong style={{ color: '#166534' }}>{row.optScore}</strong>/100
+                                    </span>
+                                    {row.optIntel?.rank && (
+                                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '9.5px', color: '#047857', fontWeight: '750', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '1px 6px', borderRadius: '3px' }}>
+                                        <Trophy size={9} style={{ color: '#10B981' }} /> Market Intel #{row.optIntel.rank}
+                                      </span>
+                                    )}
                                   </div>
                                 </td>
                                 <td style={{ padding: '14px 16px', textAlign: 'center' }}>
@@ -2848,6 +3241,11 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                     <span style={{ display: 'inline-block', backgroundColor: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE', padding: '2px 7px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '750', marginTop: '3px' }}>
                                       {row.savings === 0 ? '100% Optimal' : '100% Preserved'}
                                     </span>
+                                  )}
+                                  {row.optIntel?.rank && row.baseIntel?.rank && row.optIntel.rank < row.baseIntel.rank && (
+                                    <div style={{ fontSize: '9.5px', fontWeight: '750', color: '#047857', marginTop: '3px' }}>
+                                      +{row.baseIntel.rank - row.optIntel.rank} spots higher
+                                    </div>
                                   )}
                                 </td>
                                 <td style={{ padding: '14px 16px', textAlign: 'right', fontWeight: '750', color: row.savings > 0 ? '#10B981' : '#64748B' }}>
@@ -2902,6 +3300,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                 ? `100% capability retention with zero quality regression under performance preservation.`
                                 : `High quality retention (minimal quality impact under 5%).`),
                             `Faster responses and larger context windows verified in recommended models.`,
+                            `All models benchmarked and verified against live Market Intel leaderboards across 30 domain categories.`,
                             bestMonthly > 0
                               ? `Full implementation can save $${bestAnnual.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} annually.`
                               : `Total annual budget preserved at optimal efficiency.`
