@@ -660,9 +660,9 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           creator: catModel.organization || fullLlm.creator || 'Unknown',
           rating: catModel.rating || fullLlm.intelligence_index || 0,
           rank: catModel.rank,
-          intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || fullLlm.intelligence_index || null,
-          coding_index: catModel.evaluations?.artificial_analysis_coding_index || fullLlm.coding_index || null,
-          math_index: catModel.evaluations?.artificial_analysis_math_index || fullLlm.math_index || null,
+          intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || catModel.category_scores?.overall || fullLlm.intelligence_index || null,
+          coding_index: catModel.evaluations?.artificial_analysis_coding_index || catModel.category_scores?.coding || fullLlm.coding_index || null,
+          math_index: catModel.evaluations?.artificial_analysis_math_index || catModel.category_scores?.math || fullLlm.math_index || null,
           gpqa: catModel.evaluations?.gpqa || fullLlm.gpqa || null,
           hle: catModel.evaluations?.hle || fullLlm.hle || null,
           throughput: catModel.median_output_tokens_per_second || fullLlm.throughput || null,
@@ -1471,7 +1471,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math')) {
-                            const val = model.math_index ?? model.evaluations?.artificial_analysis_math_index ?? model.aime;
+                            const val = model.math_index ?? model.evaluations?.artificial_analysis_math_index ?? model.category_scores?.math ?? model.aime;
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (rankingIndex === 'speed' || activeCategory === 'fast') {
@@ -1712,7 +1712,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                           const aaScore = (activeCategory === 'coding' || (!activeCategory && rankingIndex === 'coding'))
                             ? (activeTooltipModel.evaluations?.artificial_analysis_coding_index || activeTooltipModel.coding_index)
                             : (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math'))
-                              ? (activeTooltipModel.evaluations?.artificial_analysis_math_index || activeTooltipModel.math_index)
+                              ? (activeTooltipModel.evaluations?.artificial_analysis_math_index || activeTooltipModel.category_scores?.math || activeTooltipModel.math_index)
                               : (activeTooltipModel.evaluations?.artificial_analysis_intelligence_index || activeTooltipModel.intelligence_index);
 
                           const hasAA = (activeTooltipModel.artificial_analysis_rank !== null && activeTooltipModel.artificial_analysis_rank !== undefined) ||
