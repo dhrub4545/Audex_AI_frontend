@@ -3392,8 +3392,9 @@ export default function App() {
     }
   };
 
-  const handleViewSample = (target = 'sample_report') => {
+  const handleViewSample = async (target = 'sample_report') => {
     try {
+      // 1. Immediately mount the canonical local sample dataset (zero latency rendering)
       setAuditResult(SAMPLE_AUDIT_DATA);
       setSelectedOptions(SAMPLE_AUDIT_DATA.selectedOptions || {});
       
@@ -3412,6 +3413,32 @@ export default function App() {
         setCurrentView('step4');
       } else {
         setCurrentView('sample_report');
+      }
+
+      // 2. Seamlessly fetch the daily-updated sample report from backend if available
+      try {
+        const res = await fetch(`${API_BASE_URL}/audits/sample`);
+        if (res.ok) {
+          const latestSample = await res.json();
+          if (latestSample && latestSample._id && latestSample.savings) {
+            setAuditResult(latestSample);
+            if (latestSample.selectedOptions && Object.keys(latestSample.selectedOptions).length > 0) {
+              setSelectedOptions(latestSample.selectedOptions);
+            }
+            const updatedAdjustments = {};
+            (latestSample.savings?.recommendations || []).forEach((rec, idx) => {
+              const defaultInput = rec.apiOption?.defaultInputTokens || 10000000;
+              const defaultOutput = rec.apiOption?.defaultOutputTokens || 2500000;
+              updatedAdjustments[idx] = {
+                inputMillions: defaultInput / 1000000,
+                outputMillions: defaultOutput / 1000000
+              };
+            });
+            setTokenAdjustments(updatedAdjustments);
+          }
+        }
+      } catch (_) {
+        // Transparent fallback to local precompiled SAMPLE_AUDIT_DATA
       }
     } catch (err) {
       console.error('Failed to load sample audit report:', err);
