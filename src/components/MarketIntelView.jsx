@@ -199,6 +199,11 @@ function formatCategoryName(key) {
 }
 
 function formatEvalName(key) {
+  if (key === 'livebench_math') return 'LiveBench Math';
+  if (key === 'livebench_amps_hard') return 'AMPS Hard';
+  if (key === 'livebench_olympiad') return 'Math Olympiad';
+  if (key === 'livebench_math_comp') return 'Math Competition';
+  if (key === 'livebench_integrals') return 'Integrals Game';
   if (key === 'artificial_analysis_intelligence_index') return 'AA Intelligence Index';
   if (key === 'artificial_analysis_coding_index') return 'AA Coding Index';
   if (key === 'artificial_analysis_math_index') return 'AA Math Index';
@@ -221,7 +226,7 @@ function formatEvalName(key) {
 function formatEvalValue(key, val) {
   if (val === null || val === undefined) return 'N/A';
   if (typeof val === 'number') {
-    if (val > 0 && val <= 1 && key !== 'artificial_analysis_intelligence_index' && key !== 'artificial_analysis_coding_index' && key !== 'artificial_analysis_math_index') {
+    if (val > 0 && val <= 1 && key !== 'artificial_analysis_intelligence_index' && key !== 'artificial_analysis_coding_index' && key !== 'artificial_analysis_math_index' && key !== 'livebench_math') {
       return `${(val * 100).toFixed(1)}%`;
     }
     return val.toFixed(1);
@@ -664,7 +669,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           rank: catModel.rank,
           intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || catModel.category_scores?.overall || fullLlm.intelligence_index || null,
           coding_index: catModel.evaluations?.artificial_analysis_coding_index || catModel.category_scores?.coding || fullLlm.coding_index || null,
-          math_index: catModel.evaluations?.artificial_analysis_math_index || catModel.category_scores?.math || fullLlm.math_index || null,
+          math_index: catModel.evaluations?.livebench_math || catModel.evaluations?.artificial_analysis_math_index || catModel.category_scores?.math || fullLlm.math_index || null,
           reasoning_index: catModel.evaluations?.hle_diamond || catModel.category_scores?.reasoning || fullLlm.reasoning_index || null,
           hle_diamond: catModel.evaluations?.hle_diamond || fullLlm.hle_diamond || null,
           gpqa: catModel.evaluations?.gpqa || fullLlm.gpqa || null,
@@ -1475,7 +1480,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math')) {
-                            const val = model.math_index ?? model.evaluations?.artificial_analysis_math_index ?? model.category_scores?.math ?? model.aime;
+                            const val = model.math_index ?? model.evaluations?.livebench_math ?? model.evaluations?.artificial_analysis_math_index ?? model.category_scores?.math ?? model.aime;
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'reasoning') {
@@ -1717,10 +1722,11 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             (activeTooltipModel.rating > 0) ||
                             (activeTooltipModel.votes !== null && activeTooltipModel.votes !== undefined);
 
+                          const isMathActive = activeCategory === 'math' || (!activeCategory && rankingIndex === 'math');
                           const aaScore = (activeCategory === 'coding' || (!activeCategory && rankingIndex === 'coding'))
                             ? (activeTooltipModel.evaluations?.artificial_analysis_coding_index || activeTooltipModel.coding_index)
-                            : (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math'))
-                              ? (activeTooltipModel.evaluations?.artificial_analysis_math_index || activeTooltipModel.category_scores?.math || activeTooltipModel.math_index)
+                            : isMathActive
+                              ? (activeTooltipModel.evaluations?.livebench_math || activeTooltipModel.evaluations?.artificial_analysis_math_index || activeTooltipModel.category_scores?.math || activeTooltipModel.math_index)
                               : (activeTooltipModel.evaluations?.artificial_analysis_intelligence_index || activeTooltipModel.intelligence_index);
 
                           const hasAA = (activeTooltipModel.artificial_analysis_rank !== null && activeTooltipModel.artificial_analysis_rank !== undefined) ||
@@ -1733,7 +1739,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                               {hasAA && (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                   <div style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>
-                                    Artificial Analysis
+                                    {isMathActive ? 'LiveBench AI' : 'Artificial Analysis'}
                                   </div>
                                   <div style={{ display: 'flex', gap: '20px', fontSize: '13px', flexWrap: 'wrap', color: '#475569' }}>
                                     {activeTooltipModel.artificial_analysis_rank !== null && activeTooltipModel.artificial_analysis_rank !== undefined && (
