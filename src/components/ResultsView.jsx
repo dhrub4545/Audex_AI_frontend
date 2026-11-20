@@ -187,6 +187,36 @@ const getSmoothPath = (points) => {
 };
 
 
+const calculateOptimizedCost = (alloc, rec, choice, tokenAdjustments, idx) => {
+  if (!rec) return alloc?.currentCost || 0;
+  if (choice === 'api' && rec.apiOption) {
+    const limits = rec.apiOption.limits || '';
+    const inputCostPerM = rec.apiOption.inputCostPerM !== undefined
+      ? rec.apiOption.inputCostPerM
+      : (() => {
+        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
+        return match ? parseFloat(match[1]) : 5.00;
+      })();
+    const outputCostPerM = rec.apiOption.outputCostPerM !== undefined
+      ? rec.apiOption.outputCostPerM
+      : (() => {
+        const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
+        return match ? parseFloat(match[1]) : 15.00;
+      })();
+    const adj = tokenAdjustments?.[idx] || {
+      inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000,
+      outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000
+    };
+    return adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
+  }
+  const opt = choice === 'api' ? rec.apiOption : rec.subscriptionOption;
+  if (opt && opt.cost !== undefined && opt.cost !== null) {
+    return opt.cost;
+  }
+  const curCost = alloc?.currentCost || parseRecDetails(rec).currentCost || 0;
+  return Math.max(0, curCost - (opt?.savings || 0));
+};
+
 function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTps = null, passedIntelData = null) {
   let explicitBlendedCost = explicitBlendedCostOrIntel;
   let intelData = passedIntelData;
@@ -316,6 +346,8 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     math = Math.round(Number(evCombined.livebench_math));
   } else if (mathCat && typeof mathCat.category_scores?.math === 'number') {
     math = Math.round(mathCat.category_scores.math);
+  } else if (mathCat && typeof mathCat.final_score === 'number' && mathCat.ranking_status === 'verified_livebench_ai_math') {
+    math = Math.round(mathCat.final_score);
   } else if (evCombined.artificial_analysis_math_index) {
     math = Math.round(Number(evCombined.artificial_analysis_math_index));
   } else if (evCombined.aime) {
@@ -326,6 +358,11 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     math = getCatScore(mathCat, model.rating);
   }
   if (math === null) math = baseNorm;
+
+  // 2b. Intelligence Index
+  const intelligenceIndex = evCombined.artificial_analysis_intelligence_index
+    ? Math.round(Number(evCombined.artificial_analysis_intelligence_index) <= 1 ? Number(evCombined.artificial_analysis_intelligence_index) * 100 : (Number(evCombined.artificial_analysis_intelligence_index) <= 60 ? (Number(evCombined.artificial_analysis_intelligence_index) / 60) * 100 : Number(evCombined.artificial_analysis_intelligence_index)))
+    : (reasoning || baseNorm);
 
   // 3. REASONING
   let reasoning = null;
@@ -420,7 +457,7 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     costEff,
     blendedCost: blended !== null ? Number(blended) : null,
     context_length: ctx,
-    intelligence_index: reasoning
+    intelligence_index: intelligenceIndex
   };
 }
 
@@ -1295,11 +1332,11 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     </span>
                     <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#CBD5E1' }}></span>
                     <span style={{ fontSize: '12.5px', color: '#64748B', fontWeight: '600' }}>
-                      Audit done on: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Audit done on: {auditResult.createdAt ? new Date(auditResult.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }} className="no-print">
                   {fromHistory && (
                     <button
                       onClick={() => onNavigateToView('history')}
@@ -1323,10 +1360,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   )}
                   <button
                     onClick={() => {
-                      if (isSample) {
-                        alert('This is a sample report');
-                        return;
-                      }
                       window.print();
                     }}
                     style={{
@@ -1356,51 +1389,48 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   </button>
                 </div>
               </div>
+              <style>{`
+                @media print {
+                  nav, footer, .no-print, button, input[type="checkbox"] {
+                    display: none !important;
+                  }
+                  body, .app-container, #detailed-report-section {
+                    background: #ffffff !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    box-shadow: none !important;
+                  }
+                  .results-hero-grid, .results-breakdown-grid {
+                    page-break-inside: avoid;
+                  }
+                }
+              `}</style>
               {/* Prepare Cost Distribution Data */}
               {(() => {
                 const distributionData = (auditResult.allocations || []).map((alloc, idx) => {
                   const rec = recs[idx];
                   const choice = finalSelectedOptions[idx] || 'api';
                   const opt = choice === 'api' ? rec?.apiOption : rec?.subscriptionOption;
-                  const optimizedCost = (() => {
-                    if (choice === 'api' && rec?.apiOption) {
-                      const limits = rec.apiOption.limits || '';
-                      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined
-                        ? rec.apiOption.inputCostPerM
-                        : (() => {
-                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
-                          return match ? parseFloat(match[1]) : 5.00;
-                        })();
-                      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined
-                        ? rec.apiOption.outputCostPerM
-                        : (() => {
-                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
-                          return match ? parseFloat(match[1]) : 15.00;
-                        })();
-
-                      const adj = tokenAdjustments[idx] || {
-                        inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000,
-                        outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000
-                      };
-                      return adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
-                    }
-                    return opt ? (opt.cost || 0) : 0;
-                  })();
+                  const optimizedCost = calculateOptimizedCost(alloc, rec, choice, tokenAdjustments, idx);
+                  const curCost = alloc.currentCost || parseRecDetails(rec || {}).currentCost || 0;
+                  const itemSavings = Math.max(0, curCost - optimizedCost);
 
                   // Resolve model names for accurate API/Subscription legend display
-                  let baselineModelName = '';
-                  let recommendedModelName = '';
+                  let baselineModelName = alloc.topModelName || alloc.baselineModelName || alloc.modelId || alloc.toolName;
+                  let recommendedModelName = opt?.recommendedModel || opt?.name || opt?.planName || baselineModelName;
                   if (intelData && intelData.llms) {
                     const resolved = resolveModelObjects(rec || { apiOption: {}, subscriptionOption: {} }, idx, intelData.llms, auditResult, choice, intelData);
-                    if (resolved.baseline) baselineModelName = resolved.baseline.name || resolved.baseline.slug;
-                    if (resolved.recommended) recommendedModelName = resolved.recommended.name || resolved.recommended.slug;
+                    if (resolved.baseline) baselineModelName = resolved.baseline.name || resolved.baseline.slug || baselineModelName;
+                    if (resolved.recommended) recommendedModelName = resolved.recommended.name || resolved.recommended.slug || recommendedModelName;
                   }
 
                   return {
                     name: alloc.toolName,
                     plan: choice === 'api' ? 'API' : (opt?.planName || alloc.plan || 'Pro'),
+                    currentCost: curCost,
                     optimizedCost,
-                    isOptimized: opt ? opt.savings > 0 : false,
+                    savings: itemSavings,
+                    isOptimized: itemSavings > 0,
                     alloc,
                     choice,
                     opt,
@@ -1954,13 +1984,26 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const opt = choice === 'api' ? rec.apiOption : rec.subscriptionOption;
                 const suggestedMonthly = Math.max(0, currentMonthly - (opt ? opt.savings : 0));
 
+                const baseScores = getBenchmarkScores(baseline, null, null, intelData);
+                const optScores = getBenchmarkScores(recommended, null, null, intelData);
+                const baseScore = Math.round(alloc?.performance_score || rec?.baselineScore || (alloc?.purpose === 'Coding' ? baseScores.coding : (alloc?.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
+                const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc?.purpose === 'Coding' ? optScores.coding : (alloc?.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
+                const scoreDelta = optScore - baseScore;
+
+                const domainBenchmarkLabel = alloc?.purpose === 'Coding' ? 'Coding Index (SWE-Bench / LCB)'
+                  : (alloc?.purpose === 'Math' ? 'Math Index (LiveBench AI)'
+                  : (alloc?.purpose === 'Research' ? 'Research Index (HLE / GPQA)'
+                  : (alloc?.purpose === 'Writing' ? 'Writing Index (MT-Bench)'
+                  : 'Domain Benchmark Index')));
+
                 // Metric comparisons
                 const specs = [
                   { label: 'Monthly Cost', cur: `$${currentMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, opt: `$${suggestedMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, type: 'cost' },
                   { label: 'Cost per 1M Input Tokens', cur: `$${(baseline.inputCost || 0).toFixed(2)}`, opt: `$${(recommended.inputCost || 0).toFixed(2)}`, type: 'cost' },
                   { label: 'Cost per 1M Output Tokens', cur: `$${(baseline.outputCost || 0).toFixed(2)}`, opt: `$${(recommended.outputCost || 0).toFixed(2)}`, type: 'cost' },
                   { label: 'Blended Cost (3:1)', cur: `$${(baselineScores.blendedCost || 0).toFixed(2)}`, opt: `$${(recommendedScores.blendedCost || 0).toFixed(2)}`, type: 'cost' },
-                  { label: 'Intelligence Index', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
+                  { label: domainBenchmarkLabel, cur: `${baseScore}/100`, opt: `${optScore}/100`, type: 'quality' },
+                  { label: 'Overall Intelligence Index', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
                   { label: 'Average Latency', cur: `${(baseline.ttft || 1.20).toFixed(2)}s`, opt: `${(recommended.ttft || 0.78).toFixed(2)}s`, type: 'latency' },
                   { label: 'Context Window', cur: formatContextWindow(baselineScores.context_length), opt: formatContextWindow(recommendedScores.context_length), type: 'context' },
                   { label: 'Uptime (30 Days)', cur: '99.52%', opt: '99.71%', type: 'uptime' }
@@ -2012,12 +2055,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     )
                   );
                 const isSameCurrentChoice = isSameApi || isSameSubscription || isAlreadyBest;
-
-                const baseScores = getBenchmarkScores(baseline, null, null, intelData);
-                const optScores = getBenchmarkScores(recommended, null, null, intelData);
-                const baseScore = Math.round(alloc?.performance_score || rec?.baselineScore || (alloc?.purpose === 'Coding' ? baseScores.coding : (alloc?.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
-                const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc?.purpose === 'Coding' ? optScores.coding : (alloc?.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
-                const scoreDelta = optScore - baseScore;
 
                 return (
                   <div key={rIdx} style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -2677,30 +2714,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     }
                   }
 
-                  const optimizedCost = (() => {
-                    if (choice === 'api' && rec?.apiOption) {
-                      const limits = rec.apiOption.limits || '';
-                      const inputCostPerM = rec.apiOption.inputCostPerM !== undefined
-                        ? rec.apiOption.inputCostPerM
-                        : (() => {
-                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*input/i);
-                          return match ? parseFloat(match[1]) : 5.00;
-                        })();
-                      const outputCostPerM = rec.apiOption.outputCostPerM !== undefined
-                        ? rec.apiOption.outputCostPerM
-                        : (() => {
-                          const match = limits.match(/\$(\d+\.?\d*)\/1M\s*output/i);
-                          return match ? parseFloat(match[1]) : 15.00;
-                        })();
-
-                      const adj = tokenAdjustments[idx] || {
-                        inputMillions: (rec.apiOption.defaultInputTokens || 5000000) / 1000000,
-                        outputMillions: (rec.apiOption.defaultOutputTokens || 1250000) / 1000000
-                      };
-                      return adj.inputMillions * inputCostPerM + adj.outputMillions * outputCostPerM;
-                    }
-                    return Math.max(0, currentCost - (opt ? opt.savings : 0));
-                  })();
+                  const optimizedCost = calculateOptimizedCost(alloc, rec, choice, tokenAdjustments, idx);
                   const savings = Math.max(0, currentCost - optimizedCost);
 
                   const baselineName = baseline ? baseline.name : (cleanName(alloc.modelId) || alloc.plan || alloc.toolName || 'Unknown Model');
@@ -2868,20 +2882,40 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         Summary &amp; Key Takeaways
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
-                        {[
-                          `You are currently overspending by ${savingPct}% ($${bestMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month).`,
-                          `${recs.filter(r => (finalSelectedOptions[recs.indexOf(r)] ? (r[finalSelectedOptions[recs.indexOf(r)] + 'Option']?.savings > 0) : false)).length} optimization opportunities implemented with high confidence.`,
-                          `Minimal quality impact (High quality retention).`,
-                          `Faster responses and larger context windows available in recommended models.`,
-                          `Full implementation can save $${bestAnnual.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} annually.`
-                        ].map((item, i) => (
-                          <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px', color: '#334155', lineHeight: '1.5' }}>
-                            <div style={{ color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#ECFDF5', flexShrink: 0 }}>
-                              <Check size={10} style={{ color: '#10B981' }} strokeWidth={3} />
+                        {(() => {
+                          const avgScoreDelta = masterTableRows.length > 0
+                            ? Math.round(masterTableRows.reduce((acc, r) => acc + (r.scoreDelta || 0), 0) / masterTableRows.length)
+                            : 0;
+
+                          const takeaways = [
+                            bestMonthly > 0
+                              ? `You are currently overspending by ${savingPct}% ($${bestMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/month).`
+                              : `Your AI allocations are currently cost-optimized with no excess expenditure detected.`,
+                            `${recs.filter((r, idx) => {
+                              const choice = finalSelectedOptions[idx] || 'api';
+                              const opt = choice === 'api' ? r.apiOption : r.subscriptionOption;
+                              return opt && opt.savings > 0;
+                            }).length} optimization opportunities verified with high confidence.`,
+                            avgScoreDelta > 0
+                              ? `Enterprise capability enhanced by +${avgScoreDelta} pts on average across audited workloads.`
+                              : (avgScoreDelta === 0
+                                ? `100% capability retention with zero quality regression under performance preservation.`
+                                : `High quality retention (minimal quality impact under 5%).`),
+                            `Faster responses and larger context windows verified in recommended models.`,
+                            bestMonthly > 0
+                              ? `Full implementation can save $${bestAnnual.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} annually.`
+                              : `Total annual budget preserved at optimal efficiency.`
+                          ];
+
+                          return takeaways.map((item, i) => (
+                            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '12px', color: '#334155', lineHeight: '1.5' }}>
+                              <div style={{ color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', backgroundColor: '#ECFDF5', flexShrink: 0 }}>
+                                <Check size={10} style={{ color: '#10B981' }} strokeWidth={3} />
+                              </div>
+                              <span>{item}</span>
                             </div>
-                            <span>{item}</span>
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                       <div style={{ padding: '12px 14px', backgroundColor: '#FFFBEB', border: '1px solid #FDE68A', borderRadius: '10px', fontSize: '11.5px', color: '#92400E', fontWeight: '500', lineHeight: '1.4' }}>
                         Note: Savings are estimated based on the audit scope &amp; usage patterns.

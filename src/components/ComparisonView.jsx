@@ -390,7 +390,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
     fetch(`${API_BASE_URL}/audits/compare/report`, {
       method: 'POST',
       headers,
-      body: JSON.stringify({ baseline: resolvedBaseline || baseline, recommended: resolvedRecommended || recommended }),
+      body: JSON.stringify({
+        baseline: resolvedBaseline || baseline,
+        recommended: resolvedRecommended || recommended,
+        purpose: (resolvedRecommended || recommended)?.purpose || (resolvedBaseline || baseline)?.purpose || 'Mixed'
+      }),
     })
       .then(async res => {
         if (!res.ok) {
