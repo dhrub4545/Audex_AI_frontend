@@ -470,17 +470,6 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   }
   if (math === null) math = baseNorm;
 
-  // 2b. Intelligence Index
-  let intelligenceIndex = null;
-  if (model.category_scores?.overall != null) {
-    intelligenceIndex = Math.round(Number(model.category_scores.overall));
-  } else if (evCombined.artificial_analysis_intelligence_index != null) {
-    const v = Number(evCombined.artificial_analysis_intelligence_index);
-    intelligenceIndex = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
-  } else {
-    intelligenceIndex = reasoning || baseNorm;
-  }
-
   // 3. REASONING
   let reasoning = null;
   if (model.category_scores?.reasoning != null) {
@@ -502,6 +491,17 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     reasoning = getCatScore(reasonCat, model.rating);
   }
   if (reasoning === null) reasoning = baseNorm;
+
+  // 2b. Intelligence Index
+  let intelligenceIndex = null;
+  if (model.category_scores?.overall != null) {
+    intelligenceIndex = Math.round(Number(model.category_scores.overall));
+  } else if (evCombined.artificial_analysis_intelligence_index != null) {
+    const v = Number(evCombined.artificial_analysis_intelligence_index);
+    intelligenceIndex = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
+  } else {
+    intelligenceIndex = reasoning || baseNorm;
+  }
 
   // 4. WRITING
   let writing = null;

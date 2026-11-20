@@ -3624,7 +3624,7 @@ export default function App() {
       case 'sample_report':
         return (
           <ResultsView 
-            auditResult={auditResult}
+            auditResult={auditResult || SAMPLE_AUDIT_DATA}
             selectedOptions={selectedOptions}
             onNavigateToView={(view) => setCurrentView(view)}
             user={user}
