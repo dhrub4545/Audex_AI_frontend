@@ -9,7 +9,7 @@ import { Code2, Brain, Calculator, PenTool, Search, Link2, Image, Zap, Coins, Ar
 const CATEGORIES = [
   { name: 'Coding', sub: 'SWE-Bench', icon: Code2, color: '#10B981', bg: '#D1FAE5', key: 'coding' },
   { name: 'Reasoning', sub: 'GPQA Diamond', icon: Brain, color: '#EC4899', bg: '#FCE7F3', key: 'reasoning' },
-  { name: 'Math', sub: 'AIME 2024', icon: Calculator, color: '#8B5CF6', bg: '#EDE9FE', key: 'math' },
+  { name: 'Math', sub: 'LiveBench AI', icon: Calculator, color: '#8B5CF6', bg: '#EDE9FE', key: 'math' },
   { name: 'Writing', sub: 'MT-Bench', icon: PenTool, color: '#F59E0B', bg: '#FEF3C7', key: 'writing' },
   { name: 'Research', sub: 'HLE', icon: Search, color: '#3B82F6', bg: '#DBEAFE', key: 'research' },
   { name: 'Function Calling', sub: 'BFCL v3', icon: Link2, color: '#06B6D4', bg: '#CFFAFE', key: 'funcCalling' },
@@ -158,13 +158,16 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   }
   if (reasoning === null) reasoning = baseNorm;
 
-  // 3. Math (AIME 2024 / AA Math Index / SciCode / Category Rank)
+  // 3. Math (LiveBench AI / Math Benchmark)
   let math = null;
-  if (evCombined.aime) {
-    math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
+  if (evCombined.livebench_math) {
+    math = Math.round(Number(evCombined.livebench_math));
+  } else if (mathCat && typeof mathCat.category_scores?.math === 'number') {
+    math = Math.round(mathCat.category_scores.math);
   } else if (evCombined.artificial_analysis_math_index) {
-    const v = Number(evCombined.artificial_analysis_math_index);
-    math = Math.round(Math.min(99, Math.max(35, v <= 67 ? (v / 67) * 98 : v)));
+    math = Math.round(Number(evCombined.artificial_analysis_math_index));
+  } else if (evCombined.aime) {
+    math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
   } else if (evCombined.scicode) {
     math = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
   } else if (mathCat) {

@@ -157,6 +157,11 @@ function _formatCategoryName(key) {
 }
 
 function formatEvalName(key) {
+  if (key === 'livebench_math') return 'LiveBench Math';
+  if (key === 'livebench_amps_hard') return 'AMPS Hard';
+  if (key === 'livebench_olympiad') return 'Math Olympiad';
+  if (key === 'livebench_math_comp') return 'Math Competition';
+  if (key === 'livebench_integrals') return 'Integrals Game';
   if (key === 'artificial_analysis_intelligence_index') return 'AA Intelligence Index';
   if (key === 'artificial_analysis_coding_index') return 'AA Coding Index';
   if (key === 'artificial_analysis_math_index') return 'AA Math Index';
@@ -177,7 +182,7 @@ function formatEvalName(key) {
 function formatEvalValue(key, val) {
   if (val === null || val === undefined) return 'N/A';
   if (typeof val === 'number') {
-    if (val > 0 && val <= 1 && key !== 'artificial_analysis_intelligence_index' && key !== 'artificial_analysis_coding_index' && key !== 'artificial_analysis_math_index') {
+    if (val > 0 && val <= 1 && key !== 'artificial_analysis_intelligence_index' && key !== 'artificial_analysis_coding_index' && key !== 'artificial_analysis_math_index' && key !== 'livebench_math') {
       return `${(val * 100).toFixed(1)}%`;
     }
     return val.toFixed(1);
@@ -575,14 +580,15 @@ export default function ModelAuditorView({
         rank: rec.category_rank || found.rank || 999,
         evaluations: found.evaluations || {
           artificial_analysis_coding_index: found.coding_index,
-          artificial_analysis_math_index: found.math_index,
+          livebench_math: found.evaluations?.livebench_math || found.math_index,
+          artificial_analysis_math_index: found.evaluations?.livebench_math || found.math_index,
           artificial_analysis_intelligence_index: found.intelligence_index,
           gpqa: found.gpqa,
           hle: found.hle
         },
         intelligence_index: found.evaluations?.artificial_analysis_intelligence_index || null,
         coding_index: found.evaluations?.artificial_analysis_coding_index || null,
-        math_index: found.evaluations?.artificial_analysis_math_index || null,
+        math_index: found.evaluations?.livebench_math || found.evaluations?.artificial_analysis_math_index || found.math_index || null,
         gpqa: found.evaluations?.gpqa || null,
         hle: found.evaluations?.hle || null,
         throughput: found.median_output_tokens_per_second || rec.tokens_per_second || null,
@@ -702,10 +708,11 @@ export default function ModelAuditorView({
         return null;
       }
       if (normUse === 'math') {
-        if (typeof ev.aime === 'number' && ev.aime > 0) return parseFloat((ev.aime <= 1 ? ev.aime * 100 : ev.aime).toFixed(1));
-        if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return parseFloat(ev.artificial_analysis_math_index.toFixed(1));
-        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
+        if (typeof ev.livebench_math === 'number' && ev.livebench_math > 0) return parseFloat(ev.livebench_math.toFixed(1));
         if (typeof m.category_scores?.math === 'number' && m.category_scores.math > 0) return parseFloat(m.category_scores.math.toFixed(1));
+        if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return parseFloat(ev.artificial_analysis_math_index.toFixed(1));
+        if (typeof ev.aime === 'number' && ev.aime > 0) return parseFloat((ev.aime <= 1 ? ev.aime * 100 : ev.aime).toFixed(1));
+        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
         return null;
       }
       if (normUse === 'reasoning') {
@@ -2085,7 +2092,7 @@ export default function ModelAuditorView({
         const aaScore = (targetUseCase === 'Coding')
           ? (hoveredModel.evaluations?.artificial_analysis_coding_index || hoveredModel.coding_index)
           : (targetUseCase === 'Math')
-            ? (hoveredModel.evaluations?.artificial_analysis_math_index || hoveredModel.math_index)
+            ? (hoveredModel.evaluations?.livebench_math || hoveredModel.evaluations?.artificial_analysis_math_index || hoveredModel.math_index || hoveredModel.category_scores?.math)
             : (hoveredModel.evaluations?.artificial_analysis_intelligence_index || hoveredModel.intelligence_index);
 
         return (
@@ -2213,7 +2220,7 @@ export default function ModelAuditorView({
                   {hasAA && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <div style={{ fontSize: '9px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748B' }}>
-                        Artificial Analysis
+                        {targetUseCase === 'Math' ? 'LiveBench AI' : 'Artificial Analysis'}
                       </div>
                       <div style={{ display: 'flex', gap: '16px', fontSize: '12px', flexWrap: 'wrap', color: '#475569' }}>
                         {hoveredModel.artificial_analysis_rank !== null && hoveredModel.artificial_analysis_rank !== undefined && (
