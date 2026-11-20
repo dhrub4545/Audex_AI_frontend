@@ -369,15 +369,12 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     return Math.round(Math.max(35, 54 - ((rk - 300) / 400) * 19));
   };
 
-  const getCatScore = (catItem, fallbackRating) => {
-    if (!catItem) return normRating(fallbackRating);
-    const rScore = normRating(catItem.rating || fallbackRating);
-    const rk = Number(catItem.rank);
-    if (rk && rk > 0) {
-      const rkScore = normRank(rk);
-      return rScore ? Math.round(rScore * 0.4 + rkScore * 0.6) : rkScore;
-    }
-    return rScore;
+  const getCatScore = (catItem, catKey) => {
+    if (!catItem) return null;
+    if (typeof catItem.category_scores?.[catKey] === 'number') return Math.round(catItem.category_scores[catKey]);
+    if (typeof catItem.final_score === 'number') return Math.round(catItem.final_score);
+    if (catItem.rating) return normRating(catItem.rating);
+    return null;
   };
 
   const rating = Number(model.rating || model.arena_elo);
@@ -431,21 +428,20 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     coding = Math.round(Number(model.category_scores.coding));
   } else if (codeCat?.category_scores?.coding != null) {
     coding = Math.round(Number(codeCat.category_scores.coding));
+  } else if (codeCat?.final_score != null) {
+    coding = Math.round(Number(codeCat.final_score));
   } else if (evCombined.artificial_analysis_coding_index != null) {
     const v = Number(evCombined.artificial_analysis_coding_index);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
+    coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   } else if (evCombined.livecodebench != null) {
     const v = Number(evCombined.livecodebench);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v / 90) * 100)));
+    coding = Math.round(v <= 1 ? v * 100 : (v / 90) * 100);
   } else if (evCombined.terminalbench_v2_1 != null) {
     const v = Number(evCombined.terminalbench_v2_1);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : v)));
-  } else if (codeCat) {
-    coding = getCatScore(codeCat, model.rating);
+    coding = Math.round(v <= 1 ? v * 100 : v);
   } else if (evCombined.scicode != null) {
-    coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
+    coding = Math.round((Number(evCombined.scicode) / 67) * 98);
   }
-  if (coding === null) coding = baseNorm;
 
   // 2. MATH (LiveBench AI / Math Benchmark)
   let math = null;
@@ -453,22 +449,19 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     math = Math.round(Number(model.evaluations.livebench_math));
   } else if (model.category_scores?.math != null) {
     math = Math.round(Number(model.category_scores.math));
+  } else if (mathCat?.category_scores?.math != null) {
+    math = Math.round(Number(mathCat.category_scores.math));
+  } else if (mathCat?.final_score != null) {
+    math = Math.round(Number(mathCat.final_score));
   } else if (evCombined.livebench_math != null) {
     math = Math.round(Number(evCombined.livebench_math));
-  } else if (mathCat && typeof mathCat.category_scores?.math === 'number') {
-    math = Math.round(mathCat.category_scores.math);
-  } else if (mathCat && typeof mathCat.final_score === 'number' && mathCat.ranking_status === 'verified_livebench_ai_math') {
-    math = Math.round(mathCat.final_score);
   } else if (evCombined.artificial_analysis_math_index != null) {
     math = Math.round(Number(evCombined.artificial_analysis_math_index));
   } else if (evCombined.aime != null) {
-    math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
+    math = Math.round(Number(evCombined.aime));
   } else if (evCombined.scicode != null) {
-    math = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
-  } else if (mathCat) {
-    math = getCatScore(mathCat, model.rating);
+    math = Math.round((Number(evCombined.scicode) / 67) * 98);
   }
-  if (math === null) math = baseNorm;
 
   // 3. REASONING
   let reasoning = null;
@@ -476,31 +469,34 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     reasoning = Math.round(Number(model.category_scores.reasoning));
   } else if (reasonCat?.category_scores?.reasoning != null) {
     reasoning = Math.round(Number(reasonCat.category_scores.reasoning));
+  } else if (reasonCat?.final_score != null) {
+    reasoning = Math.round(Number(reasonCat.final_score));
   } else if (evCombined.hle_diamond != null) {
-    reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.hle_diamond))));
+    reasoning = Math.round(Number(evCombined.hle_diamond));
   } else if (evCombined.gpqa != null) {
-    reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
+    reasoning = Math.round(Number(evCombined.gpqa));
   } else if (evCombined.hle != null) {
-    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
+    reasoning = Math.round((Number(evCombined.hle) / 58) * 98);
   } else if (evCombined.artificial_analysis_intelligence_index != null) {
     const v = Number(evCombined.artificial_analysis_intelligence_index);
-    reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
+    reasoning = Math.round(v <= 1 ? v * 100 : (v / 60) * 100);
   } else if (evCombined.mmlu_pro != null) {
-    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.mmlu_pro) / 90) * 100)));
-  } else if (reasonCat) {
-    reasoning = getCatScore(reasonCat, model.rating);
+    reasoning = Math.round((Number(evCombined.mmlu_pro) / 90) * 100);
   }
-  if (reasoning === null) reasoning = baseNorm;
 
   // 2b. Intelligence Index
   let intelligenceIndex = null;
   if (model.category_scores?.overall != null) {
     intelligenceIndex = Math.round(Number(model.category_scores.overall));
+  } else if (findInCat('overall')?.category_scores?.overall != null) {
+    intelligenceIndex = Math.round(Number(findInCat('overall').category_scores.overall));
+  } else if (findInCat('overall')?.final_score != null) {
+    intelligenceIndex = Math.round(Number(findInCat('overall').final_score));
   } else if (evCombined.artificial_analysis_intelligence_index != null) {
     const v = Number(evCombined.artificial_analysis_intelligence_index);
     intelligenceIndex = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
-  } else {
-    intelligenceIndex = reasoning || baseNorm;
+  } else if (reasoning != null) {
+    intelligenceIndex = reasoning;
   }
 
   // 4. WRITING
@@ -513,10 +509,9 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     writing = Math.round(Number(writeCat.category_scores['creative-writing']));
   } else if (writeCat?.category_scores?.writing != null) {
     writing = Math.round(Number(writeCat.category_scores.writing));
-  } else if (writeCat) {
-    writing = getCatScore(writeCat, model.rating);
+  } else if (writeCat?.final_score != null) {
+    writing = Math.round(Number(writeCat.final_score));
   }
-  if (writing === null) writing = baseNorm;
 
   // 5. RESEARCH (HLE / GPQA / MMLU)
   let research = null;
@@ -524,14 +519,13 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     research = Math.round(Number(model.category_scores.research));
   } else if (resCat?.category_scores?.research != null) {
     research = Math.round(Number(resCat.category_scores.research));
+  } else if (resCat?.final_score != null) {
+    research = Math.round(Number(resCat.final_score));
   } else if (evCombined.hle != null) {
-    research = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
+    research = Math.round((Number(evCombined.hle) / 58) * 98);
   } else if (evCombined.gpqa != null) {
-    research = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
-  } else if (resCat) {
-    research = getCatScore(resCat, model.rating);
+    research = Math.round(Number(evCombined.gpqa));
   }
-  if (research === null) research = baseNorm;
 
   // 6. FUNCTION CALLING / AGENTIC
   let funcCalling = null;
@@ -541,15 +535,16 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     funcCalling = Math.round(Number(model.category_scores['tool-use']));
   } else if (fnCat?.category_scores?.['function-calling'] != null) {
     funcCalling = Math.round(Number(fnCat.category_scores['function-calling']));
+  } else if (fnCat?.category_scores?.['tool-use'] != null) {
+    funcCalling = Math.round(Number(fnCat.category_scores['tool-use']));
+  } else if (fnCat?.final_score != null) {
+    funcCalling = Math.round(Number(fnCat.final_score));
   } else if (evCombined.ifbench != null) {
-    funcCalling = Math.round(Math.min(99, Math.max(35, (Number(evCombined.ifbench) / 85) * 100)));
+    funcCalling = Math.round((Number(evCombined.ifbench) / 85) * 100);
   } else if (evCombined.agentic_index != null) {
     const v = Number(evCombined.agentic_index);
-    funcCalling = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
-  } else if (fnCat) {
-    funcCalling = getCatScore(fnCat, model.rating);
+    funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   }
-  if (funcCalling === null) funcCalling = baseNorm;
 
   // 7. Context Length
   const ctx = model.context_length ? Number(model.context_length) : null;
@@ -569,10 +564,9 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     multimodal = Math.round(Number(model.category_scores.vision));
   } else if (visCat?.category_scores?.vision != null) {
     multimodal = Math.round(Number(visCat.category_scores.vision));
-  } else if (visCat) {
-    multimodal = getCatScore(visCat, model.rating);
+  } else if (visCat?.final_score != null) {
+    multimodal = Math.round(Number(visCat.final_score));
   }
-  if (multimodal === null) multimodal = baseNorm;
 
   // 9. Speed
   const speedRaw = explicitTps || model.median_output_tokens_per_second || model.throughput || codeCat?.median_output_tokens_per_second || model.category_scores?.fast || model.tokens_per_second || null;
@@ -2143,7 +2137,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   return paddingLeft + idx * (chartWidth / (chartCategories.length - 1));
                 };
                 const getY = (score) => {
-                  if (score == null || isNaN(score)) return 420 - paddingBottom;
+                  if (score == null || isNaN(score)) return null;
                   return 420 - paddingBottom - (score / 100) * chartHeight;
                 };
 
@@ -2242,48 +2236,25 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const cleanOptSubName = (rec.subscriptionOption?.planName || '').replace(/\s+/g, ' ').trim().toLowerCase();
                 const allocContext = rec.originalAlloc || alloc || {};
 
-                const isAlreadyBest = choice === 'api'
-                  ? (rec.apiOption?.isAlreadyOptimized || (rec.apiOption?.savings !== undefined && rec.apiOption.savings <= 0) || (alloc?.type === 'api' && baseline && recommended && baseline.slug === recommended.slug))
-                  : (rec.subscriptionOption?.isAlreadyOptimized || (rec.subscriptionOption?.savings !== undefined && rec.subscriptionOption.savings <= 0) || (alloc?.type === 'subscription' && (
-                    cleanBaseSubName === cleanOptSubName ||
-                    uiChoiceLabelsMatch(
-                      `${alloc?.toolName || ''} ${alloc?.plan || ''}`,
-                      rec.subscriptionOption?.planName || rec.subscriptionOption?.recommendedModel,
-                      [allocContext.provider, alloc?.toolName],
-                      [rec.subscriptionOption?.recommendedProvider]
-                    )
-                  )));
+                const isIdenticalModel = baseline && recommended && (
+                  (baseline.slug && recommended.slug && baseline.slug === recommended.slug) ||
+                  (baseline.id && recommended.id && baseline.id === recommended.id) ||
+                  (baseline.modelId && recommended.modelId && baseline.modelId === recommended.modelId) ||
+                  (baseline.name && recommended.name && baseline.name.toLowerCase() === recommended.name.toLowerCase())
+                );
 
-                const isIdenticalModel = baseline && recommended && (baseline.slug === recommended.slug || baseline.id === recommended.id);
-                const isSameApi = rec.apiOption?.isAlreadyOptimized ||
-                  (rec.apiOption?.savings !== undefined && rec.apiOption.savings <= 0) ||
-                  (alloc?.type === 'api' &&
-                    choice === 'api' &&
-                    (
-                      isIdenticalModel ||
-                      uiChoiceLabelsMatch(
-                        baseline.name || baseline.slug,
-                        recommended.name || recommended.slug,
-                        [baseline.creator, allocContext.provider, alloc?.toolName],
-                        [recommended.creator, rec.apiOption?.recommendedProvider]
-                      )
-                    )
-                  );
-                const isSameSubscription = rec.subscriptionOption?.isAlreadyOptimized ||
-                  (rec.subscriptionOption?.savings !== undefined && rec.subscriptionOption.savings <= 0) ||
-                  (alloc?.type === 'subscription' &&
-                    choice === 'subscription' &&
-                    (
-                      cleanBaseSubName === cleanOptSubName ||
-                      uiChoiceLabelsMatch(
-                        `${alloc?.toolName || ''} ${alloc?.plan || ''}`,
-                        rec.subscriptionOption?.planName || rec.subscriptionOption?.recommendedModel,
-                        [allocContext.provider, alloc?.toolName],
-                        [rec.subscriptionOption?.recommendedProvider]
-                      )
-                    )
-                  );
-                const isSameCurrentChoice = isSameApi || isSameSubscription || isAlreadyBest;
+                const isSameApi = alloc?.type === 'api' && choice === 'api' && isIdenticalModel;
+                const isSameSubscription = alloc?.type === 'subscription' && choice === 'subscription' && (
+                  cleanBaseSubName === cleanOptSubName ||
+                  (isIdenticalModel && uiChoiceLabelsMatch(
+                    `${alloc?.toolName || ''} ${alloc?.plan || ''}`,
+                    rec.subscriptionOption?.planName || rec.subscriptionOption?.recommendedModel,
+                    [allocContext.provider, alloc?.toolName],
+                    [rec.subscriptionOption?.recommendedProvider]
+                  ))
+                );
+                const isSameCurrentChoice = (isSameApi || isSameSubscription) && (opt?.savings === undefined || opt?.savings <= 0);
+                const isAlreadyBest = isSameCurrentChoice;
 
                 return (
                   <div key={rIdx} style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>

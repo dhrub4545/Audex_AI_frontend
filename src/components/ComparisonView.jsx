@@ -68,19 +68,15 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     return Math.round(Math.max(35, 54 - ((rk - 300) / 400) * 19));
   };
 
-  const getCatScore = (catItem, fallbackRating) => {
-    if (!catItem) return normRating(fallbackRating);
-    const rScore = normRating(catItem.rating || fallbackRating);
-    const rk = Number(catItem.rank);
-    if (rk && rk > 0) {
-      const rkScore = normRank(rk);
-      return rScore ? Math.round(rScore * 0.4 + rkScore * 0.6) : rkScore;
-    }
-    return rScore;
+  const getCatScore = (catItem, catKey) => {
+    if (!catItem) return null;
+    if (typeof catItem.category_scores?.[catKey] === 'number') return Math.round(catItem.category_scores[catKey]);
+    if (typeof catItem.final_score === 'number') return Math.round(catItem.final_score);
+    if (catItem.rating) return normRating(catItem.rating);
+    return null;
   };
 
   const rating = Number(model.rating || model.arena_elo);
-  const baseNorm = !isNaN(rating) && rating > 0 ? normRating(rating) : null;
 
   // Helper to find in intelData categories by flexible slug / modelId / name match
   const findInCat = (catName) => {
@@ -126,93 +122,122 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
 
   // 1. Coding (SWE-Bench / LiveCodeBench / AA Coding Index / Category Rank)
   let coding = null;
-  if (evCombined.livecodebench) {
+  if (model.category_scores?.coding != null) {
+    coding = Math.round(Number(model.category_scores.coding));
+  } else if (codeCat?.category_scores?.coding != null) {
+    coding = Math.round(Number(codeCat.category_scores.coding));
+  } else if (codeCat?.final_score != null) {
+    coding = Math.round(Number(codeCat.final_score));
+  } else if (evCombined.livecodebench) {
     const v = Number(evCombined.livecodebench);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v / 90) * 100)));
+    coding = Math.round(v <= 1 ? v * 100 : (v / 90) * 100);
   } else if (evCombined.artificial_analysis_coding_index) {
     const v = Number(evCombined.artificial_analysis_coding_index);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
+    coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   } else if (evCombined.terminalbench_v2_1) {
     const v = Number(evCombined.terminalbench_v2_1);
-    coding = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : v)));
-  } else if (codeCat) {
-    coding = getCatScore(codeCat, model.rating);
+    coding = Math.round(v <= 1 ? v * 100 : v);
   } else if (evCombined.scicode) {
-    coding = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
+    coding = Math.round((Number(evCombined.scicode) / 67) * 98);
   }
-  if (coding === null) coding = baseNorm;
 
   // 2. Reasoning (GPQA Diamond / MMLU-Pro / AA Intelligence Index / Category Rank)
   let reasoning = null;
-  if (evCombined.gpqa) {
-    reasoning = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
+  if (model.category_scores?.reasoning != null) {
+    reasoning = Math.round(Number(model.category_scores.reasoning));
+  } else if (reasonCat?.category_scores?.reasoning != null) {
+    reasoning = Math.round(Number(reasonCat.category_scores.reasoning));
+  } else if (reasonCat?.final_score != null) {
+    reasoning = Math.round(Number(reasonCat.final_score));
+  } else if (evCombined.hle_diamond) {
+    reasoning = Math.round(Number(evCombined.hle_diamond));
+  } else if (evCombined.gpqa) {
+    reasoning = Math.round(Number(evCombined.gpqa));
   } else if (evCombined.hle) {
-    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
+    reasoning = Math.round((Number(evCombined.hle) / 58) * 98);
   } else if (evCombined.artificial_analysis_intelligence_index) {
     const v = Number(evCombined.artificial_analysis_intelligence_index);
-    reasoning = Math.round(Math.min(99, Math.max(35, (v / 60) * 100)));
+    reasoning = Math.round(v <= 1 ? v * 100 : (v / 60) * 100);
   } else if (evCombined.mmlu_pro) {
-    reasoning = Math.round(Math.min(99, Math.max(35, (Number(evCombined.mmlu_pro) / 90) * 100)));
-  } else if (reasonCat) {
-    reasoning = getCatScore(reasonCat, model.rating);
+    reasoning = Math.round((Number(evCombined.mmlu_pro) / 90) * 100);
   }
-  if (reasoning === null) reasoning = baseNorm;
 
   // 3. Math (LiveBench AI / Math Benchmark)
   let math = null;
-  if (evCombined.livebench_math) {
+  if (model.evaluations?.livebench_math != null) {
+    math = Math.round(Number(model.evaluations.livebench_math));
+  } else if (model.category_scores?.math != null) {
+    math = Math.round(Number(model.category_scores.math));
+  } else if (mathCat?.category_scores?.math != null) {
+    math = Math.round(Number(mathCat.category_scores.math));
+  } else if (mathCat?.final_score != null) {
+    math = Math.round(Number(mathCat.final_score));
+  } else if (evCombined.livebench_math) {
     math = Math.round(Number(evCombined.livebench_math));
-  } else if (mathCat && typeof mathCat.category_scores?.math === 'number') {
-    math = Math.round(mathCat.category_scores.math);
   } else if (evCombined.artificial_analysis_math_index) {
     math = Math.round(Number(evCombined.artificial_analysis_math_index));
   } else if (evCombined.aime) {
-    math = Math.round(Math.min(99, Math.max(35, Number(evCombined.aime))));
+    math = Math.round(Number(evCombined.aime));
   } else if (evCombined.scicode) {
-    math = Math.round(Math.min(99, Math.max(35, (Number(evCombined.scicode) / 67) * 98)));
-  } else if (mathCat) {
-    math = getCatScore(mathCat, model.rating);
+    math = Math.round((Number(evCombined.scicode) / 67) * 98);
   }
-  if (math === null) math = baseNorm;
 
   // 4. Writing (MT-Bench / Creative Writing Elo / Category Rank)
   let writing = null;
-  if (writeCat) {
-    writing = getCatScore(writeCat, model.rating);
+  if (model.category_scores?.['creative-writing'] != null) {
+    writing = Math.round(Number(model.category_scores['creative-writing']));
+  } else if (model.category_scores?.writing != null) {
+    writing = Math.round(Number(model.category_scores.writing));
+  } else if (writeCat?.category_scores?.['creative-writing'] != null) {
+    writing = Math.round(Number(writeCat.category_scores['creative-writing']));
+  } else if (writeCat?.category_scores?.writing != null) {
+    writing = Math.round(Number(writeCat.category_scores.writing));
+  } else if (writeCat?.final_score != null) {
+    writing = Math.round(Number(writeCat.final_score));
   }
-  if (writing === null) writing = baseNorm;
 
   // 5. Research (Humanity's Last Exam / GPQA / Category Rank)
   let research = null;
-  if (evCombined.hle) {
-    research = Math.round(Math.min(99, Math.max(35, (Number(evCombined.hle) / 58) * 98)));
-  } else if (evCombined.lcr) {
-    research = Math.round(Math.min(99, Math.max(35, Number(evCombined.lcr))));
+  if (model.category_scores?.research != null) {
+    research = Math.round(Number(model.category_scores.research));
+  } else if (resCat?.category_scores?.research != null) {
+    research = Math.round(Number(resCat.category_scores.research));
+  } else if (resCat?.final_score != null) {
+    research = Math.round(Number(resCat.final_score));
+  } else if (evCombined.hle) {
+    research = Math.round((Number(evCombined.hle) / 58) * 98);
   } else if (evCombined.gpqa) {
-    research = Math.round(Math.min(99, Math.max(35, Number(evCombined.gpqa))));
-  } else if (resCat) {
-    research = getCatScore(resCat, model.rating);
+    research = Math.round(Number(evCombined.gpqa));
   }
-  if (research === null) research = baseNorm;
 
   // 6. Function Calling (BFCL v3 / IFBench / Tool Use / Agentic Index)
   let funcCalling = null;
-  if (evCombined.ifbench) {
-    funcCalling = Math.round(Math.min(99, Math.max(35, (Number(evCombined.ifbench) / 85) * 100)));
+  if (model.category_scores?.['function-calling'] != null) {
+    funcCalling = Math.round(Number(model.category_scores['function-calling']));
+  } else if (model.category_scores?.['tool-use'] != null) {
+    funcCalling = Math.round(Number(model.category_scores['tool-use']));
+  } else if (fnCat?.category_scores?.['function-calling'] != null) {
+    funcCalling = Math.round(Number(fnCat.category_scores['function-calling']));
+  } else if (fnCat?.category_scores?.['tool-use'] != null) {
+    funcCalling = Math.round(Number(fnCat.category_scores['tool-use']));
+  } else if (fnCat?.final_score != null) {
+    funcCalling = Math.round(Number(fnCat.final_score));
+  } else if (evCombined.ifbench) {
+    funcCalling = Math.round((Number(evCombined.ifbench) / 85) * 100);
   } else if (evCombined.agentic_index) {
     const v = Number(evCombined.agentic_index);
-    funcCalling = Math.round(Math.min(99, Math.max(35, v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v))));
-  } else if (fnCat) {
-    funcCalling = getCatScore(fnCat, model.rating);
+    funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   }
-  if (funcCalling === null) funcCalling = baseNorm;
 
   // 7. Multimodal (MMMU / Vision Category Rank)
   let multimodal = null;
-  if (visCat) {
-    multimodal = getCatScore(visCat, model.rating);
+  if (model.category_scores?.vision != null) {
+    multimodal = Math.round(Number(model.category_scores.vision));
+  } else if (visCat?.category_scores?.vision != null) {
+    multimodal = Math.round(Number(visCat.category_scores.vision));
+  } else if (visCat?.final_score != null) {
+    multimodal = Math.round(Number(visCat.final_score));
   }
-  if (multimodal === null) multimodal = baseNorm;
 
   // 8. Long Context (Needle In A Haystack)
   const ctx = model.context_length ? Number(model.context_length) : null;
@@ -498,7 +523,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
   }, [activeCategories.length, chartWidth]);
 
   const getY = useCallback((score) => {
-    if (score == null || isNaN(score)) return 340 - paddingBottom;
+    if (score == null || isNaN(score)) return null;
     return 340 - paddingBottom - (score / 100) * chartHeight;
   }, [chartHeight]);
 
