@@ -1471,7 +1471,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'coding' || (!activeCategory && rankingIndex === 'coding')) {
-                            const val = model.coding_index ?? model.evaluations?.artificial_analysis_coding_index ?? model.livecodebench;
+                            const val = model.coding_index ?? model.evaluations?.artificial_analysis_coding_index ?? model.category_scores?.coding;
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math')) {
