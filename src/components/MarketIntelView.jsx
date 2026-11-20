@@ -202,6 +202,8 @@ function formatEvalName(key) {
   if (key === 'artificial_analysis_intelligence_index') return 'AA Intelligence Index';
   if (key === 'artificial_analysis_coding_index') return 'AA Coding Index';
   if (key === 'artificial_analysis_math_index') return 'AA Math Index';
+  if (key === 'hle_diamond') return 'HLE Diamond';
+  if (key === 'reasoning') return 'Reasoning (HLE Diamond)';
   if (key === 'gpqa') return 'GPQA';
   if (key === 'hle') return 'HLE';
   if (key === 'ifbench') return 'IFBench';
@@ -663,6 +665,8 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
           intelligence_index: catModel.evaluations?.artificial_analysis_intelligence_index || catModel.category_scores?.overall || fullLlm.intelligence_index || null,
           coding_index: catModel.evaluations?.artificial_analysis_coding_index || catModel.category_scores?.coding || fullLlm.coding_index || null,
           math_index: catModel.evaluations?.artificial_analysis_math_index || catModel.category_scores?.math || fullLlm.math_index || null,
+          reasoning_index: catModel.evaluations?.hle_diamond || catModel.category_scores?.reasoning || fullLlm.reasoning_index || null,
+          hle_diamond: catModel.evaluations?.hle_diamond || fullLlm.hle_diamond || null,
           gpqa: catModel.evaluations?.gpqa || fullLlm.gpqa || null,
           hle: catModel.evaluations?.hle || fullLlm.hle || null,
           throughput: catModel.median_output_tokens_per_second || fullLlm.throughput || null,
@@ -1472,6 +1476,10 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
                           }
                           if (activeCategory === 'math' || (!activeCategory && rankingIndex === 'math')) {
                             const val = model.math_index ?? model.evaluations?.artificial_analysis_math_index ?? model.category_scores?.math ?? model.aime;
+                            return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
+                          }
+                          if (activeCategory === 'reasoning') {
+                            const val = model.category_scores?.reasoning ?? model.evaluations?.hle_diamond ?? model.hle_diamond ?? model.reasoning_index;
                             return val !== null && val !== undefined ? Number(val).toFixed(1) : null;
                           }
                           if (rankingIndex === 'speed' || activeCategory === 'fast') {
