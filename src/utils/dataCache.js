@@ -34,8 +34,57 @@ function safeSetStorage(key, data) {
   }
 }
 
+let isRevalidatingRawData = false;
+let lastRawDataRevalidationAt = 0;
+
 /**
- * Get raw market data with request deduplication and in-memory/session storage caching
+ * Quietly revalidate raw market data in the background (Stale-While-Revalidate).
+ * If new models have arrived or scores updated, dispatches 'audex_raw_data_updated'.
+ */
+function scheduleRawDataRevalidation(currentData) {
+  const now = Date.now();
+  if (isRevalidatingRawData || (now - lastRawDataRevalidationAt < 45 * 1000)) {
+    return;
+  }
+
+  setTimeout(async () => {
+    if (isRevalidatingRawData) return;
+    isRevalidatingRawData = true;
+    lastRawDataRevalidationAt = Date.now();
+
+    try {
+      const url = `${API_BASE_URL}/audits/analysis/raw-data`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const freshData = await res.json();
+
+      if (freshData && (freshData.llms || freshData.categories)) {
+        const currentCount = currentData?.llms?.length || currentData?.sources?.llms?.data?.length || 0;
+        const freshCount = freshData.llms?.length || freshData.sources?.llms?.data?.length || 0;
+        const currentCatCount = currentData?.categories?.overall?.length || 0;
+        const freshCatCount = freshData.categories?.overall?.length || 0;
+        const hasTimeChanged = freshData.fetched_at && freshData.fetched_at !== currentData?.fetched_at;
+
+        if (freshCount !== currentCount || freshCatCount !== currentCatCount || hasTimeChanged) {
+          console.log(`✨ Live Model Intel Update: Detected newly arrived models (${currentCatCount} -> ${freshCatCount} overall, ${currentCount} -> ${freshCount} total). Updating page.`);
+          memoryCache.rawData = freshData;
+          safeSetStorage('audex_raw_data', { data: freshData, savedAt: Date.now() });
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('audex_raw_data_updated', { detail: freshData }));
+          }
+        }
+      }
+    } catch (_) {
+      // Gracefully ignore background network hiccups
+    } finally {
+      isRevalidatingRawData = false;
+    }
+  }, 350);
+}
+
+/**
+ * Get raw market data with request deduplication, Stale-While-Revalidate caching,
+ * and automatic background live synchronization.
  */
 export async function getCachedRawData(forceRefresh = false) {
   if (forceRefresh) {
@@ -46,17 +95,18 @@ export async function getCachedRawData(forceRefresh = false) {
   }
 
   if (!forceRefresh && memoryCache.rawData) {
+    scheduleRawDataRevalidation(memoryCache.rawData);
     return memoryCache.rawData;
   }
 
-  // Check storage for fast warm starts across page navigation with 10-minute TTL
+  // Check storage for fast warm starts across page navigation
   if (!forceRefresh) {
     const cached = safeGetStorage('audex_raw_data');
     if (cached) {
       const payload = cached.data || cached;
-      const isFresh = cached.savedAt ? (Date.now() - cached.savedAt < 10 * 60 * 1000) : false;
-      if (isFresh && (payload.llms || payload.sources)) {
+      if (payload && (payload.llms || payload.sources)) {
         memoryCache.rawData = payload;
+        scheduleRawDataRevalidation(payload);
         return payload;
       }
     }
@@ -77,6 +127,9 @@ export async function getCachedRawData(forceRefresh = false) {
       const data = await res.json();
       memoryCache.rawData = data;
       safeSetStorage('audex_raw_data', { data, savedAt: Date.now() });
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('audex_raw_data_updated', { detail: data }));
+      }
       return data;
     } finally {
       delete memoryCache.promises.rawData;

@@ -515,6 +515,14 @@ export default function ModelAuditorView({
       .catch(err => {
         console.error('Failed to load raw market data in AuditorView:', err);
       });
+
+    const handleUpdate = (e) => {
+      if (e.detail && (e.detail.llms || e.detail.categories)) {
+        setIntelData(e.detail);
+      }
+    };
+    window.addEventListener('audex_raw_data_updated', handleUpdate);
+    return () => window.removeEventListener('audex_raw_data_updated', handleUpdate);
   }, []);
 
   const resolveHoveredModelDetails = (rec) => {

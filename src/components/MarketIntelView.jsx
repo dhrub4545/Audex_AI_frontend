@@ -517,7 +517,7 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
     };
   }, []);
 
-  // Fetch raw analysis data from the backend (cached)
+  // Fetch raw analysis data from the backend (cached with auto-update listener)
   useEffect(() => {
     getCachedRawData()
       .then(data => {
@@ -529,6 +529,46 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
         setIntelError(err.message);
         setLoadingIntel(false);
       });
+
+    // Automatically update state when newly arrived models are fetched in the background
+    const handleDataUpdate = (event) => {
+      if (event.detail && (event.detail.llms || event.detail.categories)) {
+        setIntelData(event.detail);
+        setLoadingIntel(false);
+      }
+    };
+    window.addEventListener('audex_raw_data_updated', handleDataUpdate);
+    return () => window.removeEventListener('audex_raw_data_updated', handleDataUpdate);
+  }, []);
+
+  // Periodic and visibility-based auto-check to ensure newly arrived models display automatically
+  useEffect(() => {
+    let lastCheckTime = Date.now();
+    const autoCheckFreshness = () => {
+      const now = Date.now();
+      if (now - lastCheckTime >= 2 * 60 * 1000) {
+        lastCheckTime = now;
+        getCachedRawData(true)
+          .then(data => {
+            if (data) setIntelData(data);
+          })
+          .catch(() => {});
+      }
+    };
+
+    const intervalId = setInterval(autoCheckFreshness, 3 * 60 * 1000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        autoCheckFreshness();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   // Standard Developer Colors

@@ -273,6 +273,14 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
         if (data) setIntelData(data);
       })
       .catch(err => console.error('Failed to load raw data in ComparisonView:', err));
+
+    const handleUpdate = (e) => {
+      if (e.detail && (e.detail.llms || e.detail.categories)) {
+        setIntelData(e.detail);
+      }
+    };
+    window.addEventListener('audex_raw_data_updated', handleUpdate);
+    return () => window.removeEventListener('audex_raw_data_updated', handleUpdate);
   }, []);
 
   // Fully resolve baseline and recommended against intelData if available
