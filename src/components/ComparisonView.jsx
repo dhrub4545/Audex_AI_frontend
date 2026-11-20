@@ -54,20 +54,6 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     return Math.round(Math.min(99, Math.max(35, 50 + ((Number(r) - 1000) / 327) * 49)));
   };
 
-  // Helper to normalize category rank
-  const normRank = (rank) => {
-    if (!rank || isNaN(rank) || rank <= 0) return null;
-    const rk = Number(rank);
-    if (rk === 1) return 99;
-    if (rk === 2) return 98;
-    if (rk === 3) return 97;
-    if (rk <= 10) return Math.round(96 - (rk - 3) * 0.5);
-    if (rk <= 50) return Math.round(92 - ((rk - 10) / 40) * 8);
-    if (rk <= 150) return Math.round(84 - ((rk - 50) / 100) * 12);
-    if (rk <= 300) return Math.round(72 - ((rk - 150) / 150) * 18);
-    return Math.round(Math.max(35, 54 - ((rk - 300) / 400) * 19));
-  };
-
   const getCatScore = (catItem, catKey) => {
     if (!catItem) return null;
     if (typeof catItem.category_scores?.[catKey] === 'number') return Math.round(catItem.category_scores[catKey]);
