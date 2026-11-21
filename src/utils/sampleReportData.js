@@ -2,7 +2,7 @@
 export const SAMPLE_AUDIT_DATA = {
   "_id": "sample_audit_2026",
   "userId": "sample_enterprise_user",
-  "createdAt": "2026-11-21T09:35:31.837Z",
+  "createdAt": "2026-11-21T09:53:11.540Z",
   "teamSize": 12,
   "useCase": "Coding & Mixed Workloads",
   "optimizationGoal": "performance",
