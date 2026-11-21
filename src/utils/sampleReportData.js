@@ -2,7 +2,7 @@
 export const SAMPLE_AUDIT_DATA = {
   "_id": "sample_audit_2026",
   "userId": "sample_enterprise_user",
-  "createdAt": "2026-11-21T05:36:13.472Z",
+  "createdAt": "2026-11-21T09:35:31.837Z",
   "teamSize": 12,
   "useCase": "Coding & Mixed Workloads",
   "optimizationGoal": "performance",
@@ -384,7 +384,7 @@ export const SAMPLE_AUDIT_DATA = {
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
         "baselineScore": 97,
-        "baselineRank": 2,
+        "baselineRank": 3,
         "monthlySavings": 220.01,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -426,7 +426,7 @@ export const SAMPLE_AUDIT_DATA = {
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
           "performance_score": 87,
-          "category_rank": 9999,
+          "category_rank": 73,
           "action": "Migrate to the Gemini AI Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
@@ -444,7 +444,7 @@ export const SAMPLE_AUDIT_DATA = {
           "provider": "Anthropic",
           "modelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
           "performance_score": 97,
-          "category_rank": 2
+          "category_rank": 3
         }
       },
       {
@@ -454,7 +454,7 @@ export const SAMPLE_AUDIT_DATA = {
         "action": "Select the most suitable option below.",
         "purpose": "Coding",
         "baselineScore": 50,
-        "baselineRank": 12,
+        "baselineRank": 50,
         "monthlySavings": 28.86,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -465,7 +465,7 @@ export const SAMPLE_AUDIT_DATA = {
           "name": "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High",
           "modelId": "anthropic/devin-fusion-cli-claude-opus-5-5-max-gpt-6-luna-high",
           "performance_score": 97,
-          "category_rank": 16,
+          "category_rank": 5,
           "action": "Transition active users to direct API keys using Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High.",
           "statusText": "",
           "isAlreadyOptimized": false,
@@ -496,7 +496,7 @@ export const SAMPLE_AUDIT_DATA = {
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
           "performance_score": 87,
-          "category_rank": 9999,
+          "category_rank": 73,
           "action": "Migrate to the Gemini AI Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
@@ -514,7 +514,7 @@ export const SAMPLE_AUDIT_DATA = {
           "provider": "Mistral",
           "modelName": "Mistral Vibe - Mistral Large 4 (high)",
           "performance_score": 50,
-          "category_rank": 12
+          "category_rank": 50
         }
       },
       {

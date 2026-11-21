@@ -135,11 +135,13 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     }
 
     // 3. Model family fallback (for Math / Writing / Speed when exact version isn't benchmarked)
+    const isFlashModel = lookupKeys.some(k => k.includes('flash') || k.includes('haiku') || k.includes('mini'));
     for (const key of lookupKeys) {
       if (key.includes('gpt')) {
         const match = catList.find(m => {
           const mName = (m.name || '').toLowerCase();
-          return mName.includes('gpt-5.5') || mName.includes('gpt-5.2') || mName.includes('gpt-5');
+          if (isFlashModel) return mName.includes('luna') || mName.includes('mini');
+          return mName.includes('gpt-6.2') || mName.includes('gpt-6.1') || mName.includes('gpt-6') || mName.includes('gpt-5.5');
         });
         if (match) return match;
       }
@@ -147,14 +149,18 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
         const match = catList.find(m => {
           const mName = (m.name || '').toLowerCase();
           const mSlug = (m.slug || '').toLowerCase();
-          return mName.includes('gemini 3.8 flash') || mSlug.includes('gemini-3-8-flash') || mName.includes('gemini 3.7') || mName.includes('gemini 4');
+          if (isFlashModel) {
+            return mName.includes('flash') || mSlug.includes('flash');
+          }
+          return mName.includes('gemini 4') || mSlug.includes('gemini-4');
         });
         if (match) return match;
       }
       if (key.includes('claude')) {
         const match = catList.find(m => {
           const mName = (m.name || '').toLowerCase();
-          return mName.includes('claude 3.7') || mName.includes('claude 3.5') || mName.includes('claude sonnet');
+          if (isFlashModel) return mName.includes('haiku');
+          return mName.includes('sonnet') || mName.includes('opus') || mName.includes('fable');
         });
         if (match) return match;
       }
@@ -172,40 +178,61 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   const visCat = findInCat('vision') || findInCat('multimodal');
   const fastCat = findInCat('fast');
 
-  const evCombined = {
-    ...(codeCat?.evaluations || {}),
-    ...(reasonCat?.evaluations || {}),
-    ...(mathCat?.evaluations || {}),
-    ...(writeCat?.evaluations || {}),
-    ...(resCat?.evaluations || {}),
-    ...(fnCat?.evaluations || {}),
-    ...(visCat?.evaluations || {}),
-    ...(fastCat?.evaluations || {}),
-    ...ev
+  const mergeEvals = (...evalObjs) => {
+    const res = {};
+    for (const obj of evalObjs) {
+      if (!obj) continue;
+      for (const [k, v] of Object.entries(obj)) {
+        if (v !== null && v !== undefined && !Number.isNaN(v)) {
+          res[k] = v;
+        }
+      }
+    }
+    return res;
   };
 
-  // 1. Coding (SWE-Bench / LiveCodeBench / AA Coding Index / Category Rank)
+  const evCombined = mergeEvals(
+    codeCat?.evaluations,
+    reasonCat?.evaluations,
+    mathCat?.evaluations,
+    writeCat?.evaluations,
+    resCat?.evaluations,
+    fnCat?.evaluations,
+    visCat?.evaluations,
+    fastCat?.evaluations,
+    ev
+  );
+
+  // 1. Coding (SWE-Bench / Coding Agent Index / LiveCodeBench / FrontierCode / TerminalBench)
   let coding = null;
   if (model.category_scores?.coding != null) {
     coding = Math.round(Number(model.category_scores.coding));
   } else if (codeCat?.category_scores?.coding != null) {
     coding = Math.round(Number(codeCat.category_scores.coding));
+  } else if (codeCat?.evaluations?.artificial_analysis_coding_index != null) {
+    coding = Math.round(Number(codeCat.evaluations.artificial_analysis_coding_index));
+  } else if (codeCat?.evaluations?.coding_agent_index != null) {
+    coding = Math.round(Number(codeCat.evaluations.coding_agent_index));
   } else if (codeCat?.final_score != null) {
     const v = Number(codeCat.final_score);
     coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   } else if (codeCat?.rating != null) {
     coding = normRating(codeCat.rating);
-  } else if (evCombined.livecodebench) {
-    const v = Number(evCombined.livecodebench);
-    coding = Math.round(v <= 1 ? v * 100 : (v / 90) * 100);
-  } else if (evCombined.artificial_analysis_coding_index) {
+  } else if (evCombined.artificial_analysis_coding_index != null) {
     const v = Number(evCombined.artificial_analysis_coding_index);
     coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
-  } else if (evCombined.terminalbench_v2_1) {
-    const v = Number(evCombined.terminalbench_v2_1);
+  } else if (evCombined.coding_agent_index != null) {
+    const v = Number(evCombined.coding_agent_index);
+    coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
+  } else if (evCombined.livecodebench != null) {
+    const v = Number(evCombined.livecodebench);
+    coding = Math.round(v <= 1 ? v * 100 : (v / 90) * 100);
+  } else if (evCombined.frontier_code_20 != null) {
+    const v = Number(evCombined.frontier_code_20);
     coding = Math.round(v <= 1 ? v * 100 : v);
-  } else if (evCombined.scicode) {
-    coding = Math.round((Number(evCombined.scicode) / 67) * 98);
+  } else if (evCombined.terminal_bench_40 != null || evCombined.terminalbench_v2_1 != null) {
+    const v = Number(evCombined.terminal_bench_40 ?? evCombined.terminalbench_v2_1);
+    coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   }
 
   // 2. Reasoning (GPQA Diamond / MMLU-Pro / AA Intelligence Index / Category Rank)
