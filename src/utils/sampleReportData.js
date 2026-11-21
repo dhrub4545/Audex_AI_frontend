@@ -2,7 +2,7 @@
 export const SAMPLE_AUDIT_DATA = {
   "_id": "sample_audit_2026",
   "userId": "sample_enterprise_user",
-  "createdAt": "2026-11-21T10:12:22.418Z",
+  "createdAt": "2026-11-21T10:23:30.905Z",
   "teamSize": 12,
   "useCase": "Coding & Mixed Workloads",
   "optimizationGoal": "performance",
@@ -14,7 +14,7 @@ export const SAMPLE_AUDIT_DATA = {
   "selectedOptions": {
     "0": "subscription",
     "1": "subscription",
-    "2": "subscription",
+    "2": "api",
     "3": "subscription",
     "4": "api",
     "5": "api",
@@ -30,10 +30,10 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 20,
-      "topModelId": "openai/codex-gpt-6-2-astra-medium",
-      "topModelName": "Codex - GPT-6.2 Astra (medium)",
-      "baselineModelId": "openai/codex-gpt-6-2-astra-medium",
-      "baselineModelName": "Codex - GPT-6.2 Astra (medium)",
+      "topModelId": "openai/codex-gpt-6-2-sol-xhigh",
+      "topModelName": "Codex - GPT-6.2 Sol (xhigh)",
+      "baselineModelId": "openai/codex-gpt-6-2-sol-xhigh",
+      "baselineModelName": "Codex - GPT-6.2 Sol (xhigh)",
       "baselineModels": [
         "Codex - GPT-6.2 Sol (xhigh)",
         "Codex - GPT-6.2 Sol (high)",
@@ -51,10 +51,10 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Mixed",
       "pricePerSeat": 20,
       "currentCost": 100,
-      "topModelId": "anthropic/claude-code-claude-fable-5-2-medium",
-      "topModelName": "Claude Code - Claude Fable 5.2 (medium)",
-      "baselineModelId": "anthropic/claude-code-claude-fable-5-2-medium",
-      "baselineModelName": "Claude Code - Claude Fable 5.2 (medium)",
+      "topModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+      "topModelName": "Claude Code - Claude Sonnet 5.5 (max)",
+      "baselineModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
+      "baselineModelName": "Claude Code - Claude Sonnet 5.5 (max)",
       "baselineModels": [
         "Claude Code - Claude Sonnet 5.5 (max)",
         "Claude Code - Claude Fable 5.2 (medium)"
@@ -158,12 +158,12 @@ export const SAMPLE_AUDIT_DATA = {
     }
   ],
   "savings": {
-    "totalMonthly": 341.81,
-    "totalAnnual": 4101.72,
-    "totalOptimizedSpend": 46.15,
-    "percentageSavings": 88.1,
-    "apiMonthly": 261.63,
-    "apiAnnual": 3139.56,
+    "totalMonthly": 342.58,
+    "totalAnnual": 4110.96,
+    "totalOptimizedSpend": 45.38,
+    "percentageSavings": 88.3,
+    "apiMonthly": 262.4,
+    "apiAnnual": 3148.8,
     "subMonthly": 324.04,
     "subAnnual": 3888.48,
     "recommendations": [
@@ -173,8 +173,8 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $20.00/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 62,
-        "baselineRank": 3,
+        "baselineScore": 57,
+        "baselineRank": 13,
         "monthlySavings": 15.01,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -232,9 +232,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 20,
           "modelId": "",
           "provider": "OpenAI",
-          "modelName": "Codex - GPT-6.2 Astra (medium)",
-          "performance_score": 62,
-          "category_rank": 3
+          "modelName": "Codex - GPT-6.2 Sol (xhigh)",
+          "performance_score": 57,
+          "category_rank": 13
         }
       },
       {
@@ -243,8 +243,8 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $100.00/mo for 5 active Mixed users",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 65,
-        "baselineRank": 1,
+        "baselineScore": 55,
+        "baselineRank": 23,
         "monthlySavings": 75.05,
         "isAlreadyOptimized": false,
         "statusText": "",
@@ -302,9 +302,9 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 100,
           "modelId": "",
           "provider": "Anthropic",
-          "modelName": "Claude Code - Claude Fable 5.2 (medium)",
-          "performance_score": 65,
-          "category_rank": 1
+          "modelName": "Claude Code - Claude Sonnet 5.5 (max)",
+          "performance_score": 55,
+          "category_rank": 23
         }
       },
       {
@@ -313,30 +313,30 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $4.99/mo for 1 active Mixed user",
         "action": "Select the most suitable option below.",
         "purpose": "Mixed",
-        "baselineScore": 76,
+        "baselineScore": 50,
         "baselineRank": 500,
-        "monthlySavings": 0,
-        "isAlreadyOptimized": true,
-        "statusText": "Optimized",
+        "monthlySavings": 0.77,
+        "isAlreadyOptimized": false,
+        "statusText": "",
         "apiOption": {
           "_id": "rec_api_2",
-          "cost": 22.5,
-          "savings": 0,
-          "name": "Claude Fable 5.2 (Max, Default Fallback)",
-          "modelId": "anthropic/claude-fable-5-2",
-          "performance_score": 65,
-          "category_rank": 1,
-          "action": "Transition active users to direct API keys using Claude Fable 5.2 (Max, Default Fallback).",
+          "cost": 4.22,
+          "savings": 0.77,
+          "name": "Gemini 4 Hydrogen (Xhigh)",
+          "modelId": "google/gemini-4-hydrogen",
+          "performance_score": 54,
+          "category_rank": 26,
+          "action": "Transition active users to direct API keys using Gemini 4 Hydrogen (Xhigh).",
           "statusText": "",
           "isAlreadyOptimized": false,
-          "limits": "Pay-as-you-go rates: $8.00/1M input, $40.00/1M output. Context: 1M.",
+          "limits": "Pay-as-you-go rates: $1.50/1M input, $7.50/1M output. Context: 1M.",
           "includedModels": [
-            "Claude Fable 5.2 (Max, Default Fallback)"
+            "Gemini 4 Hydrogen (Xhigh)"
           ],
-          "recommendedModel": "Claude Fable 5.2 (Max, Default Fallback)",
-          "recommendedProvider": "Anthropic",
-          "inputCostPerM": 8,
-          "outputCostPerM": 40,
+          "recommendedModel": "Gemini 4 Hydrogen (Xhigh)",
+          "recommendedProvider": "Google",
+          "inputCostPerM": 1.5,
+          "outputCostPerM": 7.5,
           "defaultInputTokens": 1250000,
           "defaultOutputTokens": 312500
         },
@@ -355,7 +355,7 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
           "topModelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 76,
+          "performance_score": 50,
           "category_rank": 500,
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "Optimized",
@@ -373,7 +373,7 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "Google",
           "modelName": "Gemini 3.7 Flash (High)",
-          "performance_score": 76,
+          "performance_score": 50,
           "category_rank": 500
         }
       },
@@ -523,7 +523,7 @@ export const SAMPLE_AUDIT_DATA = {
         "issue": "Paying $7.99/mo for 1 active Research user",
         "action": "Select the most suitable option below.",
         "purpose": "Research",
-        "baselineScore": 50,
+        "baselineScore": 84,
         "baselineRank": 21,
         "monthlySavings": 5.9,
         "isAlreadyOptimized": false,
@@ -583,7 +583,7 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "",
           "provider": "Meta",
           "modelName": "Muse Code - Muse Wonder Full (max)",
-          "performance_score": 50,
+          "performance_score": 84,
           "category_rank": 21
         }
       },
