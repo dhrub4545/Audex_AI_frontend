@@ -363,45 +363,125 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     return null;
   };
 
+  // Helper to extract lookup keys and variants (stripping tool wrappers like 'Codex - ', 'Antigravity CLI - ', etc.)
+  const getLookupKeys = (m) => {
+    if (!m) return [];
+    const keys = [];
+    const add = (v) => {
+      if (!v) return;
+      const str = String(v).trim().toLowerCase();
+      if (str && !keys.includes(str)) keys.push(str);
+    };
+
+    const rawName = m.name || m.modelName || '';
+    const rawSlug = m.slug || '';
+    const rawId = m.id || m.modelId || '';
+
+    add(rawName);
+    add(rawSlug);
+    add(rawId);
+
+    // Stripped of tool prefix (e.g. "Codex - GPT-6.2 Sol (xhigh)" -> "GPT-6.2 Sol (xhigh)")
+    const noTool = rawName.replace(/^[A-Za-z0-9 ]+\s*-\s*/, '').trim();
+    if (noTool && noTool !== rawName) add(noTool);
+
+    // Stripped of parenthetical (e.g. "GPT-6.2 Sol (xhigh)" -> "GPT-6.2 Sol")
+    const noParen = (noTool || rawName).replace(/\s*\([^)]*\)/g, '').trim();
+    if (noParen) {
+      add(noParen);
+      add(noParen.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    }
+
+    if (noTool) {
+      add(noTool.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
+    }
+
+    if (rawId.includes('/')) {
+      const seg = rawId.split('/')[1];
+      add(seg);
+      add(seg.replace(/^[a-z0-9]+-/, ''));
+    }
+
+    return keys;
+  };
+
+  const lookupKeys = getLookupKeys(model);
+
   // Helper to find in intelData categories by flexible slug / modelId / name match
   const findInCat = (catName) => {
     if (!intelData?.categories?.[catName]) return null;
     const catList = intelData.categories[catName];
-    const targetSlug = (model.slug || model.modelId?.split('/')[1] || '').toLowerCase();
-    const targetId = (model.modelId || '').toLowerCase();
-    const targetName = (model.name || '').toLowerCase().trim();
 
-    return catList.find(m => {
-      const mSlug = (m.slug || '').toLowerCase();
-      const mId = (m.modelId || '').toLowerCase();
-      const mName = (m.name || '').toLowerCase().trim();
+    // 1. Exact match on any key
+    for (const key of lookupKeys) {
+      const match = catList.find(m => {
+        const mSlug = (m.slug || '').toLowerCase();
+        const mId = (m.modelId || '').toLowerCase();
+        const mName = (m.name || '').toLowerCase().trim();
+        return key === mSlug || key === mId || key === mName;
+      });
+      if (match) return match;
+    }
 
-      return (
-        (targetSlug && mSlug && targetSlug === mSlug) ||
-        (targetId && mId && targetId === mId) ||
-        (targetName && mName && targetName === mName) ||
-        (targetSlug && mSlug && (targetSlug.includes(mSlug) || mSlug.includes(targetSlug))) ||
-        (targetId && mSlug && targetId.includes(mSlug)) ||
-        (targetName && mName && (targetName.includes(mName) || mName.includes(targetName)))
-      );
-    });
+    // 2. Substring match
+    for (const key of lookupKeys) {
+      if (key.length >= 4) {
+        const match = catList.find(m => {
+          const mSlug = (m.slug || '').toLowerCase();
+          const mName = (m.name || '').toLowerCase().trim();
+          return mSlug.includes(key) || mName.includes(key) || key.includes(mSlug) || (mName && key.includes(mName));
+        });
+        if (match) return match;
+      }
+    }
+
+    // 3. Model family fallback (for Math / Writing / Speed when exact version isn't benchmarked)
+    for (const key of lookupKeys) {
+      if (key.includes('gpt')) {
+        const match = catList.find(m => {
+          const mName = (m.name || '').toLowerCase();
+          return mName.includes('gpt-5.5') || mName.includes('gpt-5.2') || mName.includes('gpt-5');
+        });
+        if (match) return match;
+      }
+      if (key.includes('gemini')) {
+        const match = catList.find(m => {
+          const mName = (m.name || '').toLowerCase();
+          const mSlug = (m.slug || '').toLowerCase();
+          return mName.includes('gemini 3.8 flash') || mSlug.includes('gemini-3-8-flash') || mName.includes('gemini 3.7') || mName.includes('gemini 4');
+        });
+        if (match) return match;
+      }
+      if (key.includes('claude')) {
+        const match = catList.find(m => {
+          const mName = (m.name || '').toLowerCase();
+          return mName.includes('claude 3.7') || mName.includes('claude 3.5') || mName.includes('claude sonnet');
+        });
+        if (match) return match;
+      }
+    }
+
+    return null;
   };
 
   const codeCat = findInCat('coding');
   const reasonCat = findInCat('reasoning') || findInCat('overall');
-  const mathCat = findInCat('math');
-  const writeCat = findInCat('creative-writing') || findInCat('writing');
-  const resCat = findInCat('research');
-  const fnCat = findInCat('tool-use') || findInCat('function-calling') || findInCat('agents');
+  const mathCat = findInCat('math') || findInCat('industry-mathematical');
+  const writeCat = findInCat('creative-writing') || findInCat('writing') || findInCat('industry-writing-and-literature-and-language');
+  const resCat = findInCat('research') || findInCat('scientific');
+  const fnCat = findInCat('function-calling') || findInCat('tool-use') || findInCat('agents');
   const visCat = findInCat('vision') || findInCat('multimodal');
+  const fastCat = findInCat('fast');
 
   const evCombined = {
     ...(codeCat?.evaluations || {}),
     ...(reasonCat?.evaluations || {}),
     ...(mathCat?.evaluations || {}),
+    ...(writeCat?.evaluations || {}),
     ...(resCat?.evaluations || {}),
     ...(fnCat?.evaluations || {}),
     ...(visCat?.evaluations || {}),
+    ...(fastCat?.evaluations || {}),
     ...ev
   };
 
@@ -412,13 +492,16 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (codeCat?.category_scores?.coding != null) {
     coding = Math.round(Number(codeCat.category_scores.coding));
   } else if (codeCat?.final_score != null) {
-    coding = Math.round(Number(codeCat.final_score));
-  } else if (evCombined.artificial_analysis_coding_index != null) {
-    const v = Number(evCombined.artificial_analysis_coding_index);
+    const v = Number(codeCat.final_score);
     coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
+  } else if (codeCat?.rating != null) {
+    coding = normRating(codeCat.rating);
   } else if (evCombined.livecodebench != null) {
     const v = Number(evCombined.livecodebench);
     coding = Math.round(v <= 1 ? v * 100 : (v / 90) * 100);
+  } else if (evCombined.artificial_analysis_coding_index != null) {
+    const v = Number(evCombined.artificial_analysis_coding_index);
+    coding = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
   } else if (evCombined.terminalbench_v2_1 != null) {
     const v = Number(evCombined.terminalbench_v2_1);
     coding = Math.round(v <= 1 ? v * 100 : v);
@@ -435,15 +518,21 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (mathCat?.category_scores?.math != null) {
     math = Math.round(Number(mathCat.category_scores.math));
   } else if (mathCat?.final_score != null) {
-    math = Math.round(Number(mathCat.final_score));
+    const v = Number(mathCat.final_score);
+    math = Math.round(v <= 1 ? v * 100 : v);
+  } else if (mathCat?.rating != null && mathCat.rating > 1000) {
+    math = normRating(mathCat.rating);
   } else if (evCombined.livebench_math != null) {
     math = Math.round(Number(evCombined.livebench_math));
   } else if (evCombined.artificial_analysis_math_index != null) {
-    math = Math.round(Number(evCombined.artificial_analysis_math_index));
-  } else if (evCombined.aime != null) {
-    math = Math.round(Number(evCombined.aime));
+    const v = Number(evCombined.artificial_analysis_math_index);
+    math = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
   } else if (evCombined.scicode != null) {
     math = Math.round((Number(evCombined.scicode) / 67) * 98);
+  } else if (evCombined.hle_diamond != null) {
+    math = Math.round((Number(evCombined.hle_diamond) / 65) * 98);
+  } else if (evCombined.aime != null) {
+    math = Math.round(Number(evCombined.aime));
   }
 
   // 3. REASONING
@@ -452,12 +541,16 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     reasoning = Math.round(Number(model.category_scores.reasoning));
   } else if (reasonCat?.category_scores?.reasoning != null) {
     reasoning = Math.round(Number(reasonCat.category_scores.reasoning));
-  } else if (reasonCat?.final_score != null) {
-    reasoning = Math.round(Number(reasonCat.final_score));
-  } else if (evCombined.hle_diamond != null) {
-    reasoning = Math.round(Number(evCombined.hle_diamond));
   } else if (evCombined.gpqa != null) {
     reasoning = Math.round(Number(evCombined.gpqa));
+  } else if (evCombined.hle_diamond != null) {
+    const v = Number(evCombined.hle_diamond);
+    reasoning = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (reasonCat?.final_score != null) {
+    const v = Number(reasonCat.final_score);
+    reasoning = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (reasonCat?.rating != null) {
+    reasoning = normRating(reasonCat.rating);
   } else if (evCombined.hle != null) {
     reasoning = Math.round((Number(evCombined.hle) / 58) * 98);
   } else if (evCombined.artificial_analysis_intelligence_index != null) {
@@ -485,15 +578,26 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   // 4. WRITING
   let writing = null;
   if (model.category_scores?.['creative-writing'] != null) {
-    writing = Math.round(Number(model.category_scores['creative-writing']));
+    const v = Number(model.category_scores['creative-writing']);
+    writing = Math.round(v <= 65 ? (v / 65) * 100 : v);
   } else if (model.category_scores?.writing != null) {
-    writing = Math.round(Number(model.category_scores.writing));
+    const v = Number(model.category_scores.writing);
+    writing = Math.round(v <= 65 ? (v / 65) * 100 : v);
   } else if (writeCat?.category_scores?.['creative-writing'] != null) {
-    writing = Math.round(Number(writeCat.category_scores['creative-writing']));
+    const v = Number(writeCat.category_scores['creative-writing']);
+    writing = Math.round(v <= 65 ? (v / 65) * 100 : v);
   } else if (writeCat?.category_scores?.writing != null) {
-    writing = Math.round(Number(writeCat.category_scores.writing));
+    const v = Number(writeCat.category_scores.writing);
+    writing = Math.round(v <= 65 ? (v / 65) * 100 : v);
   } else if (writeCat?.final_score != null) {
-    writing = Math.round(Number(writeCat.final_score));
+    const v = Number(writeCat.final_score);
+    writing = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (writeCat?.rating != null) {
+    writing = normRating(writeCat.rating);
+  } else if (evCombined.personality_bench != null) {
+    writing = Math.round(Number(evCombined.personality_bench));
+  } else if (evCombined.summarization != null) {
+    writing = Math.round(Number(evCombined.summarization));
   }
 
   // 5. RESEARCH (HLE / GPQA / MMLU)
@@ -503,30 +607,45 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
   } else if (resCat?.category_scores?.research != null) {
     research = Math.round(Number(resCat.category_scores.research));
   } else if (resCat?.final_score != null) {
-    research = Math.round(Number(resCat.final_score));
-  } else if (evCombined.hle != null) {
-    research = Math.round((Number(evCombined.hle) / 58) * 98);
+    const v = Number(resCat.final_score);
+    research = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (resCat?.rating != null) {
+    research = normRating(resCat.rating);
   } else if (evCombined.gpqa != null) {
     research = Math.round(Number(evCombined.gpqa));
+  } else if (evCombined.terminal_bench_science != null) {
+    const v = Number(evCombined.terminal_bench_science);
+    research = Math.round(v <= 70 ? (v / 70) * 98 : v);
+  } else if (evCombined.hle != null) {
+    research = Math.round((Number(evCombined.hle) / 58) * 98);
+  } else if (evCombined.mmlu_pro != null) {
+    research = Math.round((Number(evCombined.mmlu_pro) / 90) * 100);
   }
 
-  // 6. FUNCTION CALLING / AGENTIC
+  // 6. FUNCTION CALLING / AGENTIC (BFCL v3 / Tool Use / Agentic Index)
   let funcCalling = null;
-  if (model.category_scores?.['function-calling'] != null) {
-    funcCalling = Math.round(Number(model.category_scores['function-calling']));
-  } else if (model.category_scores?.['tool-use'] != null) {
-    funcCalling = Math.round(Number(model.category_scores['tool-use']));
-  } else if (fnCat?.category_scores?.['function-calling'] != null) {
-    funcCalling = Math.round(Number(fnCat.category_scores['function-calling']));
-  } else if (fnCat?.category_scores?.['tool-use'] != null) {
-    funcCalling = Math.round(Number(fnCat.category_scores['tool-use']));
+  if (fnCat?.rating != null && fnCat.rating > 1000) {
+    funcCalling = normRating(fnCat.rating);
   } else if (fnCat?.final_score != null) {
-    funcCalling = Math.round(Number(fnCat.final_score));
+    const v = Number(fnCat.final_score);
+    funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (model.category_scores?.['function-calling'] != null || fnCat?.category_scores?.['function-calling'] != null) {
+    const rawVal = Number(model.category_scores?.['function-calling'] ?? fnCat.category_scores['function-calling']);
+    funcCalling = Math.round(rawVal <= 55 ? (rawVal / 50) * 100 : rawVal);
+  } else if (evCombined.automation_bench != null) {
+    const v = Number(evCombined.automation_bench);
+    funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 75 ? (v / 70) * 100 : v));
+  } else if (evCombined.critpt_agentic_hard != null) {
+    const v = Number(evCombined.critpt_agentic_hard);
+    funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 75 ? (v / 70) * 100 : v));
   } else if (evCombined.ifbench != null) {
     funcCalling = Math.round((Number(evCombined.ifbench) / 85) * 100);
   } else if (evCombined.agentic_index != null) {
     const v = Number(evCombined.agentic_index);
     funcCalling = Math.round(v <= 1 ? v * 100 : (v <= 60 ? (v / 60) * 100 : v));
+  } else if (model.category_scores?.['tool-use'] != null || fnCat?.category_scores?.['tool-use'] != null) {
+    const rawVal = Number(model.category_scores?.['tool-use'] ?? fnCat.category_scores['tool-use']);
+    funcCalling = Math.round(rawVal <= 65 ? (rawVal / 60) * 100 : rawVal);
   }
 
   // 7. Context Length
@@ -541,18 +660,35 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     else longContext = 50;
   }
 
-  // 8. Multimodal
+  // 8. Multimodal (Vision) - only if model or category supports vision
   let multimodal = null;
-  if (model.category_scores?.vision != null) {
+  const isSolTextModel = (model.slug || model.name || '').toLowerCase().includes('sol') && (model.slug || model.name || '').toLowerCase().includes('codex');
+  if (isSolTextModel) {
+    multimodal = null;
+  } else if (model.category_scores?.vision != null) {
     multimodal = Math.round(Number(model.category_scores.vision));
   } else if (visCat?.category_scores?.vision != null) {
     multimodal = Math.round(Number(visCat.category_scores.vision));
   } else if (visCat?.final_score != null) {
-    multimodal = Math.round(Number(visCat.final_score));
+    const v = Number(visCat.final_score);
+    multimodal = Math.round(v <= 1 ? v * 100 : (v <= 65 ? (v / 65) * 100 : v));
+  } else if (visCat?.rating != null) {
+    multimodal = normRating(visCat.rating);
+  } else if (evCombined.mmmu != null) {
+    multimodal = Math.round(Number(evCombined.mmmu));
   }
 
   // 9. Speed
-  const speedRaw = explicitTps || model.median_output_tokens_per_second || model.throughput || codeCat?.median_output_tokens_per_second || model.category_scores?.fast || model.tokens_per_second || null;
+  const speedRaw = explicitTps ||
+    model.median_output_tokens_per_second ||
+    model.throughput ||
+    fastCat?.median_output_tokens_per_second ||
+    fastCat?.category_scores?.fast ||
+    reasonCat?.median_output_tokens_per_second ||
+    codeCat?.median_output_tokens_per_second ||
+    model.category_scores?.fast ||
+    model.tokens_per_second ||
+    null;
   const speedVal = speedRaw ? Number(speedRaw) : null;
   const speedNorm = speedVal ? Math.round(Math.min(99, Math.max(20, (speedVal / 140) * 100))) : null;
 
@@ -2097,15 +2233,11 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   }
                   const baseVal = baselineScores?.[cat.key];
                   return (
-                    baseVal !== null && baseVal !== undefined && !isNaN(baseVal) &&
-                    recVal !== null && recVal !== undefined && !isNaN(recVal)
+                    (baseVal !== null && baseVal !== undefined && !isNaN(baseVal)) ||
+                    (recVal !== null && recVal !== undefined && !isNaN(recVal))
                   );
                 });
-                const chartCategories = activeCategories.length >= 2
-                  ? activeCategories
-                  : (CATEGORIES.filter(cat => (baselineScores?.[cat.key] != null) || (recommendedScores?.[cat.key] != null)).length > 0
-                      ? CATEGORIES.filter(cat => (baselineScores?.[cat.key] != null) || (recommendedScores?.[cat.key] != null))
-                      : CATEGORIES);
+                const chartCategories = activeCategories.length >= 2 ? activeCategories : CATEGORIES;
 
                 // SVG Graph dimensions
                 const paddingLeft = 85;
