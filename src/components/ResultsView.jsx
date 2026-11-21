@@ -2216,8 +2216,10 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const baselinePath = getSmoothPath(pointsBaseline);
                 const recommendedPath = getSmoothPath(pointsRecommended);
 
-                // Confidence logic
-                const confidenceVal = Math.min(98, Math.max(75, 96 - Math.abs((recommendedScores.intelligence_index || 80) - (baselineScores.intelligence_index || 80)) * 2));
+                // Confidence logic derived directly from presence of verified Market Intel benchmarks
+                const hasBaselineIntel = !!baselineIntel || baselineScores.coding != null || baselineScores.reasoning != null;
+                const hasRecommendedIntel = !!recommendedIntel || recommendedScores.coding != null || recommendedScores.reasoning != null;
+                const confidenceVal = (hasBaselineIntel && hasRecommendedIntel) ? 96 : 88;
                 const isHighConfidence = confidenceVal >= 90;
 
                 // Cost details
@@ -2229,9 +2231,24 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                 const baseScores = getBenchmarkScores(baseline, null, null, intelData);
                 const optScores = getBenchmarkScores(recommended, null, null, intelData);
-                const baseScore = Math.round(alloc?.performance_score || rec?.baselineScore || (alloc?.purpose === 'Coding' ? baseScores.coding : (alloc?.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
-                const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc?.purpose === 'Coding' ? optScores.coding : (alloc?.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
-                const scoreDelta = optScore - baseScore;
+
+                // Helper to resolve specific verified category score without artificial fallbacks
+                const resolveDomainScore = (scores, purpose, intelObj, fallbackVal = null) => {
+                  if (!scores) return fallbackVal;
+                  const p = (purpose || '').toLowerCase();
+                  let val = null;
+                  if (p.includes('cod')) val = scores.coding;
+                  else if (p.includes('math')) val = scores.math;
+                  else if (p.includes('reason')) val = scores.reasoning;
+                  else if (p.includes('research')) val = scores.research;
+                  else if (p.includes('writ')) val = scores.writing;
+                  else val = scores.intelligence_index ?? scores.reasoning;
+                  return val != null ? Math.round(Number(val)) : (intelObj?.score != null ? Math.round(Number(intelObj.score)) : fallbackVal);
+                };
+
+                const baseScore = resolveDomainScore(baseScores, alloc?.purpose, baselineIntel, alloc?.performance_score ?? rec?.baselineScore ?? null);
+                const optScore = resolveDomainScore(optScores, alloc?.purpose, recommendedIntel, (choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) ?? baseScore);
+                const scoreDelta = (baseScore !== null && optScore !== null) ? optScore - baseScore : null;
 
                 const domainBenchmarkLabel = alloc?.purpose === 'Coding' ? 'Coding Index (SWE-Bench / LCB)'
                   : (alloc?.purpose === 'Math' ? 'Math Index (LiveBench AI)'
@@ -2243,26 +2260,26 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const baseRankStr = baselineIntel?.rank ? `#${baselineIntel.rank} of ${baselineIntel.total}` : null;
                 const optRankStr = recommendedIntel?.rank ? `#${recommendedIntel.rank} of ${recommendedIntel.total}` : null;
 
-                const baseInputPrice = baselineIntel?.inputCost ?? baseline.pricing?.price_1m_input_tokens ?? baseline.inputCost ?? 0;
+                const baseInputPrice = baselineIntel?.inputCost ?? baseline.pricing?.price_1m_input_tokens ?? baseline.inputCost ?? null;
                 const optInputPrice = choice === 'api' 
-                  ? (opt?.inputCostPerM ?? recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? recommended.inputCost ?? 0)
-                  : (recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? 0);
+                  ? (opt?.inputCostPerM ?? recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? recommended.inputCost ?? null)
+                  : (recommendedIntel?.inputCost ?? recommended.pricing?.price_1m_input_tokens ?? null);
 
-                const baseOutputPrice = baselineIntel?.outputCost ?? baseline.pricing?.price_1m_output_tokens ?? baseline.outputCost ?? 0;
+                const baseOutputPrice = baselineIntel?.outputCost ?? baseline.pricing?.price_1m_output_tokens ?? baseline.outputCost ?? null;
                 const optOutputPrice = choice === 'api' 
-                  ? (opt?.outputCostPerM ?? recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? recommended.outputCost ?? 0)
-                  : (recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? 0);
+                  ? (opt?.outputCostPerM ?? recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? recommended.outputCost ?? null)
+                  : (recommendedIntel?.outputCost ?? recommended.pricing?.price_1m_output_tokens ?? null);
 
-                const baseBlended = baselineIntel?.blendedPrice ?? baselineScores.blendedCost ?? (baseInputPrice * 0.75 + baseOutputPrice * 0.25);
-                const optBlended = recommendedIntel?.blendedPrice ?? recommendedScores.blendedCost ?? (optInputPrice * 0.75 + optOutputPrice * 0.25);
+                const baseBlended = baselineIntel?.blendedPrice ?? baselineScores.blendedCost ?? ((baseInputPrice !== null && baseOutputPrice !== null) ? (baseInputPrice * 0.75 + baseOutputPrice * 0.25) : null);
+                const optBlended = recommendedIntel?.blendedPrice ?? recommendedScores.blendedCost ?? ((optInputPrice !== null && optOutputPrice !== null) ? (optInputPrice * 0.75 + optOutputPrice * 0.25) : null);
 
                 const baseSpeed = baselineIntel?.throughput ?? baselineScores.speedVal;
                 const optSpeed = recommendedIntel?.throughput ?? recommendedScores.speedVal;
 
-                const baseLatency = baselineIntel?.ttft ?? baseline.median_time_to_first_token_seconds ?? baseline.ttft ?? 1.20;
-                const optLatency = recommendedIntel?.ttft ?? recommended.median_time_to_first_token_seconds ?? recommended.ttft ?? 0.78;
+                const baseLatency = baselineIntel?.ttft ?? baseline.median_time_to_first_token_seconds ?? baseline.ttft ?? null;
+                const optLatency = recommendedIntel?.ttft ?? recommended.median_time_to_first_token_seconds ?? recommended.ttft ?? null;
 
-                // Metric comparisons
+                // Metric comparisons using only measured data without fake fallbacks
                 const specs = [
                   { label: 'Monthly Cost', cur: `$${currentMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, opt: `$${suggestedMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, type: 'cost' },
                   ...(baseRankStr && optRankStr ? [{
@@ -2271,12 +2288,42 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                     opt: `${optRankStr}`,
                     type: 'rank'
                   }] : []),
-                  { label: 'Cost per 1M Input Tokens', cur: `$${baseInputPrice.toFixed(2)}`, opt: `$${optInputPrice.toFixed(2)}`, type: 'cost' },
-                  { label: 'Cost per 1M Output Tokens', cur: `$${baseOutputPrice.toFixed(2)}`, opt: `$${optOutputPrice.toFixed(2)}`, type: 'cost' },
-                  { label: 'Blended Cost (3:1 Tokens)', cur: `$${baseBlended.toFixed(2)}`, opt: `$${optBlended.toFixed(2)}`, type: 'cost' },
-                  { label: domainBenchmarkLabel, cur: `${baseScore}/100`, opt: `${optScore}/100`, type: 'quality' },
-                  { label: 'Overall Intelligence Index', cur: `${(baselineScores.intelligence_index || baselineScores.reasoning || 80).toFixed(1)}/100`, opt: `${(recommendedScores.intelligence_index || recommendedScores.reasoning || 80).toFixed(1)}/100`, type: 'quality' },
-                  { label: 'Average Latency (TTFT)', cur: `${baseLatency.toFixed(2)}s`, opt: `${optLatency.toFixed(2)}s`, type: 'latency' },
+                  ...(baseInputPrice !== null || optInputPrice !== null ? [{
+                    label: 'Cost per 1M Input Tokens',
+                    cur: baseInputPrice !== null ? `$${baseInputPrice.toFixed(2)}` : '—',
+                    opt: optInputPrice !== null ? `$${optInputPrice.toFixed(2)}` : '—',
+                    type: 'cost'
+                  }] : []),
+                  ...(baseOutputPrice !== null || optOutputPrice !== null ? [{
+                    label: 'Cost per 1M Output Tokens',
+                    cur: baseOutputPrice !== null ? `$${baseOutputPrice.toFixed(2)}` : '—',
+                    opt: optOutputPrice !== null ? `$${optOutputPrice.toFixed(2)}` : '—',
+                    type: 'cost'
+                  }] : []),
+                  ...(baseBlended !== null || optBlended !== null ? [{
+                    label: 'Blended Cost (3:1 Tokens)',
+                    cur: baseBlended !== null ? `$${baseBlended.toFixed(2)}` : '—',
+                    opt: optBlended !== null ? `$${optBlended.toFixed(2)}` : '—',
+                    type: 'cost'
+                  }] : []),
+                  ...(baseScore !== null || optScore !== null ? [{
+                    label: domainBenchmarkLabel,
+                    cur: baseScore !== null ? `${baseScore}/100` : '—',
+                    opt: optScore !== null ? `${optScore}/100` : '—',
+                    type: 'quality'
+                  }] : []),
+                  ...(baselineScores.intelligence_index !== null || recommendedScores.intelligence_index !== null ? [{
+                    label: 'Overall Intelligence Index',
+                    cur: baselineScores.intelligence_index !== null ? `${Number(baselineScores.intelligence_index).toFixed(1)}/100` : '—',
+                    opt: recommendedScores.intelligence_index !== null ? `${Number(recommendedScores.intelligence_index).toFixed(1)}/100` : '—',
+                    type: 'quality'
+                  }] : []),
+                  ...(baseLatency !== null || optLatency !== null ? [{
+                    label: 'Average Latency (TTFT)',
+                    cur: baseLatency !== null ? `${baseLatency.toFixed(2)}s` : '—',
+                    opt: optLatency !== null ? `${optLatency.toFixed(2)}s` : '—',
+                    type: 'latency'
+                  }] : []),
                   ...(baseSpeed || optSpeed ? [{
                     label: 'Throughput (Generation Speed)',
                     cur: baseSpeed ? `${Math.round(baseSpeed)} t/s` : '—',
@@ -2321,8 +2368,8 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                         <span style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
                           Selected Category: {alloc?.purpose || 'Mixed'}
                         </span>
-                        <span style={{ backgroundColor: scoreDelta > 0 ? '#DCFCE7' : '#EFF6FF', color: scoreDelta > 0 ? '#15803D' : '#2563EB', border: `1px solid ${scoreDelta > 0 ? '#BBF7D0' : '#BFDBFE'}`, padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
-                          Capability Score: {baseScore}/100 → {optScore}/100 {scoreDelta > 0 ? `(+${scoreDelta} pts)` : (isSameCurrentChoice ? '(100% Optimal)' : '(100% Preserved)')}
+                        <span style={{ backgroundColor: scoreDelta != null && scoreDelta > 0 ? '#DCFCE7' : '#EFF6FF', color: scoreDelta != null && scoreDelta > 0 ? '#15803D' : '#2563EB', border: `1px solid ${scoreDelta != null && scoreDelta > 0 ? '#BBF7D0' : '#BFDBFE'}`, padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
+                          Capability Score: {baseScore !== null ? `${baseScore}/100` : 'N/A'} → {optScore !== null ? `${optScore}/100` : 'N/A'} {scoreDelta != null && scoreDelta > 0 ? `(+${scoreDelta} pts)` : (isSameCurrentChoice ? '(100% Optimal)' : '(100% Preserved)')}
                         </span>
                         {baselineIntel?.rank && (
                           <span style={{ backgroundColor: '#F0FDF4', color: '#047857', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
@@ -2370,7 +2417,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
                             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#475569', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', padding: '2px 8px', borderRadius: '4px' }}>
-                              Capability Score: <strong style={{ color: '#0F172A' }}>{baseScore}</strong>/100
+                              Capability Score: <strong style={{ color: '#0F172A' }}>{baseScore !== null ? baseScore : 'N/A'}</strong>{baseScore !== null ? '/100' : ''}
                             </div>
                             {baselineIntel?.rank && (
                               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#B45309', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '2px 8px', borderRadius: '4px' }}>
@@ -2460,7 +2507,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               </div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '6px' }}>
                                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#15803D', backgroundColor: '#DCFCE7', border: '1px solid #BBF7D0', padding: '2px 8px', borderRadius: '4px' }}>
-                                  Capability Score: <strong style={{ color: '#166534' }}>{optScore}</strong>/100
+                                  Capability Score: <strong style={{ color: '#166534' }}>{optScore !== null ? optScore : 'N/A'}</strong>{optScore !== null ? '/100' : ''}
                                 </div>
                                 {recommendedIntel?.rank && (
                                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '11px', fontWeight: '700', color: '#047857', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '2px 8px', borderRadius: '4px' }}>
@@ -3143,15 +3190,28 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                   const baseScores = getBenchmarkScores(baseline, null, null, intelData);
                   const optScores = getBenchmarkScores(recommended, null, null, intelData);
-                  const baseScore = Math.round(alloc.performance_score || rec?.baselineScore || (alloc.purpose === 'Coding' ? baseScores.coding : (alloc.purpose === 'Math' ? baseScores.math : baseScores.composite)) || 80);
-                  const optScore = Math.round((choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) || (alloc.purpose === 'Coding' ? optScores.coding : (alloc.purpose === 'Math' ? optScores.math : optScores.composite)) || baseScore);
-                  const scoreDelta = optScore - baseScore;
-                  const scoreDeltaPct = baseScore > 0 ? parseFloat((((optScore - baseScore) / baseScore) * 100).toFixed(1)) : 0;
+
+                  const resolveDomainScore = (scores, purpose, intelObj, fallbackVal = null) => {
+                    if (!scores) return fallbackVal;
+                    const p = (purpose || '').toLowerCase();
+                    let val = null;
+                    if (p.includes('cod')) val = scores.coding;
+                    else if (p.includes('math')) val = scores.math;
+                    else if (p.includes('reason')) val = scores.reasoning;
+                    else if (p.includes('research')) val = scores.research;
+                    else if (p.includes('writ')) val = scores.writing;
+                    else val = scores.intelligence_index ?? scores.reasoning;
+                    return val != null ? Math.round(Number(val)) : (intelObj?.score != null ? Math.round(Number(intelObj.score)) : fallbackVal);
+                  };
+
+                  const baseScore = resolveDomainScore(baseScores, alloc.purpose, baselineIntel, alloc.performance_score ?? rec?.baselineScore ?? null);
+                  const optScore = resolveDomainScore(optScores, alloc.purpose, recommendedIntel, (choice === 'api' ? rec?.apiOption?.performance_score : rec?.subscriptionOption?.performance_score) ?? baseScore);
+                  const scoreDelta = (baseScore !== null && optScore !== null) ? optScore - baseScore : 0;
+                  const scoreDeltaPct = (baseScore !== null && baseScore > 0 && optScore !== null) ? parseFloat((((optScore - baseScore) / baseScore) * 100).toFixed(1)) : 0;
 
                   let confidence = 'High';
-                  if (recommended && baseline) {
-                    const diffScore = Math.abs((recommended.intelligence_index || 80) - (baseline.intelligence_index || 80));
-                    if (diffScore > 15) confidence = 'Medium';
+                  if (!baselineIntel || !recommendedIntel) {
+                    confidence = 'Medium';
                   }
 
                   return {
@@ -3228,7 +3288,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                   </div>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '3px' }}>
                                     <span style={{ fontSize: '10px', color: '#475569', fontWeight: '700' }}>
-                                      Score: <strong style={{ color: '#0F172A' }}>{row.baseScore}</strong>/100
+                                      Score: <strong style={{ color: '#0F172A' }}>{row.baseScore !== null ? row.baseScore : 'N/A'}</strong>{row.baseScore !== null ? '/100' : ''}
                                     </span>
                                     {row.baseIntel?.rank && (
                                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '9.5px', color: '#B45309', fontWeight: '750', backgroundColor: '#FEF3C7', border: '1px solid #FDE68A', padding: '1px 6px', borderRadius: '3px' }}>
@@ -3245,7 +3305,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                   </div>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginTop: '3px' }}>
                                     <span style={{ fontSize: '10px', color: '#15803D', fontWeight: '700' }}>
-                                      Score: <strong style={{ color: '#166534' }}>{row.optScore}</strong>/100
+                                      Score: <strong style={{ color: '#166534' }}>{row.optScore !== null ? row.optScore : 'N/A'}</strong>{row.optScore !== null ? '/100' : ''}
                                     </span>
                                     {row.optIntel?.rank && (
                                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '9.5px', color: '#047857', fontWeight: '750', backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', padding: '1px 6px', borderRadius: '3px' }}>
@@ -3256,7 +3316,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                 </td>
                                 <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                                   <div style={{ fontSize: '12px', fontWeight: '800', color: row.scoreDelta > 0 ? '#15803D' : (row.scoreDelta === 0 ? '#2563EB' : '#475569') }}>
-                                    {row.baseScore} → {row.optScore}
+                                    {row.baseScore !== null ? row.baseScore : 'N/A'} → {row.optScore !== null ? row.optScore : 'N/A'}
                                   </div>
                                   {row.scoreDelta > 0 ? (
                                     <span style={{ display: 'inline-block', backgroundColor: '#DCFCE7', color: '#15803D', border: '1px solid #BBF7D0', padding: '2px 7px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '750', marginTop: '3px' }}>
