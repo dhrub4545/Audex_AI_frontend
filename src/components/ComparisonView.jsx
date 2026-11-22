@@ -314,7 +314,8 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     model.tokens_per_second ||
     null;
   const speedVal = speedRaw ? Number(speedRaw) : null;
-  const speedNorm = speedVal ? Math.round(speedVal) : null;
+  // Scaled 0-100 benchmark index for SVG chart visualization while preserving raw throughput in speedVal
+  const speedNorm = speedVal ? Math.round(Math.min(98, Math.max(15, (speedVal / 160) * 100))) : null;
 
   // 10. Cost Efficiency (USD / 1M Tokens)
   const inputCost = model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? codeCat?.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? null;
@@ -577,7 +578,8 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
 
   const getY = useCallback((score) => {
     if (score == null || isNaN(score)) return null;
-    return 340 - paddingBottom - (score / 100) * chartHeight;
+    const clampedScore = Math.max(0, Math.min(100, Number(score)));
+    return 340 - paddingBottom - (clampedScore / 100) * chartHeight;
   }, [chartHeight]);
 
   // Chart data points
@@ -588,6 +590,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
         x: getX(idx),
         y: score != null && !isNaN(score) ? getY(score) : null,
         score: score,
+        catKey: cat.key,
         catName: cat.name,
         sub: cat.sub,
         idx: idx
@@ -602,6 +605,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
         x: getX(idx),
         y: score != null && !isNaN(score) ? getY(score) : null,
         score: score,
+        catKey: cat.key,
         catName: cat.name,
         sub: cat.sub,
         idx: idx
@@ -841,7 +845,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
           height: auto;
           min-width: 560px;
           display: block;
-          overflow: visible;
+          overflow: hidden;
         }
 
         /* Benchmark Comparison Table */
@@ -1113,8 +1117,11 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                 onMouseMove={handleSvgMouseMove}
                 onMouseLeave={() => setHoveredCategoryIndex(null)}
               >
-                {/* Neon filters */}
+                {/* Neon filters & boundary clip */}
                 <defs>
+                  <clipPath id="comparison-chart-clip">
+                    <rect x={paddingLeft - 20} y={paddingTop - 15} width={chartWidth + 40} height={chartHeight + 30} />
+                  </clipPath>
                   <filter id="glow-rec" x="-20%" y="-20%" width="140%" height="140%">
                     <feGaussianBlur stdDeviation="5" result="blur" />
                     <feMerge>
@@ -1210,6 +1217,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     strokeWidth="3"
                     opacity="0.85"
                     filter="url(#glow-base)"
+                    clipPath="url(#comparison-chart-clip)"
                   />
                 )}
 
@@ -1221,6 +1229,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
                     strokeWidth="3.5"
                     opacity="0.95"
                     filter="url(#glow-rec)"
+                    clipPath="url(#comparison-chart-clip)"
                   />
                 )}
 

@@ -644,7 +644,8 @@ function getBenchmarkScores(model, explicitBlendedCostOrIntel = null, explicitTp
     model.tokens_per_second ||
     null;
   const speedVal = speedRaw ? Number(speedRaw) : null;
-  const speedNorm = speedVal ? Math.round(speedVal) : null;
+  // Scaled 0-100 benchmark index for SVG chart visualization while preserving raw throughput in speedVal
+  const speedNorm = speedVal ? Math.round(Math.min(98, Math.max(15, (speedVal / 160) * 100))) : null;
 
   // 10. Cost Efficiency
   const inputCost = model.cost_per_m_input ?? model.pricing?.price_1m_input_tokens ?? codeCat?.pricing?.price_1m_input_tokens ?? model.endpoints?.[0]?.input_cost_per_m ?? model.inputCost ?? null;
@@ -2207,13 +2208,15 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 };
                 const getY = (score) => {
                   if (score == null || isNaN(score)) return null;
-                  return 420 - paddingBottom - (score / 100) * chartHeight;
+                  const clampedScore = Math.max(0, Math.min(100, Number(score)));
+                  return 420 - paddingBottom - (clampedScore / 100) * chartHeight;
                 };
 
                 const pointsBaseline = chartCategories.map((cat, idx) => ({
                   x: getX(idx),
                   y: baselineScores[cat.key] != null && !isNaN(baselineScores[cat.key]) ? getY(baselineScores[cat.key]) : null,
                   score: baselineScores[cat.key],
+                  catKey: cat.key,
                   catName: cat.name,
                   sub: cat.sub,
                   idx
@@ -2223,6 +2226,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                   x: getX(idx),
                   y: recommendedScores[cat.key] != null && !isNaN(recommendedScores[cat.key]) ? getY(recommendedScores[cat.key]) : null,
                   score: recommendedScores[cat.key],
+                  catKey: cat.key,
                   catName: cat.name,
                   sub: cat.sub,
                   idx
@@ -3013,7 +3017,13 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                         {/* SVG Chart on light background */}
                         <div style={{ backgroundColor: '#F8FAFC', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px 20px 10px 10px' }}>
-                          <svg viewBox="0 0 900 420" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'visible' }}>
+                          <svg viewBox="0 0 900 420" style={{ width: '100%', height: 'auto', display: 'block', overflow: 'hidden' }}>
+                            <defs>
+                              <clipPath id="chart-area-clip">
+                                <rect x={paddingLeft - 20} y={paddingTop - 15} width={chartWidth + 40} height={chartHeight + 30} />
+                              </clipPath>
+                            </defs>
+
                             {/* Y-Axis Gridlines */}
                             {[0, 25, 50, 75, 100].map((val, i) => {
                               const y = 420 - paddingBottom - (val / 100) * chartHeight;
@@ -3050,23 +3060,27 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                             {/* Line paths */}
                             {!isSameModel && baselinePath && (
-                              <path d={baselinePath} fill="none" stroke="#F97316" strokeWidth="3" opacity="0.8" />
+                              <path d={baselinePath} fill="none" stroke="#F97316" strokeWidth="3" opacity="0.8" clipPath="url(#chart-area-clip)" />
                             )}
                             {recommendedPath && (
-                              <path d={recommendedPath} fill="none" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" />
+                              <path d={recommendedPath} fill="none" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="3.5" opacity="0.9" clipPath="url(#chart-area-clip)" />
                             )}
 
                             {/* Points baseline */}
                             {!isSameModel && pointsBaseline.map((pt, idx) => (
                               pt.score != null && pt.y != null ? (
-                                <circle key={`cb-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke="#F97316" strokeWidth="2.5" />
+                                <circle key={`cb-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke="#F97316" strokeWidth="2.5">
+                                  <title>{`${pt.catName}: ${pt.catKey === 'speedNorm' ? (baselineScores.speedVal || pt.score) + ' t/s' : pt.score}`}</title>
+                                </circle>
                               ) : null
                             ))}
 
                             {/* Points recommended */}
                             {pointsRecommended.map((pt, idx) => (
                               pt.score != null && pt.y != null ? (
-                                <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="2.5" />
+                                <circle key={`cr-${idx}`} cx={pt.x} cy={pt.y} r="5" fill="#FFFFFF" stroke={isSameModel ? '#6366F1' : '#10B981'} strokeWidth="2.5">
+                                  <title>{`${pt.catName}: ${pt.catKey === 'speedNorm' ? (recommendedScores.speedVal || pt.score) + ' t/s' : pt.score}`}</title>
+                                </circle>
                               ) : null
                             ))}
                           </svg>
