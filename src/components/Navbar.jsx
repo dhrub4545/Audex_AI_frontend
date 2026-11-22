@@ -327,13 +327,13 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           <a href="#how-it-works" onClick={handleHowItWorksScroll} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">
             How it works
           </a>
-          <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
+          <a href="/?view=market-intel" onMouseEnter={() => import('./MarketIntelView').catch(() => {})} onTouchStart={() => import('./MarketIntelView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
             Market Intel
           </a>
-          <a href="/?view=history" onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
+          <a href="/?view=history" onMouseEnter={() => import('./HistoryView').catch(() => {})} onTouchStart={() => import('./HistoryView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
             Reports History
           </a>
-          <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 1,150+ Models in Live AI Model Auditor">
+          <a href="/?view=model-auditor" onMouseEnter={() => import('./ModelAuditorView').catch(() => {})} onTouchStart={() => import('./ModelAuditorView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 1,150+ Models in Live AI Model Auditor">
             <Zap size={14} color="#10B981" /> Model Auditor
           </a>
         </nav>
@@ -485,6 +485,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
 
             <a 
               href="/?view=model-auditor" 
+              onTouchStart={() => import('./ModelAuditorView').catch(() => {})}
               onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToModelAuditor(); }} 
               className={`mobile-link-item ${activeSection === 'model_auditor' ? 'active' : ''}`}
               style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}
@@ -497,6 +498,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
 
             <a 
               href="/?view=market-intel" 
+              onTouchStart={() => import('./MarketIntelView').catch(() => {})}
               onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToMarketIntel(); }} 
               className={`mobile-link-item ${activeSection === 'market_intel' ? 'active' : ''}`}
             >
@@ -506,6 +508,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
 
             <a 
               href="/?view=history" 
+              onTouchStart={() => import('./HistoryView').catch(() => {})}
               onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToHistory(); }} 
               className={`mobile-link-item ${activeSection === 'history' ? 'active' : ''}`}
             >

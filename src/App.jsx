@@ -8,17 +8,66 @@ import { API_BASE_URL } from './config';
 import { getCachedSubscriptionTiers, preloadCoreData } from './utils/dataCache';
 import { SAMPLE_AUDIT_DATA } from './utils/sampleReportData';
 
-const LandingView = lazy(() => import('./components/LandingView'));
-const WizardFlow = lazy(() => import('./components/WizardFlow'));
-const ResultsView = lazy(() => import('./components/ResultsView'));
-const HistoryView = lazy(() => import('./components/HistoryView'));
-const ModelAuditorView = lazy(() => import('./components/ModelAuditorView'));
-const MarketIntelView = lazy(() => import('./components/MarketIntelView'));
-const ComparisonView = lazy(() => import('./components/ComparisonView'));
-const ActionPlanView = lazy(() => import('./components/ActionPlanView'));
-const ProfileView = lazy(() => import('./components/ProfileView'));
-const SignInView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignInView })));
-const SignUpView = lazy(() => import('./components/AuthViews').then(m => ({ default: m.SignUpView })));
+// Robust lazy loader that catches deployment chunk hash mismatches and retries
+function lazyWithRetry(componentImport, componentName = 'component') {
+  return lazy(async () => {
+    try {
+      const module = await componentImport();
+      try {
+        sessionStorage.removeItem(`audex_retry_${componentName}`);
+      } catch {}
+      return module;
+    } catch (error) {
+      console.warn(`[Audex LazyLoader] Initial import failed for ${componentName}:`, error);
+
+      const isDynamicImportError =
+        error?.message?.includes('Failed to fetch dynamically imported module') ||
+        error?.message?.includes('Importing a module script failed') ||
+        error?.name === 'ChunkLoadError' ||
+        error?.message?.includes('Loading chunk');
+
+      if (isDynamicImportError) {
+        const retryKey = `audex_retry_${componentName}`;
+        let hasRetried = false;
+        try {
+          hasRetried = sessionStorage.getItem(retryKey) === 'true';
+        } catch {}
+
+        if (!hasRetried) {
+          try {
+            sessionStorage.setItem(retryKey, 'true');
+          } catch {}
+          window.location.reload();
+          return new Promise(() => {});
+        }
+      }
+
+      // Retry once more with a brief backoff
+      try {
+        await new Promise(resolve => setTimeout(resolve, 600));
+        const retryMod = await componentImport();
+        try {
+          sessionStorage.removeItem(`audex_retry_${componentName}`);
+        } catch {}
+        return retryMod;
+      } catch (retryErr) {
+        throw retryErr;
+      }
+    }
+  });
+}
+
+const LandingView = lazyWithRetry(() => import('./components/LandingView'), 'LandingView');
+const WizardFlow = lazyWithRetry(() => import('./components/WizardFlow'), 'WizardFlow');
+const ResultsView = lazyWithRetry(() => import('./components/ResultsView'), 'ResultsView');
+const HistoryView = lazyWithRetry(() => import('./components/HistoryView'), 'HistoryView');
+const ModelAuditorView = lazyWithRetry(() => import('./components/ModelAuditorView'), 'ModelAuditorView');
+const MarketIntelView = lazyWithRetry(() => import('./components/MarketIntelView'), 'MarketIntelView');
+const ComparisonView = lazyWithRetry(() => import('./components/ComparisonView'), 'ComparisonView');
+const ActionPlanView = lazyWithRetry(() => import('./components/ActionPlanView'), 'ActionPlanView');
+const ProfileView = lazyWithRetry(() => import('./components/ProfileView'), 'ProfileView');
+const SignInView = lazyWithRetry(() => import('./components/AuthViews').then(m => ({ default: m.SignInView })), 'SignInView');
+const SignUpView = lazyWithRetry(() => import('./components/AuthViews').then(m => ({ default: m.SignUpView })), 'SignUpView');
 
 const INITIAL_TOOLS = [
   {
@@ -2747,24 +2796,57 @@ class ErrorBoundary extends React.Component {
   }
   componentDidCatch(error, errorInfo) {
     console.error('UI Crash Caught by ErrorBoundary:', error, errorInfo);
+    const isDynamicModuleError = 
+      error?.message?.includes('Failed to fetch dynamically imported module') ||
+      error?.message?.includes('Importing a module script failed') ||
+      error?.name === 'ChunkLoadError' ||
+      error?.message?.includes('Loading chunk');
+
+    if (isDynamicModuleError) {
+      const reloadKey = 'audex_eb_auto_reload';
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, 'true');
+        window.location.reload();
+      }
+    }
   }
   render() {
     if (this.state.hasError) {
+      const isDynamicModuleError = 
+        this.state.error?.message?.includes('Failed to fetch dynamically imported module') ||
+        this.state.error?.message?.includes('Importing a module script failed') ||
+        this.state.error?.name === 'ChunkLoadError' ||
+        this.state.error?.message?.includes('Loading chunk');
+
       return (
         <div style={{ padding: '80px 20px', textAlign: 'center', maxWidth: '600px', margin: '0 auto', fontFamily: 'var(--font-sans)' }}>
           <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#FEF2F2', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px auto', fontSize: '24px' }}>
             ⚠️
           </div>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>Something went wrong</h2>
+          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#0F172A', marginBottom: '8px' }}>
+            {isDynamicModuleError ? 'Updating to Latest Version' : 'Something went wrong'}
+          </h2>
           <p style={{ fontSize: '14px', color: '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
-            {this.state.error?.message || 'An unexpected error occurred while rendering this view.'}
+            {isDynamicModuleError 
+              ? 'A newer version of Audex AI is available. Click Reload to load the latest components.'
+              : (this.state.error?.message || 'An unexpected error occurred while rendering this view.')}
           </p>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
             <button onClick={() => window.location.href = '/'} className="btn btn-black" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '13.5px', fontWeight: '700' }}>
               Return to Home
             </button>
-            <button onClick={() => this.setState({ hasError: false, error: null })} className="btn btn-outline" style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '13.5px', fontWeight: '700' }}>
-              Retry
+            <button 
+              onClick={() => {
+                if (isDynamicModuleError) {
+                  window.location.reload();
+                } else {
+                  this.setState({ hasError: false, error: null });
+                }
+              }} 
+              className="btn btn-outline" 
+              style={{ padding: '10px 20px', borderRadius: '8px', fontSize: '13.5px', fontWeight: '700' }}
+            >
+              {isDynamicModuleError ? 'Reload Page' : 'Retry'}
             </button>
           </div>
         </div>
@@ -2827,6 +2909,19 @@ export default function App() {
   // Preload market dataset quietly in background during browser idle time
   useEffect(() => {
     preloadCoreData();
+    // Warm up critical lazy chunks in idle time so first clicks never fail or stutter
+    if (typeof window !== 'undefined') {
+      const warmup = () => {
+        import('./components/ModelAuditorView').catch(() => {});
+        import('./components/MarketIntelView').catch(() => {});
+        import('./components/WizardFlow').catch(() => {});
+      };
+      if ('requestIdleCallback' in window) {
+        window.requestIdleCallback(warmup);
+      } else {
+        setTimeout(warmup, 2000);
+      }
+    }
   }, []);
 
   useEffect(() => {
