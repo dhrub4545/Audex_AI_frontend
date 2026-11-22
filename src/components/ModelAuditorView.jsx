@@ -441,9 +441,22 @@ export default function ModelAuditorView({
   const [selectedRecommendation, setSelectedRecommendation] = useState(null);
   const [availableModels, setAvailableModels] = useState(POPULAR_MODELS);
 
+  const POPULAR_SUBSCRIPTIONS = [
+    { value: 'sub:openai/chatgpt-plus', label: 'ChatGPT Plus ($20/mo) — OpenAI' },
+    { value: 'sub:openai/chatgpt-pro', label: 'ChatGPT Pro ($200/mo) — OpenAI' },
+    { value: 'sub:anthropic/claude-pro', label: 'Claude Pro ($20/mo) — Anthropic' },
+    { value: 'sub:google/ai-plus', label: 'Google AI Plus ($4.99/mo) — Google' },
+    { value: 'sub:cursor/pro', label: 'Cursor Pro ($20/mo) — Cursor' },
+    { value: 'sub:github/copilot-pro', label: 'GitHub Copilot Pro ($10/mo) — GitHub' },
+    { value: 'sub:perplexity/pro', label: 'Perplexity Pro ($20/mo) — Perplexity' },
+    { value: 'sub:deepseek/consumer', label: 'DeepSeek Consumer (Free) — DeepSeek' }
+  ];
+
   const modelOptions = useMemo(() => {
     const popularIds = new Set(POPULAR_MODELS.map(m => m.id));
     const opts = [
+      { isHeader: true, label: '── Popular Subscriptions (Auto-resolve Top Model) ──' },
+      ...POPULAR_SUBSCRIPTIONS,
       { isHeader: true, label: '── Popular Industry Baselines ──' }
     ];
 
@@ -673,15 +686,53 @@ export default function ModelAuditorView({
     if (!catList || catList.length === 0) return null;
 
     const clean = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-    const targetClean = clean(modelId);
-    const baseSlug = (modelId.split('/')[1] || modelId).toLowerCase();
+    let cleanModelId = modelId || '';
+    let isSub = false;
+    let subPrice = 0;
+    let subName = '';
+    if (typeof cleanModelId === 'string' && cleanModelId.startsWith('sub:')) {
+      cleanModelId = cleanModelId.slice(4);
+      isSub = true;
+    }
+    const targetClean = clean(cleanModelId);
+    const baseSlug = (cleanModelId.split('/')[1] || cleanModelId).toLowerCase();
     const cleanBaseSlug = clean(baseSlug);
 
-    let baseModel = catList.find(m => {
-      const mSlugClean = clean(m.slug || '');
-      const mIdClean = clean(m.modelId || '');
-      return mSlugClean === cleanBaseSlug || mIdClean === targetClean || mSlugClean === targetClean || (m.slug && m.slug.toLowerCase() === baseSlug);
-    });
+    const popularSubs = [
+      { id: 'openai/chatgpt-plus', provider: 'OpenAI', plan: 'ChatGPT Plus', price: 20, rawModels: ['Codex - GPT-6.2 Sol (xhigh)', 'GPT-6.1 Sol (xhigh)', 'GPT-6.2 Sol'] },
+      { id: 'openai/chatgpt-pro', provider: 'OpenAI', plan: 'ChatGPT Pro', price: 200, rawModels: ['Codex - GPT-6.2 Sol (max)', 'GPT-6.1 Terra (Max)'] },
+      { id: 'anthropic/claude-pro', provider: 'Anthropic', plan: 'Claude Pro', price: 20, rawModels: ['Claude Code - Claude Sonnet 5.5 (max)', 'Claude Sonnet 5.5 (max)'] },
+      { id: 'google/ai-plus', provider: 'Google', plan: 'Google AI Plus', price: 4.99, rawModels: ['Gemini 3.8 Flash (High)', 'Gemini 3.7 Flash (High)'] },
+      { id: 'cursor/pro', provider: 'Cursor', plan: 'Cursor Pro', price: 20, rawModels: ['Claude Code - Claude Sonnet 5.5 (max)', 'Codex - GPT-6.2 Sol (xhigh)'] },
+      { id: 'github/copilot-pro', provider: 'GitHub', plan: 'GitHub Copilot Pro', price: 10, rawModels: ['Claude Code - Claude Sonnet 5.5 (max)', 'GPT-5.1 Codex mini'] },
+      { id: 'perplexity/pro', provider: 'Perplexity', plan: 'Perplexity Pro', price: 20, rawModels: ['Sonar Pro High (Thinking)', 'Claude Sonnet 5.5 (max)'] },
+      { id: 'deepseek/consumer', provider: 'DeepSeek', plan: 'DeepSeek Consumer', price: 0, rawModels: ['DeepSeek V4.1 Flash (Max)', 'DeepSeek V3'] }
+    ];
+
+    const subMatch = popularSubs.find(s => s.id === cleanModelId || clean(s.plan) === targetClean || clean(`${s.provider} ${s.plan}`) === targetClean);
+    let baseModel = null;
+
+    if (subMatch) {
+      isSub = true;
+      subPrice = subMatch.price;
+      subName = `${subMatch.provider} ${subMatch.plan}`;
+      let bestSubRk = 99999;
+      for (const rm of subMatch.rawModels) {
+        const found = catList.find(m => clean(m.name || '').includes(clean(rm)) || clean(rm).includes(clean(m.name || '')));
+        if (found && (found.rank ?? 99999) < bestSubRk) {
+          bestSubRk = found.rank ?? 99999;
+          baseModel = found;
+        }
+      }
+    }
+
+    if (!baseModel) {
+      baseModel = catList.find(m => {
+        const mSlugClean = clean(m.slug || '');
+        const mIdClean = clean(m.modelId || '');
+        return mSlugClean === cleanBaseSlug || mIdClean === targetClean || mSlugClean === targetClean || (m.slug && m.slug.toLowerCase() === baseSlug);
+      });
+    }
     if (!baseModel) {
       baseModel = catList.find(m => clean(m.name || '') === targetClean || clean(m.name || '').includes(cleanBaseSlug));
     }
@@ -700,48 +751,47 @@ export default function ModelAuditorView({
     const getScore = (m) => {
       const ev = m.evaluations || {};
       if (normUse === 'coding') {
-        if (typeof ev.livecodebench === 'number' && ev.livecodebench > 0) return parseFloat((ev.livecodebench <= 1 ? ev.livecodebench * 100 : ev.livecodebench).toFixed(1));
-        if (typeof ev.artificial_analysis_coding_index === 'number' && ev.artificial_analysis_coding_index > 0) return parseFloat(ev.artificial_analysis_coding_index.toFixed(1));
-        if (typeof ev.terminalbench_v2_1 === 'number' && ev.terminalbench_v2_1 > 0) return parseFloat((ev.terminalbench_v2_1 <= 1 ? ev.terminalbench_v2_1 * 100 : ev.terminalbench_v2_1).toFixed(1));
-        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
         if (typeof m.category_scores?.coding === 'number' && m.category_scores.coding > 0) return parseFloat(m.category_scores.coding.toFixed(1));
+        if (typeof ev.artificial_analysis_coding_index === 'number' && ev.artificial_analysis_coding_index > 0) return parseFloat(ev.artificial_analysis_coding_index.toFixed(1));
+        if (typeof ev.coding_agent_index === 'number' && ev.coding_agent_index > 0) return parseFloat(ev.coding_agent_index.toFixed(1));
+        if (typeof ev.livecodebench === 'number' && ev.livecodebench > 0) return parseFloat((ev.livecodebench <= 1 ? ev.livecodebench * 100 : ev.livecodebench).toFixed(1));
+        if (typeof ev.terminalbench_v2_1 === 'number' && ev.terminalbench_v2_1 > 0) return parseFloat((ev.terminalbench_v2_1 <= 1 ? ev.terminalbench_v2_1 * 100 : ev.terminalbench_v2_1).toFixed(1));
         return null;
       }
       if (normUse === 'math') {
-        if (typeof ev.livebench_math === 'number' && ev.livebench_math > 0) return parseFloat(ev.livebench_math.toFixed(1));
         if (typeof m.category_scores?.math === 'number' && m.category_scores.math > 0) return parseFloat(m.category_scores.math.toFixed(1));
+        if (typeof ev.livebench_math === 'number' && ev.livebench_math > 0) return parseFloat(ev.livebench_math.toFixed(1));
         if (typeof ev.artificial_analysis_math_index === 'number' && ev.artificial_analysis_math_index > 0) return parseFloat(ev.artificial_analysis_math_index.toFixed(1));
         if (typeof ev.aime === 'number' && ev.aime > 0) return parseFloat((ev.aime <= 1 ? ev.aime * 100 : ev.aime).toFixed(1));
-        if (typeof ev.scicode === 'number' && ev.scicode > 0) return parseFloat((ev.scicode <= 1 ? ev.scicode * 100 : ev.scicode).toFixed(1));
         return null;
       }
       if (normUse === 'reasoning') {
+        if (typeof m.category_scores?.reasoning === 'number' && m.category_scores.reasoning > 0) return parseFloat(m.category_scores.reasoning.toFixed(1));
         if (typeof ev.gpqa === 'number' && ev.gpqa > 0) return parseFloat((ev.gpqa <= 1 ? ev.gpqa * 100 : ev.gpqa).toFixed(1));
         if (typeof ev.hle === 'number' && ev.hle > 0) return parseFloat((ev.hle <= 1 ? ev.hle * 100 : ev.hle).toFixed(1));
         if (typeof ev.artificial_analysis_intelligence_index === 'number' && ev.artificial_analysis_intelligence_index > 0) return parseFloat(ev.artificial_analysis_intelligence_index.toFixed(1));
-        if (typeof m.category_scores?.reasoning === 'number' && m.category_scores.reasoning > 0) return parseFloat(m.category_scores.reasoning.toFixed(1));
         return null;
       }
       if (normUse === 'research') {
+        if (typeof m.category_scores?.research === 'number' && m.category_scores.research > 0) return parseFloat(m.category_scores.research.toFixed(1));
         if (typeof ev.hle === 'number' && ev.hle > 0) return parseFloat((ev.hle <= 1 ? ev.hle * 100 : ev.hle).toFixed(1));
-        if (typeof ev.lcr === 'number' && ev.lcr > 0) return parseFloat((ev.lcr <= 1 ? ev.lcr * 100 : ev.lcr).toFixed(1));
         if (typeof ev.gpqa === 'number' && ev.gpqa > 0) return parseFloat((ev.gpqa <= 1 ? ev.gpqa * 100 : ev.gpqa).toFixed(1));
         return null;
       }
-      if (normUse === 'instruction' || normUse === 'instruction-following') {
-        if (typeof ev.ifbench === 'number' && ev.ifbench > 0) return parseFloat((ev.ifbench <= 1 ? ev.ifbench * 100 : ev.ifbench).toFixed(1));
-        return null;
+      if (normUse === 'writing' || normUse === 'creative-writing') {
+        if (typeof m.category_scores?.['creative-writing'] === 'number' && m.category_scores['creative-writing'] > 0) return parseFloat(m.category_scores['creative-writing'].toFixed(1));
+        if (typeof m.category_scores?.writing === 'number' && m.category_scores.writing > 0) return parseFloat(m.category_scores.writing.toFixed(1));
       }
       if (typeof ev.artificial_analysis_intelligence_index === 'number' && ev.artificial_analysis_intelligence_index > 0) {
         return parseFloat(ev.artificial_analysis_intelligence_index.toFixed(1));
       }
       if (typeof m.final_score === 'number' && m.final_score > 0) return parseFloat(m.final_score.toFixed(1));
       if (typeof m.rating === 'number' && m.rating > 0) return parseFloat(m.rating.toFixed(1));
-      if (typeof m.arena_elo === 'number' && m.arena_elo > 0) return parseFloat(m.arena_elo.toFixed(1));
       return null;
     };
 
-    const baseCost = calcCost(baseModel) || ((totalTokens * inRatio / 1000000 * 3) + (totalTokens * (1 - inRatio) / 1000000 * 15));
+    const calculatedTokenCost = calcCost(baseModel) || ((totalTokens * inRatio / 1000000 * 3) + (totalTokens * (1 - inRatio) / 1000000 * 15));
+    const baseCost = (isSub && subPrice > 0) ? subPrice : calculatedTokenCost;
     const baseScore = getScore(baseModel);
     const baseRank = (typeof baseModel.rank === 'number' && baseModel.rank > 0) ? baseModel.rank : (parseInt(baseModel.rank) || null);
 
@@ -792,7 +842,20 @@ export default function ModelAuditorView({
       });
 
     let recs = [];
-    if (goal === 'performance') {
+    if (goal === 'quality') {
+      // Quality focus: only suggest the top model from the leaderboard
+      const sorted = [...candidates].sort((a, b) => {
+        const rkA = a.category_rank ?? 99999;
+        const rkB = b.category_rank ?? 99999;
+        return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
+      });
+      if (baseRank === 1 || (baseRank !== null && sorted[0]?.category_rank >= baseRank)) {
+        recs = [];
+      } else {
+        recs = sorted.slice(0, 1);
+      }
+    } else if (goal === 'performance') {
+      // Performance measure: suggest models from the leaderboard with better rank and less cost
       recs = candidates
         .filter(c => {
           if (c.monthly_cost >= baseCost) return false;
@@ -804,8 +867,10 @@ export default function ModelAuditorView({
           const rkA = a.category_rank ?? 99999;
           const rkB = b.category_rank ?? 99999;
           return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
-        });
+        })
+        .slice(0, 5);
     } else if (goal === 'cost') {
+      // Cost cutting mode: suggest the model according to the user cost selected in the UI and best rank
       const maxBudget = baseCost * (1 - (cutPct || 50) / 100);
       recs = candidates
         .filter(c => c.monthly_cost <= maxBudget)
@@ -813,13 +878,8 @@ export default function ModelAuditorView({
           const rkA = a.category_rank ?? 99999;
           const rkB = b.category_rank ?? 99999;
           return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
-        });
-    } else if (goal === 'quality') {
-      recs = candidates.sort((a, b) => {
-        const rkA = a.category_rank ?? 99999;
-        const rkB = b.category_rank ?? 99999;
-        return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
-      });
+        })
+        .slice(0, 5);
     } else {
       recs = candidates
         .filter(c => {
@@ -832,14 +892,16 @@ export default function ModelAuditorView({
           const rkA = a.category_rank ?? 99999;
           const rkB = b.category_rank ?? 99999;
           return (rkA - rkB) || (a.monthly_cost - b.monthly_cost);
-        });
+        })
+        .slice(0, 5);
     }
 
-    const isAlreadyOptimized = (recs.length === 0 && goal === 'performance');
+    const isAlreadyOptimized = (recs.length === 0);
 
     return {
       selectedCategory: useCase || 'Mixed',
       alreadyOptimized: isAlreadyOptimized,
+      subscriptionInfo: isSub ? { isSubscription: true, planName: subName, price: subPrice, topModelName: baseModel.name } : null,
       currentBaseline: {
         _id: baseModel.modelId,
         modelId: baseModel.modelId,
@@ -1674,7 +1736,9 @@ export default function ModelAuditorView({
                       <ProviderLogo provider={getNormalizedProvider(results.currentBaseline.modelId)} size={24} />
                     </div>
                     <div style={{ textAlign: 'left', minWidth: 0 }}>
-                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{results.currentBaseline.name}</div>
+                      <div style={{ fontSize: '14px', fontWeight: '700', color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {results.currentBaseline.subscription?.planName ? `${results.currentBaseline.subscription.planName} — Top Model: ${results.currentBaseline.name}` : results.currentBaseline.name}
+                      </div>
                       <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
                         Index capability: <strong style={{ color: '#047857' }}>{results.currentBaseline.performance_score}</strong>/100 {results.currentBaseline.category_rank ? `(#${results.currentBaseline.category_rank} in category)` : ''} {results.currentBaseline.tokens_per_second ? `· ${results.currentBaseline.tokens_per_second} t/s` : ''}
                       </div>

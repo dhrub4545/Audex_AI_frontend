@@ -262,13 +262,16 @@ export const getModelMarketIntelDetails = (modelOrId, purpose = 'Mixed', intelDa
       const mi = cleanMarketIntelLookup(m.modelId);
       const mn = cleanMarketIntelLookup(m.name);
       return (
-        ms === idClean ||
-        mi === idClean ||
-        mn === idClean ||
+        (ms && ms === idClean) ||
+        (mi && mi === idClean) ||
+        (mn && mn === idClean) ||
         (m.slug && m.slug.toLowerCase() === idRaw) ||
         (m.modelId && m.modelId.toLowerCase() === idRaw) ||
         (m.name && m.name.toLowerCase().trim() === idRaw) ||
-        (idClean.length >= 5 && (ms.includes(idClean) || idClean.includes(ms) || mn.includes(idClean) || idClean.includes(mn)))
+        (idClean.length >= 5 && (
+          (ms && ms.length >= 4 && (ms.includes(idClean) || idClean.includes(ms))) ||
+          (mn && mn.length >= 4 && (mn.includes(idClean) || idClean.includes(mn)))
+        ))
       );
     });
 
@@ -285,6 +288,11 @@ export const getModelMarketIntelDetails = (modelOrId, purpose = 'Mixed', intelDa
   if (matches.length === 0) return null;
 
   let best = matches.find(m => m.category === targetCat);
+  if (!best && targetCat === 'coding') best = matches.find(m => m.category === 'industry-software-and-it-services');
+  if (!best && targetCat === 'math') best = matches.find(m => m.category === 'industry-mathematical');
+  if (!best && targetCat === 'creative-writing') best = matches.find(m => m.category === 'writing');
+  if (!best && targetCat === 'reasoning') best = matches.find(m => m.category === 'overall');
+  if (!best && targetCat === 'research') best = matches.find(m => m.category === 'scientific');
   if (!best) best = matches.find(m => m.category === 'overall');
   if (!best) {
     const primaryCategories = ['coding', 'reasoning', 'research', 'math', 'creative-writing', 'writing'];
