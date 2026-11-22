@@ -287,6 +287,13 @@ export const getModelMarketIntelDetails = (modelOrId, purpose = 'Mixed', intelDa
   let best = matches.find(m => m.category === targetCat);
   if (!best) best = matches.find(m => m.category === 'overall');
   if (!best) {
+    const primaryCategories = ['coding', 'reasoning', 'research', 'math', 'creative-writing', 'writing'];
+    for (const cat of primaryCategories) {
+      best = matches.find(m => m.category === cat);
+      if (best) break;
+    }
+  }
+  if (!best) {
     matches.sort((a, b) => a.rank - b.rank);
     best = matches[0];
   }
