@@ -81,10 +81,9 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
     }, 100);
   };
 
-  const userPlan = (user?.plan || '').toLowerCase();
-  const planName = user ? (userPlan === 'enterprise' ? 'Enterprise Plan' : (userPlan === 'pro' ? 'Professional Plan' : 'Free Plan')) : '';
-  const badgeColor = user ? (userPlan === 'enterprise' ? '#8B5CF6' : (userPlan === 'pro' ? '#10B981' : '#64748B')) : '';
-  const bgColor = user ? (userPlan === 'enterprise' ? '#F5F3FF' : (userPlan === 'pro' ? '#ECFDF5' : '#F1F5F9')) : '';
+  const planName = user ? 'Full Access' : '';
+  const badgeColor = '#10B981';
+  const bgColor = '#ECFDF5';
 
   return (
     <header className="navbar" style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', borderBottom: '1px solid var(--color-border)' }}>
@@ -335,7 +334,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
             Reports History
           </a>
           <a href="/?view=model-auditor" onClick={(e) => { e.preventDefault(); onNavigateToModelAuditor(); }} className={`nav-link ${activeSection === 'model_auditor' ? 'active' : ''}`} style={{ color: 'var(--color-green-primary)', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '5px' }} title="Benchmark 1,150+ Models in Live AI Model Auditor">
-            <Zap size={14} color="#10B981" /> Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #86EFAC', letterSpacing: '0.04em' }}>ENT</span>
+            <Zap size={14} color="#10B981" /> Model Auditor
           </a>
         </nav>
 
@@ -491,7 +490,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
               style={{ backgroundColor: '#F0FDF4', border: '1px solid #BBF7D0' }}
             >
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#047857', fontWeight: '750' }}>
-                <Zap size={16} color="#10B981" /> Live AI Model Auditor <span style={{ fontSize: '9px', fontWeight: '800', backgroundColor: '#DCFCE7', color: '#166534', padding: '1px 5px', borderRadius: '4px', border: '1px solid #86EFAC' }}>UNLOCKED</span>
+                <Zap size={16} color="#10B981" /> Live AI Model Auditor
               </span>
               <span style={{ fontSize: '14px', color: '#047857', fontWeight: '700' }}>›</span>
             </a>

@@ -129,10 +129,9 @@ export default function ProfileView({
     return diffDays > 0 ? diffDays : 0;
   };
 
-  const currentPlan = (subStatus?.plan || user?.plan || 'free').toLowerCase();
-  const isEnterprise = currentPlan === 'enterprise';
-  const isPro = currentPlan === 'pro';
-  const isFree = !isEnterprise && !isPro;
+  const isEnterprise = true;
+  const isPro = false;
+  const isFree = false;
 
   const subscriptionObj = subStatus?.subscription || user?.subscription || {};
   const startedAt = subscriptionObj.startedAt || user?.createdAt || new Date().toISOString();
@@ -274,7 +273,7 @@ export default function ProfileView({
             </div>
           )}
 
-          {/* Main Grid: Subscription Details & Entitlements */}
+          {/* Main Grid: Account Details & Entitlements */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
 
             {/* Account Details Card */}
@@ -477,7 +476,7 @@ export default function ProfileView({
                 <CreditCard size={32} color="#94A3B8" style={{ marginBottom: '8px' }} />
                 <h4 style={{ fontSize: '14.5px', fontWeight: '750', color: '#334155', margin: '0 0 4px' }}>No payment transactions found yet</h4>
                 <p style={{ fontSize: '12.5px', color: '#64748B', margin: 0 }}>
-                  Your subscription upgrades and single report unlock receipts will appear here.
+                  Your single report unlock receipts and purchases will appear here.
                 </p>
               </div>
             ) : (
@@ -509,8 +508,8 @@ export default function ProfileView({
                           </div>
                         </td>
                         <td style={{ padding: '12px' }}>
-                          <span style={{ fontWeight: '700', color: tx.productId === 'enterprise' ? '#7C3AED' : tx.productId === 'pro' ? '#047857' : '#0F172A' }}>
-                            {tx.productId === 'enterprise' ? 'Enterprise Plan' : tx.productId === 'pro' ? 'Professional Plan' : 'Single Report Unlock'}
+                          <span style={{ fontWeight: '700', color: tx.productId === 'single_unlock' ? '#0F172A' : '#047857' }}>
+                            {tx.productId === 'single_unlock' ? 'Single Report Unlock' : (tx.productId || 'Report Unlock')}
                           </span>
                         </td>
                         <td style={{ padding: '12px', fontWeight: '850', color: '#10B981' }}>

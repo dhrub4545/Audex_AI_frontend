@@ -2368,7 +2368,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               { q: "How are recommendations generated?", a: "We run deterministic cost rules against your inputs, matching them with current provider pricing tables and open capability benchmarks." },
               { q: "Can I export my report?", a: "Yes. All spend reports can be downloaded instantly as print-ready PDF files with action checklists." },
               { q: "Is my data stored?", a: "We store reports on encrypted databases. Your input CSVs are deleted immediately after the audit runs and are never sold or used for model training." },
-              { q: "What happens after the audit?", a: "You receive a step-by-step seat migration checklist. Basic audits (up to 2 tools) are free. Larger audits require a Pro subscription or a one-time unlock fee." }
+              { q: "What happens after the audit?", a: "You receive a comprehensive step-by-step seat migration checklist and spend optimization report with full model benchmarks, reproducible cost formulas, and instant PDF export." }
             ].map((faq, idx) => {
               const isOpen = activeFaqIndex === idx;
               return (

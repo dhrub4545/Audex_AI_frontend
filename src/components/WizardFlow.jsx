@@ -628,29 +628,8 @@ export default function WizardFlow({
 
   const [limitWarning, setLimitWarning] = useState(null);
 
-  const maxAllowedTools = useMemo(() => {
-    if (!user) return 2;
-    const plan = (user.plan || 'free').toLowerCase();
-    if (plan === 'enterprise') return Infinity;
-    if (plan === 'pro') return 15;
-    return 2;
-  }, [user]);
-
-  // Ensure selected tools don't exceed current subscription limit
-  useEffect(() => {
-    if (selectedToolIds.length > maxAllowedTools) {
-      setSelectedToolIds(prev => prev.slice(0, maxAllowedTools));
-    }
-  }, [maxAllowedTools, selectedToolIds.length, setSelectedToolIds]);
-
-  const getLimitWarningMessage = (maxLimit) => {
-    if (maxLimit === 2) {
-      return 'Maximum 2 tools allowed per audit analysis on the Free plan. Upgrade your subscription to audit more tools.';
-    } else if (maxLimit === 15) {
-      return 'Maximum 15 tools allowed per audit analysis on the Pro plan. Upgrade to Enterprise for unlimited tools.';
-    }
-    return 'Maximum tools limit reached for your current plan.';
-  };
+  // All audit restrictions removed - unlimited tools for all audits
+  const maxAllowedTools = Infinity;
 
   const toggleToolSelection = (toolId) => {
     if (selectedToolIds.includes(toolId)) {
@@ -1561,81 +1540,15 @@ export default function WizardFlow({
             padding: '3px 12px',
             borderRadius: '20px',
             fontSize: '11.5px',
-            fontWeight: '700',
-            backgroundColor: maxAllowedTools === Infinity ? '#F5F3FF' : maxAllowedTools > 2 ? '#ECFDF5' : '#F1F5F9',
-            color: maxAllowedTools === Infinity ? '#7C3AED' : maxAllowedTools > 2 ? '#059669' : '#475569',
-            border: `1px solid ${maxAllowedTools === Infinity ? '#DDD6FE' : maxAllowedTools > 2 ? '#A7F3D0' : '#E2E8F0'}`
+            fontWeight: '750',
+            backgroundColor: '#ECFDF5',
+            color: '#059669',
+            border: '1px solid #A7F3D0'
           }}>
-            <span>{maxAllowedTools === Infinity ? '⚡' : maxAllowedTools > 2 ? '💎' : '🛡️'}</span>
-            <span>
-              {user?.plan ? (user.plan.toLowerCase() === 'enterprise' ? 'Enterprise' : user.plan.toLowerCase() === 'pro' ? 'Professional' : 'Free') : 'Free'} Plan: Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools} Tools
-            </span>
+            <span>⚡</span>
+            <span>Full Access: Unlimited Tools</span>
           </span>
         </div>
-
-        {limitWarning && (
-          <div style={{
-            maxWidth: '680px',
-            margin: '0 auto 18px auto',
-            padding: '12px 18px',
-            backgroundColor: '#FEF2F2',
-            border: '1.5px solid #FCA5A5',
-            borderRadius: '14px',
-            color: '#991B1B',
-            fontSize: '13.5px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '12px',
-            boxShadow: '0 4px 12px rgba(239, 68, 68, 0.12)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-              <span style={{ fontSize: '16px' }}>⚠️</span>
-              <span>{limitWarning}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-              <button 
-                type="button" 
-                onClick={() => {
-                  onNavigateToView('landing');
-                  setTimeout(() => {
-                    const el = document.getElementById('pricing');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }, 120);
-                }}
-                style={{ 
-                  backgroundColor: '#DC2626', 
-                  color: '#FFFFFF', 
-                  border: 'none', 
-                  padding: '7px 15px', 
-                  borderRadius: '8px', 
-                  fontWeight: '750', 
-                  fontSize: '12.5px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)',
-                  transition: 'all 0.2s ease',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#B91C1C'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
-              >
-                <span>⚡</span> Upgrade Subscription
-              </button>
-              <button 
-                type="button" 
-                onClick={() => setLimitWarning(null)}
-                style={{ background: 'none', border: 'none', color: '#991B1B', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', padding: '0 4px' }}
-                title="Dismiss"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Mobile View Switcher (<= 900px) */}
         <div className="step1-view-switcher">
@@ -1962,9 +1875,9 @@ export default function WizardFlow({
             <span className="bottom-cta-text" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>✔</span>
               <span>
-                <strong>{selectedToolIds.length}</strong> / <strong>{maxAllowedTools === Infinity ? '∞' : maxAllowedTools}</strong> tools selected
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#64748B', marginLeft: '6px' }}>
-                  ({maxAllowedTools === Infinity ? 'Enterprise Unlimited' : maxAllowedTools > 2 ? 'Pro Plan: up to 15' : 'Free Plan: up to 2'})
+                <strong>{selectedToolIds.length}</strong> tool{selectedToolIds.length !== 1 ? 's' : ''} selected
+                <span style={{ fontSize: '12px', fontWeight: '500', color: '#059669', marginLeft: '6px' }}>
+                  (Unlimited Tools)
                 </span>
               </span>
             </span>
@@ -1987,7 +1900,7 @@ export default function WizardFlow({
         ) : (
           <div className="bottom-cta-banner" style={{ backgroundColor: '#F9FAFB', borderColor: '#E5E7EB', color: '#6B7280' }}>
             <span className="bottom-cta-text" style={{ fontWeight: '500' }}>
-              Select at least one tool to proceed (Max {maxAllowedTools === Infinity ? 'Unlimited' : maxAllowedTools})
+              Select at least one tool to proceed
             </span>
             <button 
               className="btn btn-disabled"
@@ -2405,41 +2318,9 @@ export default function WizardFlow({
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span style={{ fontSize: '18px' }}>⚠️</span>
                 <div>
-                  <strong>Audit Analysis Limit:</strong> {apiError}
+                  <strong>Audit Analysis Error:</strong> {apiError}
                 </div>
               </div>
-              {(apiError.toLowerCase().includes('limit') || apiError.toLowerCase().includes('upgrade') || apiError.toLowerCase().includes('maximum')) && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onNavigateToView('landing');
-                    setTimeout(() => {
-                      const el = document.getElementById('pricing');
-                      if (el) el.scrollIntoView({ behavior: 'smooth' });
-                    }, 120);
-                  }}
-                  style={{
-                    backgroundColor: '#DC2626',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '8px',
-                    fontWeight: '750',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    boxShadow: '0 2px 6px rgba(220, 38, 38, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    flexShrink: 0
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#B91C1C'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#DC2626'}
-                >
-                  ⚡ Upgrade Subscription
-                </button>
-              )}
             </div>
           ) : null}
 

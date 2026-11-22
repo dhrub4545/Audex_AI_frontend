@@ -165,10 +165,10 @@ export function CheckoutModal({ show, type, auditId, token, onConfirm, onClose }
     }
   };
 
-  const planId = (type === 'unlock' || type === 'single_unlock') ? 'single_unlock' : (type || 'pro');
-  const planTitle = planId === 'enterprise' ? 'Enterprise Subscription' : (planId === 'pro' ? 'Professional Subscription' : 'Single Report Unlock');
-  const isEnterprise = planId === 'enterprise';
-  const isPro = planId === 'pro';
+  const planId = 'single_unlock';
+  const planTitle = 'Single Report Unlock';
+  const isEnterprise = false;
+  const isPro = false;
 
   return (
     <div className="modal-backdrop" style={{
