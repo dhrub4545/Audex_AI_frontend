@@ -1041,7 +1041,6 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
           <div className="nav-actions">
-            {renderCoinDropdown && renderCoinDropdown()}
             <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn nav-btn-home" title="Back to Home">
               <Home size={14} />
               <span className="nav-action-btn-text">Home</span>
@@ -1541,19 +1540,30 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 backgroundColor: '#FFFFFF',
                 borderRadius: '16px',
                 padding: '24px 32px',
-                marginBottom: '24px',
+                marginBottom: '20px',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 border: '1px solid var(--color-border)',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)'
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
               }}>
                 <div>
-                  <h2 style={{ fontSize: '24px', fontWeight: '850', color: '#0F172A', margin: 0, letterSpacing: '-0.02em' }}>
+                  <h2 style={{ fontSize: '25px', fontWeight: '850', color: '#0F172A', margin: 0, letterSpacing: '-0.02em', fontFamily: 'var(--font-title)' }}>
                     Detailed Analysis Report
                   </h2>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '4px' }}>
-                    <span style={{ fontSize: '13.5px', fontWeight: '800', color: '#475569' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '6px', flexWrap: 'wrap' }}>
+                    <span style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      fontSize: '12px',
+                      fontWeight: '750',
+                      color: auditResult.optimizationGoal === 'quality' ? '#4338CA' : auditResult.optimizationGoal === 'cost' ? '#047857' : '#6D28D9',
+                      backgroundColor: auditResult.optimizationGoal === 'quality' ? '#EEF2FF' : auditResult.optimizationGoal === 'cost' ? '#ECFDF5' : '#F5F3FF',
+                      border: `1px solid ${auditResult.optimizationGoal === 'quality' ? '#C7D2FE' : auditResult.optimizationGoal === 'cost' ? '#A7F3D0' : '#DDD6FE'}`,
+                      padding: '2px 9px',
+                      borderRadius: '6px'
+                    }}>
                       {goalLabel}
                     </span>
                     <span style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#CBD5E1' }}></span>
@@ -1592,21 +1602,29 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       backgroundColor: '#0F172A',
                       color: '#FFFFFF',
                       border: 'none',
-                      borderRadius: '8px',
-                      padding: '10px 18px',
-                      fontSize: '13px',
-                      fontWeight: '700',
+                      borderRadius: '10px',
+                      padding: '11px 20px',
+                      fontSize: '13.5px',
+                      fontWeight: '750',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
                       cursor: 'pointer',
                       transition: 'all 0.2s',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.08)'
+                      boxShadow: '0 2px 8px rgba(15, 23, 42, 0.12)'
                     }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1E293B'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0F172A'}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1E293B';
+                      e.currentTarget.style.transform = 'translateY(-1px)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.18)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#0F172A';
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(15, 23, 42, 0.12)';
+                    }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
@@ -1669,52 +1687,56 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const tiles = [
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#F3E8FF', color: '#9333EA', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                      <div style={{ backgroundColor: '#F3E8FF', color: '#9333EA', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
                       </div>
                     ),
                     label: 'Current Monthly Cost',
                     value: `$${currentCostVal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`,
                     sub: '100% baseline',
-                    valColor: '#0F172A'
+                    valColor: '#0F172A',
+                    isHero: false
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#DCFCE7', color: '#16A34A', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                      <div style={{ backgroundColor: '#DCFCE7', color: '#16A34A', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                       </div>
                     ),
                     label: 'Selected Monthly Savings',
                     value: `$${bestMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                     sub: `${savingPct}% reduction`,
-                    valColor: '#10B981'
+                    valColor: '#10B981',
+                    isHero: true
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6H18z"></path></svg>
+                      <div style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"></path><path d="M18 12a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h4v-6H18z"></path></svg>
                       </div>
                     ),
                     label: 'Optimized Monthly Cost',
                     value: `$${Math.max(0, currentCostVal - bestMonthly).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                     sub: 'New monthly budget',
-                    valColor: '#4F46E5'
+                    valColor: '#4F46E5',
+                    isHero: false
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#FFEDD5', color: '#EA580C', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+                      <div style={{ backgroundColor: '#FFEDD5', color: '#EA580C', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
                       </div>
                     ),
                     label: 'Est. Annual Savings',
                     value: `$${bestAnnual.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
                     sub: `${savingPct}% reduction`,
-                    valColor: '#0F172A'
+                    valColor: '#0F172A',
+                    isHero: false
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#DBEAFE', color: '#2563EB', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                      <div style={{ backgroundColor: '#DBEAFE', color: '#2563EB', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                       </div>
                     ),
                     label: 'Optimized Changes',
@@ -1748,55 +1770,78 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                       return opt && opt.savings > 0;
                     }).length} items`,
                     sub: 'Across selected path',
-                    valColor: '#0F172A'
+                    valColor: '#0F172A',
+                    isHero: false
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#FAE8FF', color: '#D946EF', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+                      <div style={{ backgroundColor: '#FAE8FF', color: '#D946EF', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
                       </div>
                     ),
                     label: 'Optimization Goal',
                     value: auditResult.optimizationGoal === 'performance' ? 'Performance Preservation Mode' :
                       auditResult.optimizationGoal === 'quality' ? 'Quality Focus' : 'Cost Reduction',
                     sub: 'Maintain quality',
-                    valColor: '#7C3AED'
+                    valColor: '#7C3AED',
+                    isHero: false
                   },
                   {
                     icon: (
-                      <div style={{ backgroundColor: '#CCFBF1', color: '#0D9488', borderRadius: '50%', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                      <div style={{ backgroundColor: '#CCFBF1', color: '#0D9488', borderRadius: '12px', width: '42px', height: '42px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                       </div>
                     ),
                     label: 'Configured Allocations',
                     value: `${auditResult.allocations ? auditResult.allocations.length : 0} tools`,
                     sub: `${auditResult.teamSize || 0} total seats`,
-                    valColor: '#0F172A'
+                    valColor: '#0F172A',
+                    isHero: false
                   }
                 ];
 
                 return (
                   <div style={{ marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px', marginBottom: '14px' }}>
                       {tiles.slice(0, 4).map((tile, i) => (
-                        <div key={i} style={{ flex: '1 1 calc(25% - 9px)', minWidth: '200px', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '10px', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                        <div key={i} style={{
+                          backgroundColor: tile.isHero ? '#F8FCF9' : '#FFFFFF',
+                          border: tile.isHero ? '1.5px solid #86EFAC' : '1px solid var(--color-border)',
+                          borderRadius: '14px',
+                          padding: '18px 20px',
+                          display: 'flex',
+                          gap: '14px',
+                          alignItems: 'center',
+                          boxShadow: tile.isHero ? '0 4px 14px rgba(16, 185, 129, 0.08)' : '0 2px 8px rgba(0,0,0,0.02)',
+                          transition: 'all 0.2s ease'
+                        }}>
                           {tile.icon}
-                          <div>
-                            <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#64748B', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '3px' }}>{tile.label}</div>
-                            <div style={{ fontSize: '17px', fontWeight: '950', color: tile.valColor, fontFamily: 'var(--font-title)', lineHeight: 1.1 }}>{tile.value}</div>
-                            <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '2px', fontWeight: '500' }}>{tile.sub}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748B', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '4px' }}>{tile.label}</div>
+                            <div style={{ fontSize: '21px', fontWeight: '950', color: tile.valColor, fontFamily: 'var(--font-title)', lineHeight: 1.15, letterSpacing: '-0.02em', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.value}</div>
+                            <div style={{ fontSize: '11.5px', color: tile.isHero ? '#047857' : '#94A3B8', marginTop: '3px', fontWeight: '600' }}>{tile.sub}</div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
                       {tiles.slice(4, 7).map((tile, i) => (
-                        <div key={i} style={{ flex: '1 1 calc(33.333% - 8px)', minWidth: '200px', backgroundColor: '#FFFFFF', border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px', display: 'flex', gap: '10px', alignItems: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+                        <div key={i} style={{
+                          backgroundColor: '#FFFFFF',
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '14px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          gap: '14px',
+                          alignItems: 'center',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                          transition: 'all 0.2s ease'
+                        }}>
                           {tile.icon}
-                          <div>
-                            <div style={{ fontSize: '9px', textTransform: 'uppercase', color: '#64748B', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '3px' }}>{tile.label}</div>
-                            <div style={{ fontSize: '17px', fontWeight: '950', color: tile.valColor, fontFamily: 'var(--font-title)', lineHeight: 1.1 }}>{tile.value}</div>
-                            <div style={{ fontSize: '10.5px', color: '#94A3B8', marginTop: '2px', fontWeight: '500' }}>{tile.sub}</div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontSize: '10.5px', textTransform: 'uppercase', color: '#64748B', fontWeight: 800, letterSpacing: '0.04em', marginBottom: '4px' }}>{tile.label}</div>
+                            <div style={{ fontSize: '16px', fontWeight: '900', color: tile.valColor, fontFamily: 'var(--font-title)', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{tile.value}</div>
+                            <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '3px', fontWeight: '500' }}>{tile.sub}</div>
                           </div>
                         </div>
                       ))}
@@ -1804,23 +1849,33 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                     <div style={{
                       marginTop: '16px',
-                      padding: '12px 18px',
-                      backgroundColor: '#ECFDF5',
-                      border: '1px solid #A7F3D0',
-                      borderRadius: '10px',
+                      padding: '14px 20px',
+                      background: 'linear-gradient(90deg, #ECFDF5 0%, #F0FDF4 100%)',
+                      border: '1.5px solid #86EFAC',
+                      borderRadius: '12px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
-                      fontSize: '13px',
+                      gap: '12px',
+                      fontSize: '13.5px',
                       fontWeight: '600',
-                      color: '#065F46'
+                      color: '#065F46',
+                      boxShadow: '0 2px 10px rgba(16, 185, 129, 0.05)'
                     }}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" style={{ flexShrink: 0 }}>
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                      </svg>
+                      <div style={{
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        backgroundColor: '#10B981',
+                        color: '#FFFFFF',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Check size={14} strokeWidth={3} />
+                      </div>
                       <span>
-                        You save <strong style={{ color: '#047857' }}>${bestMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({savingPct}%)</strong> per month by implementing your chosen action plan pathways.
+                        You save <strong style={{ color: '#047857', fontWeight: '850' }}>${bestMonthly.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({savingPct}%)</strong> per month by implementing your chosen action plan pathways.
                       </span>
                     </div>
 
@@ -3372,7 +3427,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                               return opt && opt.savings > 0;
                             }).length} optimization opportunities verified with high confidence.`,
                             avgScoreDelta > 0
-                              ? `Enterprise capability enhanced by +${avgScoreDelta} pts on average across audited workloads.`
+                              ? `Overall capability enhanced by +${avgScoreDelta} pts on average across audited workloads.`
                               : (avgScoreDelta === 0
                                 ? `100% capability retention with zero quality regression under performance preservation.`
                                 : `High quality retention (minimal quality impact under 5%).`),

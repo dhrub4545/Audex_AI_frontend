@@ -133,11 +133,11 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
               <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
             </a>
             <p className="footer-description" style={{ marginBottom: '24px' }}>
-              Enterprise AI Spend Intelligence and Model Optimization Platform for engineering and finance teams.
+              AI Spend Intelligence and Model Optimization Platform for engineering and finance teams.
             </p>
             <div style={{ display: 'flex', gap: '16px', color: 'var(--color-text-muted)' }}>
                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600' }}><ShieldCheck size={14} /> Privacy First</div>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600' }}><Lock size={14} /> Enterprise Ready</div>
+               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '600' }}><Lock size={14} /> Production Ready</div>
             </div>
           </div>
 
@@ -151,12 +151,12 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
                 </a>
               </li>
               <li>
-                <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel?.(); }} className="footer-link" title="Enterprise AI Market Intelligence Leaderboard">
+                <a href="/?view=market-intel" onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel?.(); }} className="footer-link" title="AI Market Intelligence Leaderboard">
                   Market Intelligence
                 </a>
               </li>
               <li>
-                <a href="/?view=sample" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link" title="View Sample Enterprise AI Audit Report">
+                <a href="/?view=sample" onClick={(e) => { e.preventDefault(); onViewSample(); }} className="footer-link" title="View Sample AI Audit Report">
                   Sample Report
                 </a>
               </li>
@@ -179,7 +179,7 @@ export default function Footer({ onNavigateToStep1, onNavigateToLanding, onViewS
             <ul className="footer-links">
               <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Privacy & Security</a></li>
               <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Security Posture</a></li>
-              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Enterprise Compliance</a></li>
+              <li><a href="#how-it-works" onClick={(e) => handleScrollToSection(e, 'how-it-works')} className="footer-link">Security &amp; Compliance</a></li>
               <li><a href="mailto:support@audexai.in" className="footer-link">Contact Support</a></li>
             </ul>
           </div>

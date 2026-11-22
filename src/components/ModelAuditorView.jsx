@@ -1425,15 +1425,9 @@ export default function ModelAuditorView({
             <a href="#" onClick={(e) => { e.preventDefault(); onNavigateToView('landing'); }} className="nav-link" style={{ fontSize: '13.5px', color: 'var(--color-text-secondary)' }}>Home</a>
             <span style={{ fontWeight: '700', color: 'var(--color-text-primary)', fontSize: '13.5px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               Model Auditor Engine
-              {user && (user.plan || '').toLowerCase() === 'enterprise' && (
-                <span style={{ fontSize: '10px', backgroundColor: '#F5F3FF', color: '#7C3AED', border: '1px solid #DDD6FE', padding: '2px 8px', borderRadius: '9999px', fontWeight: '800' }}>
-                  ENTERPRISE
-                </span>
-              )}
             </span>
           </div>
           <div className="nav-actions">
-            {renderCoinDropdown && renderCoinDropdown()}
             <button onClick={() => onNavigateToView('landing')} className="btn btn-outline nav-action-btn nav-btn-home" title="Back to Home">
               <Home size={14} />
               <span className="nav-action-btn-text">Home</span>

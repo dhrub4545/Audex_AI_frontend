@@ -1,7 +1,7 @@
 // Canonical Sample Audit Data - Generated from Live Artificial Analysis & LiveBench AI benchmarks
 export const SAMPLE_AUDIT_DATA = {
   "_id": "sample_audit_2026",
-  "userId": "sample_enterprise_user",
+  "userId": "sample_user",
   "createdAt": "2026-11-22T04:08:35.742Z",
   "teamSize": 12,
   "useCase": "Coding & Mixed Workloads",
@@ -599,7 +599,7 @@ export const SAMPLE_AUDIT_DATA = {
           "modelId": "anthropic/claude-fable-5-2",
           "performance_score": 65,
           "category_rank": 1,
-          "action": "Adopt direct enterprise API keys with dedicated SLAs using Claude Fable 5.2 (Max, Default Fallback).",
+          "action": "Adopt direct API keys with dedicated SLAs using Claude Fable 5.2 (Max, Default Fallback).",
           "statusText": "",
           "isAlreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $8.00/1M input, $40.00/1M output. Context: 1M.",

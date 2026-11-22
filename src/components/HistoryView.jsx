@@ -61,7 +61,6 @@ export default function HistoryView({
             <span className="brand-name">Audex <span style={{ color: 'var(--color-green-primary)' }}>AI</span></span>
           </a>
           <div className="nav-actions">
-            {renderCoinDropdown && renderCoinDropdown()}
             <button onClick={() => onNavigateToView('model_auditor')} className="btn btn-outline nav-action-btn" title="Live Model Auditor">
               <Zap size={14} color="#10B981" />
               <span className="nav-action-btn-text">Model Auditor</span>

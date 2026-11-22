@@ -327,7 +327,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
           <a href="#how-it-works" onClick={handleHowItWorksScroll} className={`nav-link ${activeSection === 'how-it-works' ? 'active' : ''}`} title="How Audex AI Works">
             How it works
           </a>
-          <a href="/?view=market-intel" onMouseEnter={() => import('./MarketIntelView').catch(() => {})} onTouchStart={() => import('./MarketIntelView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="Enterprise AI Market Intelligence Leaderboard">
+          <a href="/?view=market-intel" onMouseEnter={() => import('./MarketIntelView').catch(() => {})} onTouchStart={() => import('./MarketIntelView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToMarketIntel(); }} className={`nav-link ${activeSection === 'market_intel' ? 'active' : ''}`} title="AI Market Intelligence Leaderboard">
             Market Intel
           </a>
           <a href="/?view=history" onMouseEnter={() => import('./HistoryView').catch(() => {})} onTouchStart={() => import('./HistoryView').catch(() => {})} onClick={(e) => { e.preventDefault(); onNavigateToHistory(); }} className={`nav-link ${activeSection === 'history' ? 'active' : ''}`} title="Saved AI Audit Reports History">
@@ -502,7 +502,7 @@ export default function Navbar({ user, onLogout, onNavigateToHistory, onNavigate
               onClick={(e) => { e.preventDefault(); setIsMobileMenuOpen(false); onNavigateToMarketIntel(); }} 
               className={`mobile-link-item ${activeSection === 'market_intel' ? 'active' : ''}`}
             >
-              <span>Enterprise Market Intel</span>
+              <span>Market Intel Leaderboard</span>
               <span style={{ fontSize: '14px', color: '#94A3B8' }}>›</span>
             </a>
 

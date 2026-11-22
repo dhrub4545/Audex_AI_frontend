@@ -268,7 +268,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
               </h1>
             </div>
             <p className="hero-description">
-              Audex AI audits your enterprise subscriptions, detects duplicate licenses, and maps workload optimization paths in under 60 seconds.
+              Audex AI audits your team subscriptions, detects duplicate licenses, and maps workload optimization paths in under 60 seconds.
             </p>
 
             <div className="hero-cta" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
@@ -1222,7 +1222,7 @@ export default function LandingView({ onNavigateToStep1, onViewSample, onPurchas
                 <Shield size={16} />
               </div>
               <div>
-                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>Enterprise-grade Security</h4>
+                <h4 style={{ fontSize: '12.5px', fontWeight: '750', color: '#111827', margin: 0 }}>Bank-grade Security</h4>
                 <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>Secure processing</p>
               </div>
             </div>

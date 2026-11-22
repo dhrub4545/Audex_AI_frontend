@@ -381,7 +381,7 @@ export function SignUpView({
                   <ShieldCheck size={20} />
                 </div>
                 <div className="auth-feature-content">
-                  <div className="auth-feature-title">Enterprise-ready security</div>
+                  <div className="auth-feature-title">Bank-grade security</div>
                   <div className="auth-feature-desc">Your workspace data remains encrypted, private, and securely processed throughout every audit.</div>
                 </div>
               </div>

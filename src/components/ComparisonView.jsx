@@ -486,7 +486,7 @@ export default function ComparisonView({ baseline, recommended, onNavigateBack, 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           if (res.status === 401 || res.status === 403) {
-            throw new Error(errData.error || 'Access Denied. Enterprise subscription required.');
+            throw new Error(errData.error || 'Access Denied. Full access required.');
           }
           if (res.status === 402) {
             throw new Error(errData.error || 'Insufficient credits.');

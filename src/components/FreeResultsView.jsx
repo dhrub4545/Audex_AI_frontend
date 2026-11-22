@@ -536,7 +536,7 @@ export default function FreeResultsView({
             <div>
               <h3 style={{ fontSize: '24px', fontWeight: '850', color: '#0F172A', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <Sparkles size={24} style={{ color: '#10B981' }} />
-                Unlock Your Enterprise Spend Blueprint
+                Unlock Your Complete Spend Blueprint
               </h3>
               <p style={{ fontSize: '14.5px', color: '#64748B', lineHeight: '1.6', marginBottom: '24px' }}>
                 Don't leave massive cost savings on the table. Audex AI Full Suite provides the precise technical roadmap to implement these budget optimizations without compromising model performance.

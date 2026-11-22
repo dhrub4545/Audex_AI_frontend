@@ -72,7 +72,7 @@ export function PurchaseSuccessModal({ show, planName, creditsCount, onClose }) 
           {isUnlock ? (
             <span>Your payment has been cryptographically confirmed by Razorpay. You now have full lifetime access to this spend audit report and developer checklists.</span>
           ) : (
-            <span>Your subscription to the <strong>{planName === 'enterprise' ? 'Enterprise' : 'Professional'} Plan</strong> is confirmed by the banking gateway. All features are immediately active.</span>
+            <span>Your subscription is confirmed by the banking gateway. All features are immediately active.</span>
           )}
         </p>
         <button onClick={onClose} className="btn btn-green" style={{ width: '100%', padding: '13px', borderRadius: '10px', fontWeight: '750', fontSize: '14px', cursor: 'pointer' }}>
@@ -357,7 +357,7 @@ export function CheckoutModal({ show, type, auditId, token, onConfirm, onClose }
 
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontSize: '11px', color: '#94A3B8' }}>
               <Lock size={12} />
-              <span>All Enterprise & Optimization Features Fully Unlocked</span>
+              <span>All Optimization Features Fully Unlocked</span>
             </div>
           </div>
         ) : null}

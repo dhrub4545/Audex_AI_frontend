@@ -2771,18 +2771,18 @@ const getViewUrlParam = (view) => {
 const getViewTitle = (view) => {
   switch (view) {
     case 'model_auditor': return 'Audex AI — Live AI Model Auditor & Benchmark Comparison';
-    case 'market_intel': return 'Audex AI — Enterprise AI Market Intelligence & Leaderboard';
+    case 'market_intel': return 'Audex AI — AI Market Intelligence & Leaderboard';
     case 'profile': return 'Audex AI — Account & Subscription Management';
     case 'step1': return 'Audex AI — AI Subscription Audit Wizard & Spend Calculator';
     case 'step2': return 'Audex AI — Configure AI Tool Allocations';
     case 'step3': return 'Audex AI — Set AI Optimization Goals';
     case 'step4': return 'Audex AI — Optimisation Action Plan (Step 4)';
-    case 'results': return 'Audex AI — Enterprise AI Spend Audit Results';
-    case 'sample_report': return 'Audex AI — Sample Enterprise AI Audit Report';
+    case 'results': return 'Audex AI — AI Spend Audit Results';
+    case 'sample_report': return 'Audex AI — Sample AI Audit Report';
     case 'history': return 'Audex AI — Audit Reports History';
     case 'signin': return 'Audex AI — Sign In';
     case 'signup': return 'Audex AI — Create Free Account';
-    default: return 'Audex AI — Enterprise AI Subscription Audit & LLM Spend Optimizer';
+    default: return 'Audex AI — AI Subscription Audit & LLM Spend Optimizer';
   }
 };
 
@@ -3199,7 +3199,7 @@ export default function App() {
         status: 'active',
         startedAt: new Date(),
         expiresAt: null,
-        paymentMethod: 'Free Enterprise Access'
+        paymentMethod: 'Free Full Access'
       },
       credits: { starter: 999, pro: 999, proMax: 999 },
       unlockedAudits: auditId ? [...new Set([...(user?.unlockedAudits || []), auditId])] : (user?.unlockedAudits || [])
@@ -3246,35 +3246,7 @@ export default function App() {
     }
   };
 
-  const renderCoinDropdown = () => {
-    if (!user) return null;
-    const plan = (user.plan || 'free').toLowerCase();
-    const isEnterprise = plan === 'enterprise';
-    const isPro = plan === 'pro';
-    const planName = isEnterprise ? 'Enterprise Plan' : (isPro ? 'Professional Plan' : 'Free Plan');
-    const shortPlanName = isEnterprise ? 'ENT' : (isPro ? 'PRO' : 'FREE');
-    const badgeColor = isEnterprise ? '#8B5CF6' : (isPro ? '#10B981' : '#64748B');
-    const bgColor = isEnterprise ? '#F5F3FF' : (isPro ? '#ECFDF5' : '#F1F5F9');
-
-    return (
-      <div className="coin-dropdown-container">
-        <button 
-          className="coin-btn" 
-          onClick={() => setCurrentView('profile')}
-          style={{
-            backgroundColor: bgColor,
-            border: `1px solid ${badgeColor}`,
-            color: badgeColor,
-            cursor: 'pointer'
-          }}
-          title={`Active Subscription: ${planName} (Click to manage)`}
-        >
-          <span className="coin-btn-full">✦ {planName}</span>
-          <span className="coin-btn-short">✦ {shortPlanName}</span>
-        </button>
-      </div>
-    );
-  };
+  const renderCoinDropdown = () => null;
 
   // Run audit backend API post
   const triggerAudit = async () => {

@@ -129,7 +129,7 @@ export default function ProfileView({
     return diffDays > 0 ? diffDays : 0;
   };
 
-  const isEnterprise = true;
+  const isEnterprise = false;
   const isPro = false;
   const isFree = false;
 
@@ -162,7 +162,6 @@ export default function ProfileView({
         onNavigateToSignIn={onNavigateToSignIn}
         onNavigateToProfile={() => onNavigateToView('profile')}
         activeView="profile"
-        renderCoinDropdown={renderCoinDropdown}
       />
 
       <main className="main-content" style={{ flex: 1, padding: '36px 16px 64px' }}>
@@ -196,14 +195,14 @@ export default function ProfileView({
                 width: '64px',
                 height: '64px',
                 borderRadius: '18px',
-                background: isEnterprise ? 'linear-gradient(135deg, #7C3AED, #4F46E5)' : isPro ? 'linear-gradient(135deg, #10B981, #059669)' : 'linear-gradient(135deg, #475569, #334155)',
+                background: 'linear-gradient(135deg, #10B981, #059669)',
                 color: '#FFFFFF',
                 fontSize: '24px',
                 fontWeight: '900',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: isEnterprise ? '0 6px 18px rgba(124, 58, 237, 0.25)' : isPro ? '0 6px 18px rgba(16, 185, 129, 0.25)' : 'none'
+                boxShadow: '0 6px 18px rgba(16, 185, 129, 0.25)'
               }}>
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </div>
@@ -221,9 +220,9 @@ export default function ProfileView({
                     fontSize: '11px',
                     fontWeight: '800',
                     textTransform: 'uppercase',
-                    backgroundColor: isEnterprise ? '#F5F3FF' : isPro ? '#ECFDF5' : '#F1F5F9',
-                    color: isEnterprise ? '#7C3AED' : isPro ? '#047857' : '#475569',
-                    border: `1px solid ${isEnterprise ? '#DDD6FE' : isPro ? '#A7F3D0' : '#E2E8F0'}`
+                    backgroundColor: '#ECFDF5',
+                    color: '#047857',
+                    border: '1px solid #A7F3D0'
                   }}>
                     Active Account
                   </span>
@@ -400,7 +399,7 @@ export default function ProfileView({
 
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px', backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <span style={{ fontSize: '13px', color: '#475569', fontWeight: '600' }}>Live AI Model Auditor:</span>
-                    <strong style={{ fontSize: '13px', color: isEnterprise ? '#7C3AED' : '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <strong style={{ fontSize: '13px', color: '#047857', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <span style={{ color: '#047857', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><CheckCircle2 size={15} color="#10B981" /> Full Access</span>
                     </strong>
                   </div>

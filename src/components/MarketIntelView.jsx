@@ -1153,7 +1153,6 @@ export default function MarketIntelView({ onNavigateToView, renderCoinDropdown }
             </div>
           </div>
           <div className="nav-actions">
-            {renderCoinDropdown ? renderCoinDropdown() : null}
             <button onClick={() => onNavigateToView('step1')} className="btn btn-black nav-action-btn" title="Start Free Audit">
               <Sparkles size={14} />
               <span>Free Audit</span>
