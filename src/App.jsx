@@ -2799,9 +2799,8 @@ export default function App() {
   const [tools, setTools] = useState(INITIAL_TOOLS);
   
   // Wizard choices
-  const [selectedToolIds, setSelectedToolIds] = useState(['GitHub Copilot', 'Claude']);
+  const [selectedToolIds, setSelectedToolIds] = useState(['Claude']);
   const [toolConfigs, setToolConfigs] = useState({
-    'GitHub Copilot': [{ id: 'g1', plan: 'Copilot Pro', seats: 5, purpose: 'Coding' }],
     'Claude': [{ id: 'cl1', plan: 'Claude Pro', seats: 4, purpose: 'Writing' }]
   });
   const [teamSize, setTeamSize] = useState(3);
