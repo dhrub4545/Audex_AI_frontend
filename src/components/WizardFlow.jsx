@@ -626,21 +626,10 @@ export default function WizardFlow({
     fetchModels();
   }, []);
 
-  const [limitWarning, setLimitWarning] = useState(null);
-
-  // All audit restrictions removed - unlimited tools for all audits
-  const maxAllowedTools = Infinity;
-
   const toggleToolSelection = (toolId) => {
     if (selectedToolIds.includes(toolId)) {
       setSelectedToolIds(selectedToolIds.filter(id => id !== toolId));
-      setLimitWarning(null);
     } else {
-      if (selectedToolIds.length >= maxAllowedTools) {
-        setLimitWarning(getLimitWarningMessage(maxAllowedTools));
-        return;
-      }
-      setLimitWarning(null);
       setSelectedToolIds([...selectedToolIds, toolId]);
       if (!toolConfigs[toolId] || toolConfigs[toolId].length === 0) {
         const tool = tools.find(t => t.id === toolId);
@@ -660,12 +649,6 @@ export default function WizardFlow({
     if (!modelId) return;
     const model = dbModels.find(m => m.id === modelId);
     if (!model) return;
-
-    if (!selectedToolIds.includes(modelId) && selectedToolIds.length >= maxAllowedTools) {
-      setLimitWarning(getLimitWarningMessage(maxAllowedTools));
-      return;
-    }
-    setLimitWarning(null);
 
     // 1. Add tool to tools list if it doesn't exist
     if (!tools.some(t => t.id === modelId)) {
@@ -703,7 +686,6 @@ export default function WizardFlow({
   };
 
   const handleRemoveApiModel = (modelId) => {
-    setLimitWarning(null);
     setSelectedToolIds(selectedToolIds.filter(id => id !== modelId));
     setToolConfigs(prev => {
       const copy = { ...prev };
@@ -747,11 +729,6 @@ export default function WizardFlow({
 
   const handleAddCustomTool = (e) => {
     if (e.key === 'Enter' && searchQuery.trim() !== '') {
-      if (selectedToolIds.length >= maxAllowedTools) {
-        setLimitWarning(getLimitWarningMessage(maxAllowedTools));
-        return;
-      }
-      setLimitWarning(null);
       const customName = searchQuery.trim();
       if (tools.some(t => t.name.toLowerCase() === customName.toLowerCase())) {
         return;
@@ -1529,26 +1506,7 @@ export default function WizardFlow({
       <main className="main-content wizard-body-wide">
         <div className="wizard-progress-meta">✦ Step 1 of 4 - 25% Complete</div>
         <h2 className="wizard-title" style={{ textAlign: 'center', marginBottom: '8px' }}>Which AI tools does your team use?</h2>
-        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '12px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
-        
-        {/* Dynamic Subscription Limit Badge */}
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '3px 12px',
-            borderRadius: '20px',
-            fontSize: '11.5px',
-            fontWeight: '750',
-            backgroundColor: '#ECFDF5',
-            color: '#059669',
-            border: '1px solid #A7F3D0'
-          }}>
-            <span>⚡</span>
-            <span>Full Access: Unlimited Tools</span>
-          </span>
-        </div>
+        <p className="wizard-desc" style={{ textAlign: 'center', marginBottom: '24px' }}>Select active subscriptions and direct API access nodes currently in use.</p>
 
         {/* Mobile View Switcher (<= 900px) */}
         <div className="step1-view-switcher">
@@ -1876,9 +1834,6 @@ export default function WizardFlow({
               <span>✔</span>
               <span>
                 <strong>{selectedToolIds.length}</strong> tool{selectedToolIds.length !== 1 ? 's' : ''} selected
-                <span style={{ fontSize: '12px', fontWeight: '500', color: '#059669', marginLeft: '6px' }}>
-                  (Unlimited Tools)
-                </span>
               </span>
             </span>
             <button 
