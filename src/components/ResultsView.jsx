@@ -2396,21 +2396,71 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
 
                 return (
                   <div key={rIdx} style={{ marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-                      <div style={{ fontSize: '13px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ width: '3px', height: '14px', backgroundColor: '#6366F1', borderRadius: '2px', display: 'inline-block' }}></span>
+                    {/* Special Highlight Header Container */}
+                    <div style={{
+                      backgroundColor: '#FFFFFF',
+                      border: '1.5px solid #E2E8F0',
+                      borderRadius: '16px',
+                      padding: '16px 22px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      flexWrap: 'wrap',
+                      gap: '12px',
+                      boxShadow: '0 4px 16px -2px rgba(15, 23, 42, 0.04)',
+                      background: 'linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%)'
+                    }}>
+                      <div style={{ fontSize: '13.5px', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.06em', color: '#1E293B', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ width: '4px', height: '16px', backgroundColor: '#6366F1', borderRadius: '2px', display: 'inline-block' }}></span>
                         Detailed Model Analysis: {alloc?.toolName || rec.tool.split(' (')[0]} {isAlreadyBest ? 'Verification' : 'Optimization'}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                        <span style={{ backgroundColor: '#EEF2FF', color: '#4F46E5', border: '1px solid #C7D2FE', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <span style={{
+                          backgroundColor: '#EEF2FF',
+                          color: '#4338CA',
+                          border: '1.5px solid #C7D2FE',
+                          padding: '5px 12px',
+                          borderRadius: '8px',
+                          fontSize: '11.5px',
+                          fontWeight: '800',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 1px 3px rgba(99, 102, 241, 0.08)'
+                        }}>
                           Selected Category: {alloc?.purpose || 'Mixed'}
                         </span>
-                        <span style={{ backgroundColor: scoreDelta != null && scoreDelta > 0 ? '#DCFCE7' : '#EFF6FF', color: scoreDelta != null && scoreDelta > 0 ? '#15803D' : '#2563EB', border: `1px solid ${scoreDelta != null && scoreDelta > 0 ? '#BBF7D0' : '#BFDBFE'}`, padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750' }}>
+                        <span style={{
+                          backgroundColor: scoreDelta != null && scoreDelta > 0 ? '#ECFDF5' : '#EFF6FF',
+                          color: scoreDelta != null && scoreDelta > 0 ? '#047857' : '#1D4ED8',
+                          border: `1.5px solid ${scoreDelta != null && scoreDelta > 0 ? '#A7F3D0' : '#BFDBFE'}`,
+                          padding: '5px 12px',
+                          borderRadius: '8px',
+                          fontSize: '11.5px',
+                          fontWeight: '800',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 1px 3px rgba(16, 185, 129, 0.08)'
+                        }}>
                           Capability Score: {baseScore !== null ? `${baseScore}/100` : 'N/A'} → {optScore !== null ? `${optScore}/100` : 'N/A'} {scoreDelta != null && scoreDelta > 0 ? `(+${scoreDelta} pts)` : (isSameCurrentChoice ? '(100% Optimal)' : '(100% Preserved)')}
                         </span>
                         {baselineIntel?.rank && (
-                          <span style={{ backgroundColor: '#F0FDF4', color: '#047857', border: '1px solid #A7F3D0', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: '750', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                            <Trophy size={12} style={{ color: '#059669' }} /> Market Intel: #{baselineIntel.rank} → #{recommendedIntel?.rank || baselineIntel.rank} ({recommendedIntel?.categoryName || baselineIntel.categoryName})
+                          <span style={{
+                            backgroundColor: '#F0FDF4',
+                            color: '#065F46',
+                            border: '1.5px solid #86EFAC',
+                            padding: '5px 12px',
+                            borderRadius: '8px',
+                            fontSize: '11.5px',
+                            fontWeight: '800',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            boxShadow: '0 1px 3px rgba(34, 197, 94, 0.1)'
+                          }}>
+                            <Trophy size={13} style={{ color: '#059669' }} />
+                            Market Intel: #{baselineIntel.rank} → #{recommendedIntel?.rank || baselineIntel.rank} ({recommendedIntel?.categoryName || baselineIntel.categoryName})
                           </span>
                         )}
                       </div>
@@ -2821,15 +2871,48 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                             <tbody>
                               {specs.map((row, i) => {
                                 const imp = getImprovement(row.cur, row.opt, row.type);
+                                const isRankRow = row.type === 'rank' || row.label.includes('Market Intel');
+                                const isScoreRow = row.type === 'quality' && row.label === domainBenchmarkLabel;
+                                const isSpecialRow = isRankRow || isScoreRow;
                                 return (
-                                  <tr key={i} style={{ borderBottom: i < specs.length - 1 ? '1px solid var(--color-border)' : 'none' }}>
-                                    <td style={{ padding: '12px 16px', fontWeight: '600', color: '#0F172A' }}>{row.label}</td>
+                                  <tr key={i} style={{
+                                    borderBottom: i < specs.length - 1 ? '1px solid var(--color-border)' : 'none',
+                                    backgroundColor: isRankRow ? '#F0FDF4' : (isScoreRow ? '#F5F3FF' : 'transparent')
+                                  }}>
+                                    <td style={{ padding: '12px 16px', fontWeight: isSpecialRow ? '750' : '600', color: isSpecialRow ? '#0F172A' : '#334155' }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        {isRankRow && <Trophy size={14} style={{ color: '#059669', flexShrink: 0 }} />}
+                                        {isScoreRow && <Sparkles size={14} style={{ color: '#7C3AED', flexShrink: 0 }} />}
+                                        <span>{row.label}</span>
+                                        {isSpecialRow && (
+                                          <span style={{ fontSize: '9.5px', fontWeight: '800', textTransform: 'uppercase', padding: '1px 6px', borderRadius: '4px', backgroundColor: isRankRow ? '#DCFCE7' : '#EDE9FE', color: isRankRow ? '#15803D' : '#6D28D9', marginLeft: '4px' }}>
+                                            Key Metric
+                                          </span>
+                                        )}
+                                      </div>
+                                    </td>
                                     {!isSameModel ? (
                                       <>
-                                        <td style={{ padding: '12px 16px', color: '#475569' }}>{row.cur}</td>
-                                        <td style={{ padding: '12px 16px', color: '#0F172A', fontWeight: '700' }}>{row.opt}</td>
+                                        <td style={{ padding: '12px 16px', color: '#475569', fontWeight: isSpecialRow ? '700' : 'normal' }}>
+                                          {isSpecialRow ? (
+                                            <span style={{ padding: '2px 8px', borderRadius: '4px', backgroundColor: '#F1F5F9', color: '#334155', fontWeight: '700' }}>
+                                              {row.cur}
+                                            </span>
+                                          ) : row.cur}
+                                        </td>
+                                        <td style={{ padding: '12px 16px', color: '#0F172A', fontWeight: '750' }}>
+                                          {isSpecialRow ? (
+                                            <span style={{ padding: '2px 8px', borderRadius: '4px', backgroundColor: isRankRow ? '#DCFCE7' : '#EDE9FE', color: isRankRow ? '#15803D' : '#6D28D9', fontWeight: '800' }}>
+                                              {row.opt}
+                                            </span>
+                                          ) : row.opt}
+                                        </td>
                                         <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: '800', color: imp.isGood ? '#10B981' : '#EF4444' }}>
-                                          {imp.text || imp}
+                                          {isSpecialRow ? (
+                                            <span style={{ padding: '3px 10px', borderRadius: '6px', backgroundColor: imp.isGood ? '#ECFDF5' : '#FEF2F2', border: `1px solid ${imp.isGood ? '#A7F3D0' : '#FECACA'}`, color: imp.isGood ? '#047857' : '#DC2626', display: 'inline-block' }}>
+                                              {imp.text || imp}
+                                            </span>
+                                          ) : (imp.text || imp)}
                                         </td>
                                       </>
                                     ) : (
@@ -3316,14 +3399,14 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                       display: 'inline-flex',
                                       alignItems: 'center',
                                       backgroundColor: '#EEF2FF',
-                                      color: '#4F46E5',
-                                      border: '1px solid #C7D2FE',
-                                      padding: '2px 8px',
-                                      borderRadius: '5px',
-                                      fontSize: '10px',
-                                      fontWeight: '750'
+                                      color: '#4338CA',
+                                      border: '1.5px solid #C7D2FE',
+                                      padding: '3px 9px',
+                                      borderRadius: '6px',
+                                      fontSize: '10.5px',
+                                      fontWeight: '800'
                                     }}>
-                                      Category: {row.purpose}
+                                      Selected Category: {row.purpose}
                                     </span>
                                   </div>
                                 </td>
@@ -3363,7 +3446,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                 </td>
                                 <td style={{ padding: '14px 16px', textAlign: 'center' }}>
                                   <div style={{ fontSize: '12px', fontWeight: '800', color: row.scoreDelta > 0 ? '#15803D' : (row.scoreDelta === 0 ? '#2563EB' : '#475569') }}>
-                                    {row.baseScore !== null ? row.baseScore : 'N/A'} → {row.optScore !== null ? row.optScore : 'N/A'}
+                                    {row.baseScore !== null ? `${row.baseScore}/100` : 'N/A'} → {row.optScore !== null ? `${row.optScore}/100` : 'N/A'}
                                   </div>
                                   {row.scoreDelta > 0 ? (
                                     <span style={{ display: 'inline-block', backgroundColor: '#DCFCE7', color: '#15803D', border: '1px solid #BBF7D0', padding: '2px 7px', borderRadius: '4px', fontSize: '9.5px', fontWeight: '750', marginTop: '3px' }}>
@@ -3374,9 +3457,22 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                                       {row.savings === 0 ? '100% Optimal' : '100% Preserved'}
                                     </span>
                                   )}
-                                  {row.optIntel?.rank && row.baseIntel?.rank && row.optIntel.rank < row.baseIntel.rank && (
-                                    <div style={{ fontSize: '9.5px', fontWeight: '750', color: '#047857', marginTop: '3px' }}>
-                                      +{row.baseIntel.rank - row.optIntel.rank} spots higher
+                                  {row.baseIntel?.rank && (
+                                    <div style={{ marginTop: '5px' }}>
+                                      <span style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px',
+                                        fontSize: '9.5px',
+                                        color: '#047857',
+                                        fontWeight: '800',
+                                        backgroundColor: '#F0FDF4',
+                                        border: '1px solid #86EFAC',
+                                        padding: '2px 7px',
+                                        borderRadius: '4px'
+                                      }}>
+                                        <Trophy size={10} style={{ color: '#059669' }} /> Market Intel: #{row.baseIntel.rank} → #{row.optIntel?.rank || row.baseIntel.rank}
+                                      </span>
                                     </div>
                                   )}
                                 </td>
