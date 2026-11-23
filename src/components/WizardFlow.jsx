@@ -252,10 +252,13 @@ const getPurposeIconColor = (value) => {
 
 function PurposeSelect({ value, onChange }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [placement, setPlacement] = useState('down');
+  const [alignRight, setAlignRight] = useState(false);
   const containerRef = React.useRef(null);
   const triggerRef = React.useRef(null);
-  const [dropdownStyle, setDropdownStyle] = useState({});
+  const listRef = React.useRef(null);
 
+  // Close when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
@@ -268,94 +271,107 @@ function PurposeSelect({ value, onChange }) {
     };
   }, []);
 
+  // Close on Escape key
   useEffect(() => {
     if (!isOpen) return;
-
-    const updatePosition = () => {
-      if (!triggerRef.current) return;
-      const rect = triggerRef.current.getBoundingClientRect();
-      const viewportHeight = window.innerHeight;
-
-      const spaceBelow = viewportHeight - rect.bottom - 16;
-      const spaceAbove = rect.top - 16;
-      const popupHeight = 320;
-
-      let openDirection = 'down';
-      let maxHeight = 280;
-
-      if (spaceBelow >= popupHeight) {
-        openDirection = 'down';
-        maxHeight = Math.min(320, spaceBelow);
-      } else if (spaceAbove > spaceBelow) {
-        openDirection = 'up';
-        maxHeight = Math.min(320, spaceAbove);
-      } else {
-        openDirection = 'down';
-        maxHeight = Math.min(280, spaceBelow);
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
       }
-
-
-
-      const newStyle = {
-        position: 'fixed',
-        left: `${rect.left}px`,
-        width: `${rect.width}px`,
-        maxHeight: `${maxHeight}px`,
-        boxSizing: 'border-box',
-        zIndex: 9999
-      };
-
-      if (openDirection === 'down') {
-        newStyle.top = `${rect.bottom + 8}px`;
-        newStyle.animation = 'fadeInSlideDown 180ms ease-out forwards';
-      } else {
-        newStyle.bottom = `${viewportHeight - rect.top + 8}px`;
-        newStyle.animation = 'fadeInSlideUp 180ms ease-out forwards';
-      }
-
-      setDropdownStyle(newStyle);
-    };
-
-    updatePosition();
-
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
+    }
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
+      document.removeEventListener("keydown", handleKeyDown);
     };
+  }, [isOpen]);
+
+  // Determine smart placement on open or resize
+  const updatePositioning = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    // If less than 280px below and more space above, open upwards
+    if (spaceBelow < 280 && spaceAbove > spaceBelow) {
+      setPlacement('up');
+    } else {
+      setPlacement('down');
+    }
+
+    // If trigger button is near right viewport edge, align right edge of dropdown
+    if (rect.left + 250 > window.innerWidth - 20) {
+      setAlignRight(true);
+    } else {
+      setAlignRight(false);
+    }
+  };
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      updatePositioning();
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  };
+
+  // Recalculate if window resizes
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleResize = () => updatePositioning();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isOpen]);
+
+  // Scroll active/selected item into view on open
+  useEffect(() => {
+    if (isOpen && listRef.current) {
+      const selectedEl = listRef.current.querySelector('.dropdown-item.selected');
+      if (selectedEl) {
+        selectedEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
   }, [isOpen]);
 
   const selectedOption = PURPOSE_OPTIONS.find(opt => opt.value === value) || PURPOSE_OPTIONS[0];
   const SelectedIcon = getPurposeIcon(selectedOption.value);
 
   return (
-    <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
+    <div 
+      ref={containerRef} 
+      style={{ 
+        position: 'relative', 
+        width: '100%',
+        zIndex: isOpen ? 1050 : 1
+      }}
+    >
       {/* Trigger Button */}
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         style={{
           width: '100%',
           height: '44px',
           padding: '0 14px',
           backgroundColor: '#FFFFFF',
-          border: '1px solid #E2E8F0',
+          border: isOpen ? '1px solid #10B981' : '1px solid #E2E8F0',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           cursor: 'pointer',
-          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
+          boxShadow: isOpen ? '0 0 0 3px rgba(16, 185, 129, 0.15)' : '0 1px 2px rgba(0, 0, 0, 0.05)',
           transition: 'all 150ms ease',
           boxSizing: 'border-box',
           outline: 'none'
         }}
         onMouseEnter={(e) => {
-          e.currentTarget.style.borderColor = '#94A3B8';
-          e.currentTarget.style.backgroundColor = '#FAFAFA';
+          if (!isOpen) {
+            e.currentTarget.style.borderColor = '#94A3B8';
+            e.currentTarget.style.backgroundColor = '#FAFAFA';
+          }
         }}
         onMouseLeave={(e) => {
           if (!isOpen) {
@@ -363,46 +379,56 @@ function PurposeSelect({ value, onChange }) {
             e.currentTarget.style.backgroundColor = '#FFFFFF';
           }
         }}
-        onFocus={(e) => {
-          e.currentTarget.style.borderColor = '#10B981';
-          e.currentTarget.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.2)';
-        }}
-        onBlur={(e) => {
-          e.currentTarget.style.borderColor = '#E2E8F0';
-          e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-        }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <SelectedIcon size={18} style={{ color: getPurposeIconColor(selectedOption.value), opacity: 0.9, strokeWidth: 2 }} />
-          <span style={{ fontSize: '13.5px', fontWeight: '500', color: '#1E293B' }}>{selectedOption.label}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+          <SelectedIcon size={18} style={{ color: getPurposeIconColor(selectedOption.value), opacity: 0.9, strokeWidth: 2, flexShrink: 0 }} />
+          <span style={{ fontSize: '13.5px', fontWeight: '500', color: '#1E293B', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {selectedOption.label}
+          </span>
         </div>
-        <ChevronDown size={16} style={{ color: '#64748B', transition: 'transform 150ms ease', transform: isOpen ? 'rotate(180deg)' : 'none' }} />
+        <ChevronDown size={16} style={{ color: '#64748B', transition: 'transform 150ms ease', transform: isOpen ? 'rotate(180deg)' : 'none', flexShrink: 0, marginLeft: '6px' }} />
       </button>
 
       {/* Floating Dropdown List */}
       {isOpen && (
         <div
+          ref={listRef}
+          data-lenis-prevent
           className="dropdown-scroll"
+          onWheel={(e) => e.stopPropagation()}
+          onTouchMove={(e) => e.stopPropagation()}
           style={{
-            backgroundColor: 'rgba(255, 255, 255, 0.94)',
-            backdropFilter: 'blur(18px)',
-            WebkitBackdropFilter: 'blur(18px)',
-            border: '1px solid rgba(148, 163, 184, 0.18)',
-            borderRadius: '16px',
-            boxShadow: '0 18px 60px rgba(15, 23, 42, 0.12)',
+            position: 'absolute',
+            ...(placement === 'up'
+              ? { bottom: 'calc(100% + 6px)' }
+              : { top: 'calc(100% + 6px)' }
+            ),
+            ...(alignRight
+              ? { right: 0, left: 'auto' }
+              : { left: 0, right: 'auto' }
+            ),
+            width: 'max(100%, 240px)',
+            maxWidth: '320px',
+            maxHeight: '270px',
             overflowY: 'auto',
+            overscrollBehavior: 'contain',
+            WebkitOverflowScrolling: 'touch',
+            touchAction: 'pan-y',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #E2E8F0',
+            borderRadius: '14px',
+            boxShadow: '0 14px 38px -4px rgba(15, 23, 42, 0.16), 0 4px 12px -2px rgba(15, 23, 42, 0.08)',
             padding: '6px',
             boxSizing: 'border-box',
-            minWidth: '240px',
-            maxWidth: '350px',
-            ...dropdownStyle
+            zIndex: 1050,
+            animation: placement === 'up' ? 'fadeInSlideUp 140ms ease-out forwards' : 'fadeInSlideDown 140ms ease-out forwards'
           }}
         >
           <style>{`
             @keyframes fadeInSlideDown {
               from {
                 opacity: 0;
-                transform: translateY(-6px);
+                transform: translateY(-5px);
               }
               to {
                 opacity: 1;
@@ -412,7 +438,7 @@ function PurposeSelect({ value, onChange }) {
             @keyframes fadeInSlideUp {
               from {
                 opacity: 0;
-                transform: translateY(6px);
+                transform: translateY(5px);
               }
               to {
                 opacity: 1;
@@ -420,17 +446,18 @@ function PurposeSelect({ value, onChange }) {
               }
             }
             .dropdown-scroll::-webkit-scrollbar {
-              width: 4px;
+              width: 5px;
             }
             .dropdown-scroll::-webkit-scrollbar-track {
-              background: transparent;
+              background: rgba(0, 0, 0, 0.02);
+              border-radius: 99px;
             }
             .dropdown-scroll::-webkit-scrollbar-thumb {
               background: #CBD5E1;
               border-radius: 99px;
             }
             .dropdown-scroll::-webkit-scrollbar-thumb:hover {
-              background: #10B981;
+              background: #94A3B8;
             }
             
             .dropdown-item {
