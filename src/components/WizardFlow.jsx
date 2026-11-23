@@ -57,7 +57,7 @@ function getModelRecencyScore(name = '') {
     const v = parseFloat(versionMatch[1]);
     score += v * 1000000;
   }
-  if (s.includes('neon') || s.includes('hydrogen') || s.includes('terra') || s.includes('sol (max)') || s.includes('opus 5') || s.includes('carbon') || s.includes('grok 4.7')) {
+  if (s.includes('neon') || s.includes('hydrogen') || s.includes('terra') || s.includes('sol (max)') || s.includes('opus') || s.includes('carbon') || s.includes('grok 4.7') || s.includes('astra (max)')) {
     score += 500000;
   } else if (s.includes('xhigh') || s.includes('ultra') || s.includes('max')) {
     score += 200000;
