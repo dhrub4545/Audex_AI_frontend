@@ -813,8 +813,7 @@ export default function ActionPlanView({
                                 const sugProvider = rec.apiOption.recommendedProvider || 'OpenAI';
                                 const cleanBaseModelName = (details.modelName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
                                 const cleanSugModelName = sugApiModel.toLowerCase().replace(/[^a-z0-9]/g, '');
-                                const isSameApi = rec.apiOption?.isAlreadyOptimized ||
-                                                  (rec.apiOption?.savings !== undefined && rec.apiOption.savings <= 0) ||
+                                const isSameApi = (rec.apiOption?.isAlreadyOptimized || rec.apiOption?.alreadyOptimized) ||
                                                   (details.type === 'api' && 
                                                     (
                                                       uiChoiceLabelsMatch(
@@ -1082,8 +1081,7 @@ export default function ActionPlanView({
                                 const sugModel = rec.subscriptionOption.planName || rec.subscriptionOption.recommendedModel || 'Claude Pro';
                                 const currentContext = [details.provider, details.toolName];
                                 const suggestedContext = [sugProvider];
-                                const isSameSub = rec.subscriptionOption?.isAlreadyOptimized ||
-                                  (rec.subscriptionOption?.savings !== undefined && rec.subscriptionOption.savings <= 0) ||
+                                const isSameSub = (rec.subscriptionOption?.isAlreadyOptimized || rec.subscriptionOption?.alreadyOptimized) ||
                                   (details.type === 'subscription' &&
                                     (
                                       uiChoiceLabelsMatch(currentDisplayName, sugModel, currentContext, suggestedContext) ||
