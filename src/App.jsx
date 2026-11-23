@@ -612,20 +612,23 @@ const INITIAL_TOOLS = [
         "Gemma 4 31B (Reasoning)"
       ],
       "AI Pro": [
+        "Antigravity CLI - Gemini 4 Argon (high)",
         "Gemini 4 Argon (High)",
         "Gemini 3.8 Flash (High)",
-        "Gemini 3.8 Flash (Medium)"
+        "Gemini 2.5 Pro"
       ],
       "AI Ultra (100)": [
-        "Gemini 4 Carbon (High)",
-        "Gemini 4 Argon (High)",
-        "Gemini 3.8 Flash (High)",
+        "Antigravity CLI - Gemini 4 Neon (xhigh)",
+        "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+        "Antigravity CLI - Gemini 4 Carbon (high)",
+        "Antigravity CLI - Gemini 4 Argon (high)",
         "Gemini 3 Deep Think"
       ],
       "AI Ultra (200)": [
-        "Gemini 4 Carbon (High)",
-        "Gemini 4 Argon (High)",
-        "Gemini 3.8 Flash (High)",
+        "Antigravity CLI - Gemini 4 Neon (xhigh)",
+        "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+        "Antigravity CLI - Gemini 4 Carbon (high)",
+        "Antigravity CLI - Gemini 4 Argon (high)",
         "Gemini 3 Deep Think"
       ]
     },
@@ -662,15 +665,19 @@ const INITIAL_TOOLS = [
       }
     },
     "allModels": [
+      "Antigravity CLI - Gemini 4 Neon (xhigh)",
+      "Gemini 4 Neon (Xhigh)",
+      "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+      "Gemini 4 Hydrogen (Xhigh)",
+      "Antigravity CLI - Gemini 4 Carbon (high)",
+      "Gemini 4 Carbon (High)",
+      "Antigravity CLI - Gemini 4 Argon (high)",
+      "Gemini 4 Argon (High)",
       "Gemini 3.8 Flash (High)",
       "Gemini 3.7 Flash (High)",
       "Gemini 3.6 Flash (High)",
       "DiffusionGemma 26B A4B",
       "Gemma 4 31B (Reasoning)",
-      "Gemini 4 Argon (High)",
-      "Gemini 3.1 Pro Preview",
-      "Gemini 3 Pro Preview (High)",
-      "Gemini 4 Carbon (High)",
       "Gemini 3 Deep Think"
     ],
     "tiers": [
@@ -684,17 +691,17 @@ const INITIAL_TOOLS = [
         "annualDiscount": false,
         "isPerSeat": false,
         "models": [
-          "google/gemini-3-8-flash",
+          "google/gemini-3.8-flash",
           "google/gemini-3-7-flash",
-          "google/gemini-3-6-flash"
+          "google/gemini-3-5-flash-lite"
         ],
         "rawModels": [
           "Gemini 3.8 Flash (High)",
           "Gemini 3.7 Flash (High)",
-          "Gemini 3.6 Flash (High)"
+          "Gemini 3.5 Flash-Lite"
         ],
         "limits": "32K token context window. Standard usage limits. US users have access to Pro for advanced thinking with daily limits.",
-        "last_synced_at": "2026-11-01T12:04:32.852Z"
+        "last_synced_at": "2026-11-23T09:44:24.999Z"
       },
       {
         "category": "Chat & Reasoning",
@@ -706,19 +713,19 @@ const INITIAL_TOOLS = [
         "annualDiscount": false,
         "isPerSeat": false,
         "models": [
-          "google/gemini-3-8-flash",
+          "google/gemini-3.8-flash",
           "google/gemini-3-7-flash",
           "google/diffusiongemma-26b-a4b",
-          "google/gemma-4-31b"
+          "google/gemma-4-26b-a4b"
         ],
         "rawModels": [
           "Gemini 3.8 Flash (High)",
           "Gemini 3.7 Flash (High)",
           "DiffusionGemma 26B A4B",
-          "Gemma 4 31B (Reasoning)"
+          "Gemma 4 26B A4B (Reasoning)"
         ],
         "limits": "2x higher usage limits than Free. 128K token context window. 400GB cloud storage. Daily Brief feature. Redo images with Nano Banana Pro. Video generation with Omni Flash.",
-        "last_synced_at": "2026-11-01T12:04:32.852Z"
+        "last_synced_at": "2026-11-23T09:44:24.999Z"
       },
       {
         "category": "Chat & Reasoning",
@@ -730,19 +737,19 @@ const INITIAL_TOOLS = [
         "annualDiscount": true,
         "isPerSeat": false,
         "models": [
+          "google/antigravity-cli-gemini-4-argon-high",
           "google/gemini-4-argon",
-          "google/gemini-3-8-flash",
-          "google/gemini-3-1-pro-preview",
-          "google/gemini-3-pro"
+          "google/gemini-3.8-flash",
+          "google/gemini-2.5-pro"
         ],
         "rawModels": [
+          "Antigravity CLI - Gemini 4 Argon (high)",
           "Gemini 4 Argon (High)",
           "Gemini 3.8 Flash (High)",
-          "Gemini 3.1 Pro Preview",
-          "Gemini 3 Pro Preview (High)"
+          "Gemini 2.5 Pro"
         ],
         "limits": "4x higher usage limits than Free. 1M token context window (1,500 pages of text or 30,000 lines of code). 5TB cloud storage. YouTube Premium Lite included. Google Home Premium and Health Premium included. Higher AI Studio limits.",
-        "last_synced_at": "2026-11-01T12:04:32.853Z"
+        "last_synced_at": "2026-11-23T09:44:25.000Z"
       },
       {
         "category": "Chat & Reasoning",
@@ -754,19 +761,21 @@ const INITIAL_TOOLS = [
         "annualDiscount": false,
         "isPerSeat": false,
         "models": [
-          "google/gemini-4-carbon",
-          "google/gemini-4-argon",
-          "google/gemini-3-1-pro-preview",
+          "google/antigravity-cli-gemini-4-neon-xhigh",
+          "google/antigravity-cli-gemini-4-hydrogen-xhigh",
+          "google/antigravity-cli-gemini-4-carbon-high",
+          "google/antigravity-cli-gemini-4-argon-high",
           "google/gemini-3-deep-think"
         ],
         "rawModels": [
-          "Gemini 4 Carbon (High)",
-          "Gemini 4 Argon (High)",
-          "Gemini 3.1 Pro Preview",
+          "Antigravity CLI - Gemini 4 Neon (xhigh)",
+          "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+          "Antigravity CLI - Gemini 4 Carbon (high)",
+          "Antigravity CLI - Gemini 4 Argon (high)",
           "Gemini 3 Deep Think"
         ],
         "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users.",
-        "last_synced_at": "2026-11-01T12:04:32.853Z"
+        "last_synced_at": "2026-11-23T09:44:25.000Z"
       },
       {
         "category": "Chat & Reasoning",
@@ -778,19 +787,21 @@ const INITIAL_TOOLS = [
         "annualDiscount": false,
         "isPerSeat": false,
         "models": [
-          "google/gemini-4-carbon",
-          "google/gemini-4-argon",
-          "google/gemini-3-1-pro-preview",
+          "google/antigravity-cli-gemini-4-neon-xhigh",
+          "google/antigravity-cli-gemini-4-hydrogen-xhigh",
+          "google/antigravity-cli-gemini-4-carbon-high",
+          "google/antigravity-cli-gemini-4-argon-high",
           "google/gemini-3-deep-think"
         ],
         "rawModels": [
-          "Gemini 4 Carbon (High)",
-          "Gemini 4 Argon (High)",
-          "Gemini 3.1 Pro Preview",
+          "Antigravity CLI - Gemini 4 Neon (xhigh)",
+          "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+          "Antigravity CLI - Gemini 4 Carbon (high)",
+          "Antigravity CLI - Gemini 4 Argon (high)",
           "Gemini 3 Deep Think"
         ],
         "limits": "20x higher usage limit than Pro. 30TB cloud storage. All features of the $100 Ultra plan plus Project Genie (experimental world-building with Street View-powered capabilities). Previously $250/month, reduced to $200 at I/O 2026.",
-        "last_synced_at": "2026-11-01T12:04:32.853Z"
+        "last_synced_at": "2026-11-23T09:44:25.001Z"
       }
     ]
   },

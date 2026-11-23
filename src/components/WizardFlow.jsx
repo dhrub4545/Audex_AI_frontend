@@ -36,8 +36,8 @@ import {
 } from 'lucide-react';
 
 export function isDiscontinuedModel(name = '') {
-  const s = (name || '').toLowerCase();
-  if (s.includes("dec '24") || s.includes("dec 24") || s.includes("apr '24") || s.includes("apr 24") || s.includes("mar '25") || s.includes("may '25")) return true;
+  const s = (name || '').toLowerCase().replace(/[''"]/g, "'");
+  if (/\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[\s']*2[45]\b/i.test(s)) return true;
   if (s.includes('gpt-3') || s.includes('gpt-3.5') || s.includes('gpt-4-0') || s.includes('o1-preview') || s.includes('o1-mini')) return true;
   if (s.includes('claude-1') || s.includes('claude-2') || s.includes('claude 1') || s.includes('claude 2') || s.includes('claude-instant')) return true;
   if (s.includes('gemini-1.0') || s.includes('gemini 1.0') || s.includes('pro-vision')) return true;
@@ -57,7 +57,7 @@ function getModelRecencyScore(name = '') {
     const v = parseFloat(versionMatch[1]);
     score += v * 1000000;
   }
-  if (s.includes('terra') || s.includes('sol (max)') || s.includes('opus 5') || s.includes('carbon') || s.includes('grok 4.7')) {
+  if (s.includes('neon') || s.includes('hydrogen') || s.includes('terra') || s.includes('sol (max)') || s.includes('opus 5') || s.includes('carbon') || s.includes('grok 4.7')) {
     score += 500000;
   } else if (s.includes('xhigh') || s.includes('ultra') || s.includes('max')) {
     score += 200000;
