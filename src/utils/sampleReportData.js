@@ -2,7 +2,7 @@
 export const SAMPLE_AUDIT_DATA = {
   "_id": "sample_audit_2026",
   "userId": "sample_user",
-  "createdAt": "2026-11-22T04:08:35.742Z",
+  "createdAt": "2026-11-24T06:55:45.530Z",
   "teamSize": 12,
   "useCase": "Coding & Mixed Workloads",
   "optimizationGoal": "performance",
@@ -35,11 +35,11 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelId": "openai/codex-gpt-6-2-sol-xhigh",
       "baselineModelName": "Codex - GPT-6.2 Sol (xhigh)",
       "baselineModels": [
+        "Codex - GPT-6.2 Astra (max)",
         "Codex - GPT-6.2 Sol (xhigh)",
-        "Codex - GPT-6.2 Sol (high)",
-        "Codex - GPT-6.2 Astra (medium)",
-        "Codex - GPT-6.2 Sol (medium)",
-        "Codex - GPT-6.2 Sol (low)"
+        "Astra for Law 6.2 (Max)",
+        "GPT-6.1 Sol (Xhigh)",
+        "Codex - GPT-6 Luna (max)"
       ]
     },
     {
@@ -56,8 +56,10 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
       "baselineModelName": "Claude Code - Claude Sonnet 5.5 (max)",
       "baselineModels": [
+        "Claude Code - Claude Fable 5.2 (xhigh)",
         "Claude Code - Claude Sonnet 5.5 (max)",
-        "Claude Code - Claude Fable 5.2 (medium)"
+        "Claude Code - Claude Fable 5.1 (max)",
+        "Claude Sonnet 5 (Max)"
       ]
     },
     {
@@ -77,7 +79,7 @@ export const SAMPLE_AUDIT_DATA = {
         "Gemini 3.8 Flash (High)",
         "Gemini 3.7 Flash (High)",
         "DiffusionGemma 26B A4B",
-        "Gemma 4 31B (Reasoning)"
+        "Gemma 4 26B A4B (Reasoning)"
       ]
     },
     {
@@ -111,8 +113,9 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelName": "Mistral Vibe - Mistral Large 4 (high)",
       "baselineModels": [
         "Mistral Vibe - Mistral Large 4 (high)",
-        "Mistral Vibe - Mistral Large 4 (medium)",
-        "Pixtral Large"
+        "Mistral Medium 3.5",
+        "Devstral 2",
+        "Mistral Large 3"
       ]
     },
     {
@@ -124,15 +127,15 @@ export const SAMPLE_AUDIT_DATA = {
       "purpose": "Research",
       "pricePerSeat": 7.99,
       "currentCost": 7.99,
-      "topModelId": "meta/muse-code-muse-wonder-full-max",
-      "topModelName": "Muse Code - Muse Wonder Full (max)",
-      "baselineModelId": "meta/muse-code-muse-wonder-full-max",
-      "baselineModelName": "Muse Code - Muse Wonder Full (max)",
+      "topModelId": "meta-llama/muse-wonder-full",
+      "topModelName": "Muse Wonder Full (Max)",
+      "baselineModelId": "meta-llama/muse-wonder-full",
+      "baselineModelName": "Muse Wonder Full (Max)",
       "baselineModels": [
+        "Muse Wonder Full (Max)",
+        "Hermes 4 - Llama-3.1 405B (Reasoning)",
         "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-        "Muse Code - Muse Wonder Full (max)",
-        "Muse Code - Muse Wonder (max)",
-        "Muse Wonder Full (Max)"
+        "Muse Code - Muse Wonder Full (max)"
       ]
     },
     {
@@ -150,10 +153,10 @@ export const SAMPLE_AUDIT_DATA = {
       "baselineModelName": "DeepSeek Harness - DeepSeek V4.1 Flash 1017 (max)",
       "baselineModels": [
         "DeepSeek Harness - DeepSeek V4.1 Flash 1017 (max)",
-        "DeepSeek V4.1 Flash (Max)",
-        "DeepSeek V4.1 Flash 1017 (Max)",
         "DeepSeek V4 Flash Vision (Max)",
-        "DeepSeek V4 Pro 0813 (Max)"
+        "DeepSeek V4 Pro 0813 (Max)",
+        "DeepSeek V4 Flash 0731 (Max)",
+        "DeepSeek V3.2 (Non-reasoning)"
       ]
     }
   ],
@@ -162,10 +165,10 @@ export const SAMPLE_AUDIT_DATA = {
     "totalAnnual": 2691.72,
     "totalOptimizedSpend": 163.65,
     "percentageSavings": 57.8,
-    "apiMonthly": 215.45,
-    "apiAnnual": 2585.4,
-    "subMonthly": 26.01,
-    "subAnnual": 312.12,
+    "apiMonthly": 192.95,
+    "apiAnnual": 2315.4,
+    "subMonthly": 131.01,
+    "subAnnual": 1572.12,
     "recommendations": [
       {
         "_id": "rec_0",
@@ -177,6 +180,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 30,
         "monthlySavings": 12.01,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_0",
@@ -189,6 +193,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Antigravity CLI - Gemini 4 Neon (xhigh).",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $3.00/1M input, $15.00/1M output. Context: 1M.",
           "includedModels": [
             "Antigravity CLI - Gemini 4 Neon (xhigh)"
@@ -207,10 +212,10 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 12.01,
           "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
           "includedModels": [
+            "Muse Wonder Full (Max)",
+            "Hermes 4 - Llama-3.1 405B (Reasoning)",
             "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-            "Muse Code - Muse Wonder Full (max)",
-            "Muse Code - Muse Wonder (max)",
-            "Muse Wonder Full (Max)"
+            "Muse Code - Muse Wonder Full (max)"
           ],
           "modelId": "meta/muse-code-muse-wonder-full-max",
           "topModelId": "meta/muse-code-muse-wonder-full-max",
@@ -220,6 +225,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Migrate to the Meta One Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
+          "isAlreadyOptimized": false,
           "recommendedModel": "Meta One Plus",
           "recommendedProvider": "Meta"
         },
@@ -247,6 +253,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 10,
         "monthlySavings": 15.63,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_1",
@@ -259,6 +266,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Antigravity CLI - Gemini 4 Neon (xhigh).",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $3.00/1M input, $15.00/1M output. Context: 1M.",
           "includedModels": [
             "Antigravity CLI - Gemini 4 Neon (xhigh)"
@@ -277,8 +285,10 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 0,
           "limits": "More usage than Free plan. Access to unlimited projects.",
           "includedModels": [
+            "Claude Code - Claude Fable 5.2 (xhigh)",
             "Claude Code - Claude Sonnet 5.5 (max)",
-            "Claude Code - Claude Fable 5.2 (medium)"
+            "Claude Code - Claude Fable 5.1 (max)",
+            "Claude Sonnet 5 (Max)"
           ],
           "modelId": "anthropic/claude-code-claude-sonnet-5-5-max",
           "topModelId": "anthropic/claude-code-claude-sonnet-5-5-max",
@@ -288,6 +298,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "The current subscription is already optimized with optimal cost and rank in this category.",
           "alreadyOptimized": true,
+          "isAlreadyOptimized": true,
           "recommendedModel": "Claude Pro",
           "recommendedProvider": "Anthropic"
         },
@@ -315,6 +326,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 73,
         "monthlySavings": 4.43,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_2",
@@ -327,6 +339,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High.",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 1M.",
           "includedModels": [
             "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High"
@@ -348,7 +361,7 @@ export const SAMPLE_AUDIT_DATA = {
             "Gemini 3.8 Flash (High)",
             "Gemini 3.7 Flash (High)",
             "DiffusionGemma 26B A4B",
-            "Gemma 4 31B (Reasoning)"
+            "Gemma 4 26B A4B (Reasoning)"
           ],
           "modelId": "google/gemini-3-7-flash",
           "topModelId": "google/gemini-3-7-flash",
@@ -358,6 +371,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "The current subscription is already optimized with optimal cost and rank in this category.",
           "alreadyOptimized": true,
+          "isAlreadyOptimized": true,
           "recommendedModel": "Gemini AI Plus",
           "recommendedProvider": "Google"
         },
@@ -385,6 +399,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 3,
         "monthlySavings": 157.5,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_3",
@@ -397,6 +412,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Antigravity CLI - Gemini 4 Neon (xhigh).",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $3.00/1M input, $15.00/1M output. Context: 1M.",
           "includedModels": [
             "Antigravity CLI - Gemini 4 Neon (xhigh)"
@@ -410,21 +426,28 @@ export const SAMPLE_AUDIT_DATA = {
         },
         "subscriptionOption": {
           "_id": "rec_sub_3",
-          "planName": "Claude Free",
-          "cost": 225,
-          "savings": 0,
-          "limits": "Free plan limits",
-          "includedModels": [],
-          "modelId": "anthropic/claude-fable-5",
-          "topModelId": "anthropic/claude-fable-5",
-          "topModelName": "Claude Fable 5 (Max, Opus 4.8 Fallback)",
-          "performance_score": 58,
-          "category_rank": 3,
-          "action": "Migrate to the Claude Free subscription.",
+          "planName": "Gemini AI Ultra (100)",
+          "cost": 100,
+          "savings": 125,
+          "limits": "5x higher usage limit than Pro. 20TB cloud storage. YouTube Premium individual plan. Priority access to Google Antigravity. Access to Gemini Spark. Introduced at Google I/O 2026 for developers and power users.",
+          "includedModels": [
+            "Antigravity CLI - Gemini 4 Neon (xhigh)",
+            "Antigravity CLI - Gemini 4 Hydrogen (xhigh)",
+            "Antigravity CLI - Gemini 4 Carbon (high)",
+            "Antigravity CLI - Gemini 4 Argon (high)",
+            "Gemini 3 Deep Think"
+          ],
+          "modelId": "google/antigravity-cli-gemini-4-neon-xhigh",
+          "topModelId": "google/antigravity-cli-gemini-4-neon-xhigh",
+          "topModelName": "Antigravity CLI - Gemini 4 Neon (xhigh)",
+          "performance_score": 59,
+          "category_rank": 1,
+          "action": "Migrate to the Gemini AI Ultra (100) subscription.",
           "statusText": "",
           "alreadyOptimized": false,
-          "recommendedModel": "Claude Free",
-          "recommendedProvider": "Anthropic"
+          "isAlreadyOptimized": false,
+          "recommendedModel": "Gemini AI Ultra (100)",
+          "recommendedProvider": "Google"
         },
         "originalAlloc": {
           "type": "api",
@@ -450,6 +473,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 50,
         "monthlySavings": 28.86,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_4",
@@ -462,6 +486,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High.",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $0.10/1M input, $0.50/1M output. Context: 1M.",
           "includedModels": [
             "Devin Fusion CLI - Claude Opus 5.5 Max + GPT-6 Luna High"
@@ -480,10 +505,10 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 14,
           "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
           "includedModels": [
+            "Muse Wonder Full (Max)",
+            "Hermes 4 - Llama-3.1 405B (Reasoning)",
             "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-            "Muse Code - Muse Wonder Full (max)",
-            "Muse Code - Muse Wonder (max)",
-            "Muse Wonder Full (Max)"
+            "Muse Code - Muse Wonder Full (max)"
           ],
           "modelId": "meta/muse-code-muse-wonder-full-max",
           "topModelId": "meta/muse-code-muse-wonder-full-max",
@@ -493,6 +518,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Migrate to the Meta One Plus subscription.",
           "statusText": "",
           "alreadyOptimized": false,
+          "isAlreadyOptimized": false,
           "recommendedModel": "Meta One Plus",
           "recommendedProvider": "Meta"
         },
@@ -520,6 +546,7 @@ export const SAMPLE_AUDIT_DATA = {
         "baselineRank": 21,
         "monthlySavings": 5.9,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_5",
@@ -532,6 +559,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Transition active users to direct API keys using Step 5 Preview.",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $1.00/1M input, $2.70/1M output. Context: 1M.",
           "includedModels": [
             "Step 5 Preview"
@@ -550,19 +578,20 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": 0,
           "limits": "Includes Facebook Plus, Instagram Plus, and WhatsApp Plus benefits at a discounted price[reference:8]. More monthly AI usage allowance for eligible AI features[reference:9]. More advanced reasoning with Thinking mode[reference:10]. Currently in limited testing in select locations[reference:11][reference:12].",
           "includedModels": [
+            "Muse Wonder Full (Max)",
+            "Hermes 4 - Llama-3.1 405B (Reasoning)",
             "Llama 3.1 Nemotron Ultra 253B v1 (Reasoning)",
-            "Muse Code - Muse Wonder Full (max)",
-            "Muse Code - Muse Wonder (max)",
-            "Muse Wonder Full (Max)"
+            "Muse Code - Muse Wonder Full (max)"
           ],
-          "modelId": "meta/muse-code-muse-wonder-full-max",
-          "topModelId": "meta/muse-code-muse-wonder-full-max",
-          "topModelName": "Muse Code - Muse Wonder Full (max)",
+          "modelId": "meta-llama/muse-wonder-full",
+          "topModelId": "meta-llama/muse-wonder-full",
+          "topModelName": "Muse Wonder Full (Max)",
           "performance_score": 84,
           "category_rank": 21,
           "action": "Your current subscription is already the best choice. Keep using it.",
           "statusText": "The current subscription is already optimized with optimal cost and rank in this category.",
           "alreadyOptimized": true,
+          "isAlreadyOptimized": true,
           "recommendedModel": "Meta One Plus",
           "recommendedProvider": "Meta"
         },
@@ -575,7 +604,7 @@ export const SAMPLE_AUDIT_DATA = {
           "currentCost": 7.99,
           "modelId": "",
           "provider": "Meta",
-          "modelName": "Muse Code - Muse Wonder Full (max)",
+          "modelName": "Muse Wonder Full (Max)",
           "performance_score": 84,
           "category_rank": 21
         }
@@ -588,8 +617,9 @@ export const SAMPLE_AUDIT_DATA = {
         "purpose": "Mixed",
         "baselineScore": 33,
         "baselineRank": 71,
-        "monthlySavings": 0,
+        "monthlySavings": -20,
         "isAlreadyOptimized": false,
+        "alreadyOptimized": false,
         "statusText": "",
         "apiOption": {
           "_id": "rec_api_6",
@@ -602,6 +632,7 @@ export const SAMPLE_AUDIT_DATA = {
           "action": "Adopt direct API keys with dedicated SLAs using Claude Fable 5.2 (Max, Default Fallback).",
           "statusText": "",
           "isAlreadyOptimized": false,
+          "alreadyOptimized": false,
           "limits": "Pay-as-you-go rates: $8.00/1M input, $40.00/1M output. Context: 1M.",
           "includedModels": [
             "Claude Fable 5.2 (Max, Default Fallback)"
@@ -620,17 +651,20 @@ export const SAMPLE_AUDIT_DATA = {
           "savings": -20,
           "limits": "More usage than Free plan. Access to unlimited projects.",
           "includedModels": [
+            "Claude Code - Claude Fable 5.2 (xhigh)",
             "Claude Code - Claude Sonnet 5.5 (max)",
-            "Claude Code - Claude Fable 5.2 (medium)"
+            "Claude Code - Claude Fable 5.1 (max)",
+            "Claude Sonnet 5 (Max)"
           ],
-          "modelId": "anthropic/claude-code-claude-fable-5-2-medium",
-          "topModelId": "anthropic/claude-code-claude-fable-5-2-medium",
-          "topModelName": "Claude Code - Claude Fable 5.2 (medium)",
+          "modelId": "anthropic/claude-code-claude-fable-5-2-xhigh",
+          "topModelId": "anthropic/claude-code-claude-fable-5-2-xhigh",
+          "topModelName": "Claude Code - Claude Fable 5.2 (xhigh)",
           "performance_score": 65,
           "category_rank": 1,
           "action": "Migrate to the Claude Pro subscription.",
           "statusText": "",
           "alreadyOptimized": false,
+          "isAlreadyOptimized": false,
           "recommendedModel": "Claude Pro",
           "recommendedProvider": "Anthropic"
         },
