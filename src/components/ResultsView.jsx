@@ -686,8 +686,13 @@ const formatContextWindow = (ctx) => {
 const getImprovement = (current, suggested, type) => {
   if (current === undefined || current === null || suggested === undefined || suggested === null) return '—';
   if (type === 'rank') {
-    const curRank = typeof current === 'number' ? current : parseInt(String(current).replace(/[^0-9]/g, ''), 10);
-    const optRank = typeof suggested === 'number' ? suggested : parseInt(String(suggested).replace(/[^0-9]/g, ''), 10);
+    const parseRank = (val) => {
+      if (typeof val === 'number') return val;
+      const match = String(val).match(/#?(\d+)/);
+      return match ? parseInt(match[1], 10) : NaN;
+    };
+    const curRank = parseRank(current);
+    const optRank = parseRank(suggested);
     if (!isNaN(curRank) && !isNaN(optRank)) {
       const diff = curRank - optRank; // positive means opt is a lower number, i.e. higher rank on leaderboard
       if (diff > 0) return { text: `↑ +${diff} spots`, isGood: true };
@@ -707,13 +712,33 @@ const getImprovement = (current, suggested, type) => {
       return { text: '→ 0.00%', isGood: true };
     }
   }
-  if (typeof current === 'string') current = parseFloat(current.replace(/[^0-9.-]/g, ''));
-  if (typeof suggested === 'string') suggested = parseFloat(suggested.replace(/[^0-9.-]/g, ''));
 
-  if (isNaN(current) || isNaN(suggested) || current === 0) return '—';
+  const parseVal = (v) => {
+    if (typeof v === 'number') return v;
+    if (!v) return NaN;
+    const str = String(v).trim();
+    if (str.includes('/')) {
+      const part = str.split('/')[0].replace(/[^0-9.-]/g, '');
+      return parseFloat(part);
+    }
+    return parseFloat(str.replace(/[^0-9.-]/g, ''));
+  };
 
-  const diff = suggested - current;
-  const pct = Math.abs((diff / current) * 100).toFixed(2);
+  const curVal = parseVal(current);
+  const optVal = parseVal(suggested);
+
+  if (isNaN(curVal) || isNaN(optVal)) return '—';
+
+  if (curVal === 0) {
+    if (optVal === 0) return { text: '→ $0.00', isGood: true };
+    if (type === 'cost') {
+      return { text: `+$${optVal.toFixed(2)}`, isGood: false };
+    }
+    return '—';
+  }
+
+  const diff = optVal - curVal;
+  const pct = Math.abs((diff / curVal) * 100).toFixed(2);
 
   if (type === 'cost' || type === 'latency') {
     if (diff < 0) {
@@ -2264,7 +2289,7 @@ export default function ResultsView({ auditResult, selectedOptions, onNavigateTo
                 const currentMonthly = alloc?.currentCost || 0;
                 const choice = finalSelectedOptions[origIdx] || 'api';
                 const opt = choice === 'api' ? rec.apiOption : rec.subscriptionOption;
-                const suggestedMonthly = Math.max(0, currentMonthly - (opt ? opt.savings : 0));
+                const suggestedMonthly = calculateOptimizedCost(alloc, rec, choice, tokenAdjustments, origIdx);
 
                 const baseScores = getBenchmarkScores(baseline, null, null, intelData);
                 const optScores = getBenchmarkScores(recommended, null, null, intelData);
